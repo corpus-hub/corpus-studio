@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
+    "lib": ["ES2022"],
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"]
+    }
+  },
+  "include": [
+    "src/main/**/*",
+    "src/preload/**/*",
+    "src/shared/**/*",
+    "scripts/**/*",
+    "plugins/**/*",
+    "electron.vite.config.ts"
+  ],
+  "exclude": [
+    // The relay is a SEPARATE package with its own tsconfig, its own module
+    // resolution (NodeNext rather than Bundler) and no access to the app's
+    // modules. Each plugin server is typechecked by its own tsconfig.
+    // Pulling it in here would resolve its imports under the app's settings and
+    // so typecheck a configuration nobody ever builds it with.
+    "plugins/*/server/**",
+    // Playwright-driver scripts: their `page.evaluate(() => window/document...)`
+    // callbacks run in the BROWSER context (DOM globals available at runtime),
+    // which the Node lib set can't type. Like e2e/ (also not in this project),
+    // these are validated by actually running (build + e2e + acceptance gates),
+    // not by the Node typecheck.
+    "scripts/acceptance-shots.ts",
+    "scripts/acceptance-verify.ts",
+    "scripts/demo-frames.ts"
+  ]
+}

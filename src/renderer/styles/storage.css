@@ -1,0 +1,298 @@
+/* -------------------------------------------------- Storage locations (Settings)
+   The state space here is non-trivial, so it is written out deliberately:
+
+     row:     idle · hover · busy · unreachable · not-verified · editing
+     buttons: default · hover · active · focus-visible · disabled · busy
+
+   Every combination must be visually DISTINCT from every other, and no state is
+   signalled by colour alone — each carries a border, weight or opacity change
+   as well, so it survives a colour-blind read and a low-contrast panel. */
+
+.stor-intro {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted-2);
+  margin: -4px 0 12px;
+}
+
+.stor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.stor-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 13px 15px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--bg-2);
+  /* Both properties ease: a row that changes reachability while open should
+     settle rather than snap between surfaces. */
+  transition:
+    background 0.16s ease-in-out,
+    border-color 0.16s ease-in-out,
+    opacity 0.16s ease-in-out;
+}
+
+.stor-row:hover {
+  background: var(--panel);
+  border-color: var(--border-2);
+}
+
+/* In-flight. Dimmed AND de-emphasised at the border, so "busy" cannot be
+   confused with "hovered" on a row that happens to be under the pointer. The
+   controls inside are disabled separately — this is the ambient signal. */
+.stor-row.is-busy {
+  opacity: 0.62;
+  background: var(--panel);
+  border-color: var(--border);
+}
+
+/* An unreachable location keeps a tinted left edge even at rest, so the state
+   is legible while scanning the list rather than only on its badge. */
+.stor-row:has(.badge-danger) {
+  border-left: 3px solid var(--danger);
+  padding-left: 13px;
+}
+.stor-row:has(.badge-warn) {
+  border-left: 3px solid var(--warn);
+  padding-left: 13px;
+}
+
+/* Being edited: the accent edge plus a tinted surface, distinct from both hover
+   and busy. */
+.stor-row-edit {
+  border-color: var(--accent-100);
+  background: var(--accent-soft);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.stor-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.stor-row-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+
+.stor-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.stor-managed,
+.stor-kind,
+.stor-reach {
+  font-size: 10px;
+}
+
+.stor-reach {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* The glyph carries the state as a SHAPE (✓ / ✕ / ?) beside the word, so the
+   badge never depends on its hue alone. */
+.stor-reach-glyph {
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stor-path {
+  font-size: 11.5px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+.stor-count {
+  font-size: 10.5px;
+  color: var(--muted-3);
+  margin-top: 3px;
+}
+
+/* The one line on a row that asks the user to DO something. Tinted to match the
+   unreachable edge, so the row's colour and its instruction agree. */
+.stor-fix {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--danger-strong);
+}
+
+.stor-fix strong { font-weight: 600; }
+
+.stor-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.stor-btn {
+  padding: 6px 11px;
+  font-size: 11.5px;
+  border-radius: 8px;
+}
+
+/* Remove is destructive, so it earns danger colouring on HOVER rather than at
+   rest: a row of permanently red buttons reads as an error state, and the
+   emphasis belongs at the moment of intent. */
+.stor-btn-remove:not(:disabled):hover {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger-strong);
+}
+.stor-btn-remove:not(:disabled):active {
+  background: var(--danger);
+  border-color: var(--danger-strong);
+  color: #fff;
+}
+
+/* A disabled action still explains itself through its data-tip; here it must at
+   least LOOK inert, and differently from a busy row. */
+.stor-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* "Add" is an empty slot rather than an action on existing data, so it reads as
+   a dashed placeholder until pointed at.
+   The `.btn&` doubling is load-bearing: `styles.css` declares `.btn { border: 1px
+   solid }` AFTER its @import block, so a bare `.stor-add` loses the cascade on
+   source order and the dashed edge silently renders solid. */
+.btn.stor-add {
+  align-self: flex-start;
+  padding: 8px 13px;
+  font-size: 12px;
+  border-radius: 9px;
+  border-style: dashed;
+}
+/* Guarded by :not(:disabled) — a dead control must not light up under the
+   pointer, which is the one thing hover is for. */
+.btn.stor-add:not(:disabled):hover {
+  border-style: solid;
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  color: var(--accent-strong);
+}
+/* Pressed must be distinct from hovered. This rule has to be stated here rather
+   than inherited from `.btn-secondary:active`, because the hover rule above
+   outranks it — so the press would otherwise look exactly like the hover. */
+.btn.stor-add:not(:disabled):active {
+  background: var(--accent-100);
+  border-color: var(--accent);
+}
+
+.stor-edit-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px 12px;
+}
+
+.stor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.stor-field-wide {
+  grid-column: 1 / -1;
+}
+
+.stor-field-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+}
+
+.stor-input {
+  font: inherit;
+  font-size: 12.5px;
+  padding: 7px 9px;
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  background: var(--bg-2);
+  color: var(--ink);
+  transition:
+    border-color 0.14s ease-in-out,
+    box-shadow 0.14s ease-in-out;
+}
+.stor-input:hover {
+  border-color: var(--muted-3);
+}
+.stor-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* LAYOUT ONLY — the Kind control is the shared `.sel-trigger` listbox and its
+   states come with it, including the chevron that keeps it from reading as an
+   editable field. Sized to the text inputs it shares a grid row with, so the
+   two rows of the editor line up. */
+.stor-select {
+  width: 100%;
+  font-size: 12.5px;
+  padding: 7px 9px;
+  border-radius: 8px;
+}
+
+.stor-path-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+/* The chosen folder is READ-ONLY text, not an input: it can only come from the
+   native chooser, and a typed path would be a claim about a filesystem the
+   renderer cannot see. */
+.stor-path-chosen {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px dashed var(--border-2);
+  border-radius: 8px;
+  background: var(--bg-2);
+  font-size: 11.5px;
+}
+
+.stor-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.stor-error {
+  margin-top: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--danger);
+  border-left-width: 3px;
+  border-radius: 9px;
+  background: var(--danger-soft);
+  color: var(--danger-strong);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+/* Keyboard focus must be visible on every control here, and must not be
+   confused with the accent used for "being edited". */
+.stor-row button:focus-visible,
+.stor-input:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}

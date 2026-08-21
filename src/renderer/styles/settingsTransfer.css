@@ -1,0 +1,272 @@
+/* Settings export/import — the grouped, per-item selection list.
+ *
+ * The row is the interactive element here, and its state space is:
+ *   default · hover · checked · checked+hover · focus-within · disabled ·
+ *   disabled+checked
+ * Every one of those resolves to a DIFFERENT pair of (background, border), and
+ * checked is additionally carried by the accent left rule and a weight change on
+ * the label — so the state survives a colourblind reader and a low-contrast
+ * panel, which colour alone would not.
+ *
+ * Sizes come from the settings scale (--fs-set-*) rather than new numbers: this
+ * dialog is part of Settings and must not read as a second design.
+ */
+
+.set-transfer {
+  padding: 4px 26px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.set-transfer .settings-sub {
+  margin-bottom: 0;
+  max-width: 62ch;
+}
+
+.set-transfer-when {
+  color: var(--muted-2);
+}
+
+.set-transfer-loading {
+  font-size: var(--fs-set-help);
+  color: var(--muted);
+  padding: 18px 0;
+}
+
+/* ------------------------------------------------------------------ groups */
+
+.set-transfer-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: min(46vh, 420px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.set-transfer-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* The Settings TAB this group of items is configured on. It is a signpost back
+   to where the user set them, so it takes the small label step rather than the
+   heading one — it must not compete with the item names beneath it. */
+.set-transfer-group-head {
+  font-size: var(--fs-set-label);
+  font-family: var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2px;
+}
+
+/* -------------------------------------------------------------------- rows */
+
+.set-transfer-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-2);
+  cursor: pointer;
+  transition:
+    background 0.15s ease-in-out,
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+
+.set-transfer-item:hover {
+  background: var(--panel-hover);
+  border-color: var(--border-2);
+  border-left-color: var(--border-2);
+}
+
+/* Pressed. Distinct from hover by going DARKER rather than lighter, so the
+   click registers as a push even though the row's job is to toggle. */
+.set-transfer-item:active {
+  background: var(--panel-2);
+}
+
+.set-transfer-item:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.set-transfer-item.is-on {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  border-left-color: var(--accent);
+}
+
+/* Selected AND hovered. Without this the pointer goes dead over a ticked row —
+   the user moves onto it and nothing at all changes, which reads as a broken
+   control rather than as a selected one. */
+.set-transfer-item.is-on:hover {
+  background: var(--accent-100);
+  border-color: var(--accent);
+}
+
+/* Pressing an already-selected row. It must differ from BOTH `is-on` and
+   `is-on:hover` — the pointer is necessarily hovering when it presses, so
+   without a distinct pressed look the click gives no feedback at all on the
+   rows most likely to be clicked (the ones already ticked, being unticked).
+   Deeper fill plus the inset shadow, which no other state carries. */
+.set-transfer-item.is-on:active {
+  background: #f5cfa8;
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.14);
+}
+
+/* Disabled: while the export or import is actually running. It looks inert AND
+   stops responding to the pointer, rather than silently ignoring clicks. */
+.set-transfer-item.is-disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.set-transfer-item.is-disabled:hover {
+  background: var(--bg-2);
+  border-color: var(--border);
+  border-left-color: var(--border);
+}
+/* Ticked and disabled still reads as ticked — the user must be able to see what
+   is being written while it is being written. */
+.set-transfer-item.is-on.is-disabled {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+}
+.set-transfer-item.is-on.is-disabled:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  border-left-color: var(--accent);
+}
+
+.set-transfer-item input[type='checkbox'] {
+  margin: 2px 0 0;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+  cursor: inherit;
+  flex-shrink: 0;
+}
+
+.set-transfer-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.set-transfer-item-label {
+  font-size: var(--fs-set-body);
+  font-weight: 500;
+  color: var(--ink);
+  transition: font-weight 0.15s ease-in-out;
+}
+/* Weight as well as colour, so selection is not signalled by tint alone. */
+.set-transfer-item.is-on .set-transfer-item-label {
+  font-weight: 650;
+}
+
+.set-transfer-item-desc {
+  font-size: var(--fs-set-help);
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* The dependency / machine-specific note. Warm rather than red: it qualifies
+   the item, it does not warn about it. */
+.set-transfer-item-note {
+  font-size: var(--fs-set-meta);
+  color: var(--warn-strong);
+  line-height: 1.4;
+  margin-top: 1px;
+}
+
+/* ---------------------------------------------------------------- warnings */
+
+.set-transfer-warn {
+  font-size: var(--fs-set-help);
+  line-height: 1.5;
+  color: var(--warn-strong);
+  background: var(--warn-soft);
+  border: 1px solid #f0e0bd;
+  border-radius: 9px;
+  padding: 10px 12px;
+  max-width: 68ch;
+}
+
+/* --------------------------------------------------------------- outcomes */
+
+.set-transfer-outcome {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px 0 0;
+}
+
+.set-transfer-outcome-title {
+  font-size: var(--fs-set-h3);
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.set-transfer-outcome.is-bad .set-transfer-outcome-title {
+  color: var(--danger-strong);
+}
+
+.set-transfer-outcome-sub {
+  font-size: var(--fs-set-label);
+  font-family: var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-top: 4px;
+}
+
+.set-transfer-note {
+  font-size: var(--fs-set-meta);
+  font-family: var(--mono);
+  color: var(--muted-2);
+  word-break: break-all;
+}
+
+.set-transfer-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: var(--fs-set-help);
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+
+.set-transfer-list.is-skipped {
+  color: var(--warn-strong);
+}
+
+/* ------------------------------------------------------------------- foot */
+
+.set-transfer-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  margin-top: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .set-transfer-item,
+  .set-transfer-item-label {
+    transition: none;
+  }
+}

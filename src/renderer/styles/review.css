@@ -1,0 +1,1265 @@
+/* review.css — the per-PAPER review screen.
+   Shares the app's language exactly: existing tokens only, no new colours, the
+   same mono eyebrows and border weights used elsewhere. Depth strategy is
+   BORDERS ONLY, as in the rest of the app — no shadows, no card-in-card.
+
+   THE SHAPE, AND WHY. Left rail = the papers that have something to check.
+   Right = that paper's extraction table, drawn ONCE and left in place while the
+   reviewer works through its flagged cells; beneath it, the question for the
+   selected cell. A cell is not judgeable on its own — `27` where every
+   neighbouring reading says 25 is a different question from `27` standing alone
+   — so the table is context that must not scroll away or re-render per item.
+
+   This file is @imported BEFORE the base rules in styles.css, so anything that
+   overrides a base class uses a compound selector to win specificity. */
+
+/* THE SCREEN FILLS ITS FRAME, edge to edge.
+   `.route-area` pads every screen by 24/26px and owns the scroll, which is
+   right for a document-shaped page but wrong for a two-pane one: the paper rail
+   floated inside that padding with a gap above and to its left, reading as a
+   card dropped on the page rather than a wall of the room. Cancelling the
+   padding with negative margins (rather than editing `.route-area`, which every
+   other screen depends on) lets the rail meet the window chrome, and the two
+   panes then scroll independently instead of the whole screen scrolling as one
+   — so the table can never carry the rail off the top with it. */
+/* FILLS ITS FRAME — and the FRAME is `.tab-pane-scroll`, not `.route-area`.
+   `.route-area` already drops its padding when tabs are present (tabs.css:501);
+   the 24/26 gutter and the page scroll live on `.tab-pane-scroll` (tabs.css:517)
+   one level further in. Every attempt to cancel a gutter on `.route-area` was
+   therefore cancelling nothing, and `position:absolute` resolved against
+   `.tab-pane` (`inset:0`) rather than the padded box — so the offsets were a
+   pure translation out of frame, which is what clipped the rail and the footer.
+   The same `:has` precedent that file sets is used here: the SCROLLER stands
+   down, only for this screen, and the screen fills it in normal flow. */
+.tab-pane-scroll:has(> .screen-review) {
+  padding: 0;
+  overflow: hidden;
+}
+.screen.screen-review {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+/* The empty and error states are ordinary page content, so they take the page
+   padding the container just stood down from — only the two-pane layout bleeds. */
+.screen-review > .empty-state,
+.screen-review > .state-error,
+.screen-review > .sk-stack {
+  margin: 24px 26px;
+}
+
+/* ---------------------------------------------------------------- shell */
+.rv-split {
+  display: grid;
+  grid-template-columns: 258px minmax(0, 1fr);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.rv-papers {
+  border-right: 1px solid var(--border);
+  background: var(--panel);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding: 12px 10px;
+  min-height: 0;
+}
+.rv-papers-lab {
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+  padding: 4px 8px 10px;
+}
+
+.rv-pp {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 10px;
+  padding: 10px 11px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease-in-out,
+    border-color 0.15s ease-in-out,
+    transform 0.15s ease-in-out;
+}
+.rv-pp:hover {
+  background: var(--panel-hover);
+  border-color: var(--border-2);
+  transform: translateX(2px);
+}
+.rv-pp:focus-visible {
+  outline: none;
+  border-color: var(--accent-100);
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+.rv-pp[aria-current='true'] {
+  background: var(--bg-2);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-100);
+}
+.rv-pp[aria-current='true']:hover {
+  background: var(--accent-soft);
+  transform: translateX(2px);
+}
+.rv-pp[aria-current='true']:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--accent-100),
+    0 0 0 5px var(--accent-soft);
+}
+.rv-pp-t {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+.rv-pp-m {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  color: var(--muted-3);
+}
+.rv-pp-n {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+.rv-pp-n.is-done {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+/* The stage does NOT scroll — its body does, so the decision footer can pin to
+   the bottom of the pane instead of riding the content. */
+.rv-stage {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* WHICH SCHEMA'S TABLE IS DRAWN. Shown only when a paper was read against more
+   than one — a lone tab is a control that does nothing.
+
+   Selection is carried by weight, an underline AND the surface, never by hue
+   alone, so it survives a colourblind reader. The count beside each name is the
+   readings still to judge in that schema, and goes quiet once none remain. */
+.rv-schematabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+.rv-schematab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    color 150ms ease-in-out,
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out;
+}
+.rv-schematab:hover {
+  color: var(--fg);
+  background: var(--surface-2);
+}
+.rv-schematab:active {
+  background: var(--surface-3);
+}
+.rv-schematab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.rv-schematab[aria-selected='true'] {
+  color: var(--fg);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+  background: var(--surface-2);
+}
+.rv-schematab-n {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--accent-100);
+  color: var(--accent-strong);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.rv-schematab-n.is-done {
+  background: var(--surface-3);
+  color: var(--muted);
+}
+
+.rv-paper {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+/* `scrollbar-gutter: stable` — a scrollbar that appears and vanishes as the
+   selection changes content height shifts everything beside it by ~10px, which
+   is the shifting the reviewer sees as the page never settling. */
+.rv-paper-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  /* Symmetric. Stripping the right padding to stop the table being clipped put
+     every row flush against the scrollbar instead — the gutter belongs here,
+     and it is the TABLE that opts out of it below. */
+  padding: 24px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* `align-self: start` so the button is only as wide as its text but still sits
+   at the column's left edge — a stretched button would underline the full row. */
+/* Compound selector REQUIRED: review.css is @imported before the base rules, so
+   `.btn-link` (equal specificity, later) otherwise wins every shared property
+   and this heading rendered as underlined 12px mono. */
+.rv-paper .rv-paper-title {
+  font-family: var(--sans);
+  text-decoration: none;
+  color: var(--ink);
+  align-self: flex-start;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  text-align: left;
+  padding: 0;
+  margin-bottom: 3px;
+}
+.rv-paper-sub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--muted-2);
+  margin-bottom: 18px;
+}
+.rv-showall {
+  border: 1px solid var(--border-2);
+  background: var(--bg-2);
+  border-radius: 7px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease-in-out,
+    border-color 0.15s ease-in-out,
+    color 0.15s ease-in-out;
+}
+.rv-showall:hover {
+  background: var(--panel-hover);
+  border-color: var(--muted-3);
+  color: var(--ink-2);
+}
+.rv-showall:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+.rv-showall[aria-pressed='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  color: var(--accent-strong);
+}
+/* pressed+hover must NOT render as pressed — a pointer over an active toggle
+   that looks unchanged tells the reader their pointer is dead. */
+.rv-showall[aria-pressed='true']:hover {
+  background: var(--accent-100);
+  border-color: var(--accent);
+}
+.rv-showall:active {
+  transform: translateY(1px);
+}
+
+/* ---------------------------------------------------------------- table
+   Explicitly a table: bordered frame, header band, ruled rows. It does NOT
+   scroll vertically — the reviewer scrolls the PAGE, and an inner scroller
+   would hide readings behind a second, easily-missed gesture. */
+/* SCROLLS SIDEWAYS, never vertically. A schema here runs to 11 columns and the
+   last of them (`kcat/kuncat`) was clipped clean off the frame by an
+   `overflow: hidden` meant only to keep the corners rounded. Vertical scrolling
+   stays off: the reviewer scrolls the PANE, and an inner vertical scroller would
+   hide readings behind a second, easily-missed gesture. */
+.rv-tbl-wrap {
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  margin-bottom: 22px;
+  /* NEVER SHRINK. As a flex child of the scrolling column this box was
+     compressed to fit the viewport, so ten flagged readings were squeezed into
+     four and the rest hidden behind an inner scrollbar. */
+  flex: 0 0 auto;
+  /* THREE ROWS, then it scrolls. A paper here carries up to thirty readings and
+     the table is CONTEXT, not the task — at full height it pushed the question
+     it belongs to off the screen entirely. The header stays put while the rows
+     move under it, so a column is identifiable however far down the reader is. */
+  max-height: calc(40px + 3 * 39px);
+}
+.rv-tbl-wrap:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent-100);
+}
+.rv-tbl-wrap::-webkit-scrollbar {
+  height: 9px;
+}
+.rv-tbl-wrap::-webkit-scrollbar-thumb {
+  background: rgba(33, 26, 18, 0.16);
+  border-radius: 9px;
+}
+.rv-tbl-wrap::-webkit-scrollbar-thumb:hover {
+  background: rgba(33, 26, 18, 0.28);
+}
+.rv-tbl-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+.rv-tbl {
+  /* `auto`, not 100%: the table must be allowed to exceed the frame, or the
+     columns compress instead of scrolling and every value wraps. */
+  width: auto;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  background: var(--bg-2);
+}
+.rv-tbl th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+  font-weight: 400;
+  padding: 9px 14px;
+  white-space: nowrap;
+  vertical-align: bottom;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.rv-tbl th u {
+  text-decoration: none;
+  display: block;
+  font-size: 8px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+.rv-tbl td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.rv-tbl tbody tr:last-child td {
+  border-bottom: 0;
+}
+.rv-tbl tbody tr {
+  transition: background 0.15s ease-in-out;
+}
+/* The reading NAME stays put while the values scroll under it — scrolled past
+   its subject, a row of numbers belongs to no variant, which is exactly the
+   mix-up `readingKey` exists to prevent. The status dot sits INSIDE this cell:
+   as its own sticky column it left an empty 26px band pinned beside the variant
+   that read as a rendering fault. Each sticky cell repaints its row's own
+   background, or the scrolling columns show through it. */
+.rv-tbl-subj {
+  white-space: normal;
+  max-width: 210px;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--bg-2);
+  box-shadow: 1px 0 0 var(--border);
+}
+.rv-tbl thead .rv-tbl-subj {
+  z-index: 2;
+  background: var(--panel);
+}
+.rv-tbl tr.is-ok .rv-tbl-subj {
+  background: var(--panel);
+}
+.rv-tbl tr.is-flag:hover .rv-tbl-subj,
+.rv-tbl tr.is-flag[aria-current='true'] .rv-tbl-subj {
+  background: var(--accent-soft);
+}
+.rv-tbl tr.is-flag[aria-current='true']:hover .rv-tbl-subj {
+  background: var(--accent-100);
+}
+.rv-dot {
+  margin-right: 7px;
+}
+.rv-tbl-nov {
+  color: var(--muted-3);
+  font-size: 10.5px;
+}
+
+/* A CLEAN reading is context: filled, quieter, not a target. */
+.rv-tbl tr.is-ok td {
+  background: var(--panel);
+  color: var(--muted-2);
+}
+.rv-tbl tr.is-ok /* A FLAGGED reading is the target — the whole ROW, because a reading is the
+   unit a reviewer thinks in. The cell at fault is ringed inside it. */
+.rv-tbl tr.is-flag {
+  cursor: pointer;
+}
+.rv-tbl tr.is-flag td {
+  color: var(--ink-2);
+}
+.rv-tbl tr.is-flag:hover td {
+  background: var(--accent-soft);
+}
+.rv-tbl tr.is-flag[aria-current='true'] td {
+  background: var(--accent-soft);
+  box-shadow:
+    inset 0 2px 0 var(--accent),
+    inset 0 -2px 0 var(--accent);
+}
+.rv-tbl tr.is-flag[aria-current='true']:hover td {
+  background: var(--accent-100);
+}
+.rv-tbl tr.is-flag:focus-visible {
+  outline: none;
+}
+.rv-tbl tr.is-flag:focus-visible td {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 2px var(--accent-100);
+}
+/* Focus must not erase selection: the rails say WHICH reading is open. */
+.rv-tbl tr.is-flag[aria-current='true']:focus-visible td {
+  box-shadow:
+    inset 0 2px 0 var(--accent),
+    inset 0 -2px 0 var(--accent),
+    inset 0 0 0 2px var(--accent-100);
+}
+.rv-tbl tr.is-judged td {
+  background: var(--bg-2);
+}
+.rv-tbl tr.is-judged:hover td {
+  background: var(--panel-hover);
+}
+
+.rv-dot {
+  font-size: 10px;
+  line-height: 1;
+}
+.rv-dot.wait {
+  color: var(--accent);
+}
+.rv-dot.kept {
+  color: var(--ok);
+}
+.rv-dot.struck {
+  color: var(--danger);
+}
+.rv-dot.changed {
+  color: var(--ok);
+}
+
+/* the value in question, ringed inside its row */
+.rv-cell {
+  display: inline-block;
+  font-weight: 700;
+  color: var(--accent-strong);
+  border-radius: 5px;
+  padding: 2px 7px;
+  margin: -2px -7px;
+  box-shadow: inset 0 0 0 1.5px var(--accent-100);
+  transition:
+    background 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out,
+    color 0.15s ease-in-out;
+}
+/* The ROW does not paint its cells as selected: a reading can carry several
+   flagged cells and only ONE of them is the decision on screen. Painting them
+   all made the pick invisible — which is why picking a second cell looked like
+   it did nothing. Selection belongs to `.rv-cell[aria-current]` below. */
+.rv-cell.kept {
+  color: var(--ok);
+  box-shadow: inset 0 0 0 1.5px rgba(63, 145, 102, 0.35);
+}
+.rv-cell.struck {
+  color: var(--danger-strong);
+  box-shadow: inset 0 0 0 1.5px rgba(193, 88, 74, 0.35);
+  text-decoration: line-through;
+}
+/* CHANGED IS SETTLED, so it is green like `kept` — the accent orange it used to
+   carry is the colour of a cell still WAITING for a decision, so a corrected
+   value went on reading as unresolved. The two settled verdicts are told apart
+   by weight and a rule beneath the value, never by colour alone: a correction
+   is a value the reviewer supplied, not one the paper printed. */
+.rv-cell.changed {
+  color: var(--ok);
+  box-shadow: inset 0 0 0 1.5px rgba(63, 145, 102, 0.35);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------- question */
+/* The claim is one or two lines depending on the value's length, and the
+   escalation note one or two depending on which sentence it is — so without a
+   floor the block above the crop breathed in and out as the selection moved. */
+.rv-q {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+/* NO FLOOR. It was reserving room for the longest claim on every item, so a
+   short one — the common case — sat in a band of empty page. The block is
+   allowed to be the size of its contents; `.rv-claim.is-long` already caps how
+   tall it can get by dropping the type size for a long value. */
+/* The note is a SENTENCE — sans, readable size, in the TEXT FLOW above the
+   claim. As a fixed side column its width was set by the longest note ("The
+   model's answer was malformed") while most rows carry a short one, so the body
+   jumped sideways every time the selection changed. Mono uppercase is for a
+   one-word tag; it destroys a sentence's word shapes, and a glyph (`~`, `≈`) is
+   a symbol nothing on this screen teaches. */
+.rv-q-note {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted-2);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.rv-q-body {
+  min-width: 0;
+}
+.rv-claim {
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -0.022em;
+  line-height: 1.3;
+  margin: 0 0 5px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+/* `value_text` is free text: usually a number, sometimes a whole sentence. */
+.rv-claim.is-long {
+  font-size: 17px;
+  line-height: 1.45;
+}
+.rv-claim span {
+  color: var(--muted-2);
+  font-weight: 500;
+}
+.rv-why {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 14px;
+}
+
+/* ------------------------------------------------------------------ crop
+   THE PICTURE THE MODEL WAS SHOWN. Nothing is drawn over it: a highlight
+   painted onto the image would be our annotation presented as part of the
+   page. */
+.rv-crop-box {
+  border: 1px solid var(--border-2);
+  border-radius: 11px;
+  overflow: hidden;
+  background: var(--panel);
+  margin-bottom: 14px;
+}
+.rv-crop-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-2);
+}
+.rv-crop-what {
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+}
+/* Tabs NAME their table rather than numbering it — see the component. */
+.rv-crop-tabs {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+  background: var(--panel-2);
+  border-radius: 8px;
+  padding: 2px;
+}
+.rv-crop-tab {
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease-in-out,
+    color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+.rv-crop-tab u {
+  text-decoration: none;
+  font-size: 9.5px;
+  opacity: 0.65;
+  margin-left: 5px;
+}
+.rv-crop-tab:hover {
+  background: var(--panel-hover);
+  color: var(--ink-2);
+}
+.rv-crop-tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+.rv-crop-tab.is-on {
+  background: var(--bg-2);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(33, 26, 18, 0.09);
+}
+.rv-crop-tab.is-on:hover {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+.rv-crop-tab.is-on:focus-visible {
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+.rv-crop-tab:active {
+  transform: translateY(1px);
+}
+/* A FIXED viewport, not a max-height. Every crop is a different shape — a
+   four-row table and a full-page one differ by hundreds of pixels — so a box
+   that sized to its image made the whole page jump every time the reviewer
+   selected another reading, moving the very row they had just clicked. The
+   picture scrolls inside a frame that never changes size. */
+.rv-crop {
+  background: #fff;
+  padding: 14px;
+  /* Fixed PER VIEWPORT, not per image — so it still cannot jump between
+     selections, but a short window is not given over entirely to the crop. */
+  height: clamp(220px, 32vh, 340px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+/* The picture fills the frame's width and is centred in it. It used to take an
+   inline pixel width from the image, so a narrow crop sat against the left edge
+   in a wide box and a wide one drove a horizontal scrollbar. */
+.rv-crop-stage {
+  position: relative;
+  display: block;
+  width: 100%;
+  line-height: 0;
+}
+.rv-crop img {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: -webkit-optimize-contrast;
+}
+/* The cited wording, marked ON the page. An OVERLAY, not burnt into the PNG:
+   the image the model was given stays exactly what it was given. Tinted AND
+   outlined so it survives a colourblind reader, and left semi-transparent so
+   the glyphs underneath — the thing being checked — stay legible through it. */
+.rv-mark {
+  position: absolute;
+  background: rgba(226, 96, 15, 0.18);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+  border-radius: 2px;
+  pointer-events: auto;
+  cursor: help;
+  transition:
+    background 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+.rv-mark:hover {
+  background: rgba(226, 96, 15, 0.3);
+  box-shadow: inset 0 0 0 2px var(--accent-strong);
+}
+.rv-crop-none {
+  padding: 22px 20px;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.6;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 9px,
+    var(--panel) 9px,
+    var(--panel) 18px
+  );
+}
+/* What was read OFF that picture, beneath it — the comparison IS the task, so
+   both halves have to be on screen at once. */
+.rv-crop-read {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 13px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-2);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.rv-crop-read strong {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent-strong);
+}
+
+/* ---------------------------------------------------------------- folded */
+/* Inside the crop frame: a ruled section of it, not a floating block. */
+.rv-fold {
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+  padding: 4px 13px 10px;
+}
+.rv-fold > summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--muted-3);
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.15s ease-in-out;
+}
+.rv-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.rv-fold > summary::before {
+  content: '+';
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.rv-fold[open] > summary::before {
+  content: '–';
+}
+.rv-fold > summary:hover {
+  color: var(--ink-2);
+}
+.rv-fold > summary:active {
+  transform: translateY(1px);
+}
+.rv-fold > summary:focus-visible {
+  outline: none;
+  color: var(--accent-strong);
+}
+/* The extracted text is shown UNRETOUCHED, in mono: it is OCR'd table wreckage
+   (`0 . 29 6 0 . 11` for `0.29 ± 0.11`), and setting it in a reading face would
+   dress up the very corruption the reviewer is checking for. */
+.rv-raw {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--muted);
+  white-space: pre-wrap;
+  max-height: 190px;
+  overflow-y: auto;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-top: 9px;
+}
+.rv-raw-none {
+  margin-top: 9px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px dashed var(--border-2);
+  border-radius: 8px;
+}
+.rv-raw-warn {
+  margin-top: 8px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: var(--warn-soft);
+  color: var(--warn-strong);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.rv-chk {
+  margin-top: 10px;
+  padding-left: 16px;
+  border-left: 2px solid var(--danger-100);
+}
+.rv-chk b {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin-bottom: 3px;
+}
+.rv-chk p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.rv-chk i {
+  font-style: normal;
+  font-size: 10px;
+  color: var(--muted-3);
+  margin-top: 6px;
+  display: block;
+}
+
+/* ---------------------------------------------------------------- footer
+   THE DECISION IS PINNED. It used to sit under the crop, so on a paper with
+   many readings the answer was a long scroll from the row that was clicked —
+   the user selected a cell and then went looking for the buttons. Here the
+   question scrolls and the answer never moves. */
+.rv-foot {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--border-2);
+  background: var(--bg-2);
+  padding: 12px 28px;
+  box-shadow: 0 -6px 18px rgba(33, 26, 18, 0.05);
+}
+/* Full width, left-aligned with the body above it — the body has no cap either,
+   so a cap here would misalign the buttons from the table they act on. */
+/* The pinned edge must not move. Answers, the correction composer and the
+   settled row are three different bodies of three different heights, so
+   recording a decision moved the footer — and with it the bottom of the
+   scrolling body — at the exact moment the reviewer was reading it. */
+.rv-foot-in {
+  width: 100%;
+  min-height: 46px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------- answers */
+/* NEVER wraps: a wrapped row grows the pinned footer, which then moves. */
+.rv-answers {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+/* The DEFAULT decision button. Compound with `.btn` for the same reason the
+   title is compound: review.css is @imported BEFORE the base rules, so a bare
+   `.rv-a` loses every shared property to `.btn` at equal specificity — which is
+   how Strike and Change ended up with no border and no fill. */
+.btn.rv-a {
+  background: var(--bg-2);
+  border-color: var(--border-2);
+  color: var(--ink-2);
+}
+.btn.rv-a:hover:not(:disabled) {
+  background: var(--panel-hover);
+  border-color: var(--muted-3);
+}
+
+/* Pressed. Every button on this screen has one — there was not a single
+   `:active` rule in the file, so a click gave no feedback at all. */
+.rv-a:active:not(:disabled),
+.rv-pp:active,
+.rv-later:active {
+  transform: translateY(1px);
+}
+/* BUSY. `disabled={busy}` rendered identically to an ordinarily-disabled
+   button, so a decision in flight was indistinguishable from one refused. */
+.rv-a[data-busy='true'],
+.rv-a[data-busy='true']:hover {
+  background: var(--panel-2);
+  border-color: var(--busy);
+  border-style: solid;
+  color: var(--busy);
+  cursor: progress;
+}
+.rv-a u {
+  text-decoration: none;
+  font-family: var(--mono);
+  font-size: 10px;
+  opacity: 0.55;
+  margin-left: 8px;
+}
+.btn.rv-a-keep {
+  background: var(--ok);
+  border-color: #357a56;
+  color: #fff;
+}
+.btn.rv-a-keep:hover:not(:disabled) {
+  background: #357a56;
+  border-color: #2d6a4a;
+  color: #fff;
+}
+.btn.rv-a-strike:hover:not(:disabled) {
+  background: var(--danger-soft);
+  border-color: var(--danger-100);
+  color: var(--danger-strong);
+}
+.btn.rv-a-change:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  color: var(--accent-strong);
+}
+/* Disabled is GREY whatever the variant. Without this the filled Keep button
+   kept its white label on a grey fill and became unreadable at exactly the
+   moment the reader is asking why it will not respond. */
+.btn.rv-a:disabled,
+.btn.rv-a:disabled:hover {
+  background: var(--panel-2);
+  border-color: var(--muted-3);
+  border-style: dashed;
+  color: var(--muted-2);
+  opacity: 1;
+}
+/* NOT `margin-left: auto`: in a full-width footer that threw it to the far
+   right of the window, detached from the decision it modifies. */
+.rv-later {
+  margin-left: 18px;
+  border: 0;
+  background: transparent;
+  color: var(--muted-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 9px 4px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition:
+    color 0.15s ease-in-out,
+    background 0.15s ease-in-out;
+}
+.rv-later:hover {
+  color: var(--ink-2);
+  background: var(--panel-hover);
+}
+.rv-later:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+.rv-later u {
+  text-decoration: none;
+  font-family: var(--mono);
+  font-size: 10px;
+  opacity: 0.6;
+  margin-left: 6px;
+}
+
+.rv-fix {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.rv-fix-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--sans);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1.5px solid var(--accent-100);
+  border-radius: 10px;
+  padding: 9px 13px;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+.rv-fix-input::placeholder {
+  color: var(--muted-3);
+  font-weight: 400;
+}
+.rv-fix-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* WHAT was decided, then who and when — a sentence in the reading face, not a
+   mono status code. Mono is for a value, a path or an id; setting a sentence in
+   it costs legibility for nothing. */
+.rv-settled {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.rv-settled-said {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+.rv-settled-verb {
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.rv-settled-verb.kept,
+.rv-settled-verb.changed {
+  color: var(--ok);
+}
+.rv-settled-verb.struck {
+  color: var(--danger-strong);
+}
+/* The correction itself, in mono BECAUSE it is a pair of values. */
+.rv-settled-new {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rv-settled-who {
+  font-size: 12px;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+.rv-settled .rv-undo {
+  margin-left: auto;
+}
+.rv-settled .rv-undo u {
+  text-decoration: none;
+  font-size: 10px;
+  opacity: 0.55;
+  margin-left: 7px;
+}
+.rv-err {
+  margin-top: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: var(--danger-soft);
+  color: var(--danger-strong);
+  font-size: 12.5px;
+}
+.rv-missing {
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* A flagged record that names no column of this schema. It CANNOT be shown in
+   the table, so it is named in words rather than dropped — the sidebar counts
+   it, and a count with nothing to point at reads as a bug. */
+.rv-orphans {
+  margin-bottom: 22px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: var(--warn-soft);
+  color: var(--warn-strong);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+/* Several flagged cells in ONE reading. They are separate decisions with
+   separate evidence, so they are switched between rather than merged — the same
+   tab idiom the crop pager uses, so the two read as the same kind of control. */
+/* The strip reserves its own height only when it EXISTS. Reserving it always
+   put 43px of nothing above every single-flag reading, which is most of them. */
+.rv-sibs {
+  display: flex;
+  gap: 2px;
+  background: var(--panel-2);
+  border-radius: 8px;
+  padding: 2px;
+  margin-bottom: 14px;
+  align-self: flex-start;
+  width: fit-content;
+}
+.rv-sib {
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease-in-out,
+    color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+.rv-sib:hover {
+  background: var(--panel-hover);
+  color: var(--ink-2);
+}
+.rv-sib:active {
+  transform: translateY(1px);
+}
+.rv-sib:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+.rv-sib.is-on {
+  background: var(--bg-2);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(33, 26, 18, 0.09);
+}
+/* selected+hover must differ from selected. */
+.rv-sib.is-on:hover {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+/* already judged — still reachable, visibly settled */
+.rv-sib.is-done {
+  color: var(--ok);
+}
+.rv-sib.is-done.is-on {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+/* `.rv-sib:hover` would repaint these to the default ink, erasing the judged
+   signal exactly when the pointer is on it. */
+.rv-sib.is-done:hover {
+  color: var(--ok);
+  background: var(--panel-hover);
+}
+.rv-sib.is-done.is-on:hover {
+  color: var(--ok);
+  background: var(--accent-100);
+}
+
+/* A flagged cell is a BUTTON. `font: inherit` here reset the 700 weight declared
+   above it, so the value rendered at normal weight — inherit the family and size
+   only. */
+.rv-cell {
+  border: 0;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+.rv-cell:hover {
+  background: var(--accent-100);
+}
+.rv-cell:active {
+  transform: translateY(1px);
+}
+.rv-cell:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 1.5px var(--accent),
+    0 0 0 3px var(--accent-100);
+}
+.rv-cell[aria-current='true'] {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: none;
+}
+.rv-cell[aria-current='true']:hover {
+  background: var(--accent-strong);
+}
+/* The SELECTED cell keeps a focus ring. `[aria-current]` above sets
+   `box-shadow: none`, which silently removed the caret from the one element the
+   keyboard user had just activated. */
+.rv-cell[aria-current='true']:focus-visible {
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+/* A judged cell keeps its verdict colour when selected — otherwise kept+selected
+   and changed+selected painted identically. */
+.rv-cell.kept[aria-current='true'] {
+  background: var(--ok);
+  color: #fff;
+}
+.rv-cell.kept[aria-current='true']:hover {
+  background: #357a56;
+}
+.rv-cell.struck[aria-current='true'] {
+  background: var(--danger);
+  color: #fff;
+}
+.rv-cell.changed[aria-current='true'] {
+  background: var(--ok);
+  color: #fff;
+}
+.rv-cell.changed[aria-current='true']:hover {
+  background: #357a56;
+}
+.rv-cell.struck[aria-current='true']:hover {
+  background: var(--danger-strong);
+}
+
+/* A narrow window. The rail is a fixed track, so below this the stage was being
+   squeezed toward nothing while the rail kept its full width. */
+@media (max-width: 1100px) {
+  .rv-split {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+  .rv-tbl-subj {
+    max-width: 150px;
+  }
+}
+
+/* THE PAPER, in the app's own PDF viewer — not a rasterised picture of it.
+   A fixed frame so switching cells cannot change the page height, and the
+   viewer scrolls inside it exactly as it does on the Paper screen. */
+/* Bounds the height only — the viewer owns the scrolling inside it. */
+.rv-passage {
+  height: clamp(260px, 42vh, 460px);
+  display: flex;
+  min-height: 0;
+  background: var(--panel);
+}
+.rv-passage > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+/* THE TINT IS CAPPED AT 20%.
+   The viewer's `is-focused` band is 75% — right on the Paper screen, where the
+   reader is hunting one finding among many and the passage is theirs to dwell
+   on. Here the passage is the ANSWER to a question already asked, and the value
+   under it has to stay readable: at 75% the glyphs disappear behind their own
+   evidence. Scoped to this screen so the paper viewer is unchanged. */
+.rv-passage .pdf-hl > svg > path,
+.rv-passage .pdf-hl.is-focused > svg > path {
+  fill: color-mix(in srgb, var(--hl-color, var(--accent)) 20%, transparent);
+}
+
+/* The viewer's own gutter is sized for a full-page reading column; here the
+   frame is short, so the pages sit closer to its edges. */
+.rv-passage .pdf-scroll {
+  padding: 14px 12px 24px;
+  overscroll-behavior: contain;
+}
+.rv-crop-miss {
+  margin-left: auto;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--warn-strong);
+}

@@ -1,0 +1,778 @@
+/* ============================================================ project setup
+   The creation questionnaire. A form the user cannot leave until it is done, so
+   it has to read as a guided page rather than as a wall of inputs: numbered
+   sections, one live rail marking progress, and a single locked section that
+   says plainly what would unlock it.
+
+   Every interactive element here styles its whole state space — default, hover,
+   active, focus-visible, disabled, busy, selected — and no two of those render
+   alike. Transitions are 150ms for anything tracking the pointer and 250ms for
+   ambient emphasis; nothing snaps. */
+
+/* NO `overflow` HERE, and that is what makes the rail follow the reader.
+   The tab's own `.tab-pane-scroll` is the scrollport; declaring `overflow-y:
+   auto` on the screen made IT the rail's nearest scroll container while all the
+   actual scrolling still happened in the ancestor above it. A sticky element
+   sticks within the scrollport it belongs to, and that one never scrolled — so
+   the rail had zero range to travel and sat motionless at the top while the
+   form moved past it. */
+.screen.setup {
+  padding: 0;
+}
+
+/* JUMP TO THE END. `fixed`, not `absolute`: the screen is inside the tab's
+   scrollport, so an absolutely positioned child would be pinned to the bottom
+   of the FORM and scroll out of sight with it — arriving exactly when it is no
+   longer needed. Fixed keeps it against the window, where a persistent control
+   belongs.
+
+   Bottom-RIGHT, clear of the sidebar and below the progress rail's column. */
+.setup-jump {
+  position: fixed;
+  right: 26px;
+  bottom: 26px;
+  z-index: 20;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-2);
+  border-radius: 50%;
+  background: var(--bg-2);
+  color: var(--muted);
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgb(33 26 18 / 10%);
+  transition: background 150ms ease-in-out, color 150ms ease-in-out,
+    border-color 150ms ease-in-out, box-shadow 150ms ease-in-out,
+    transform 150ms ease-in-out;
+}
+.setup-jump:hover {
+  background: var(--panel);
+  border-color: var(--accent);
+  color: var(--accent);
+  /* Moves the way it will move the page — the nudge IS the affordance. */
+  transform: translateY(2px);
+}
+.setup-jump:active {
+  background: var(--panel-2);
+  transform: translateY(3px);
+  box-shadow: 0 1px 4px rgb(33 26 18 / 12%);
+}
+.setup-jump:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+@media (prefers-reduced-motion: reduce) {
+  .setup-jump,
+  .setup-jump:hover,
+  .setup-jump:active {
+    transform: none;
+  }
+}
+
+.setup-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  gap: 40px;
+  /* `start`, not `stretch`: a stretched grid item is exactly as tall as the
+     column beside it, leaving a sticky child nothing to move within. */
+  align-items: start;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 4px 6px 96px;
+}
+
+.setup-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* -------------------------------------------------------------- the opening */
+
+.setup-intro {
+  padding-bottom: 8px;
+}
+
+.setup-title {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.setup-lede {
+  margin: 0;
+  max-width: 66ch;
+  font-size: var(--fs-set-body);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------- one section */
+
+.setup-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--bg-2);
+  padding: 20px 22px;
+  transition: border-color 250ms ease-in-out, background 250ms ease-in-out,
+    opacity 250ms ease-in-out;
+}
+
+.setup-section-head {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+
+.setup-section-num {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-2);
+  background: var(--panel);
+  color: var(--muted-2);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 250ms ease-in-out, color 250ms ease-in-out,
+    border-color 250ms ease-in-out;
+}
+
+.setup-section-title {
+  margin: 0;
+  font-size: var(--fs-set-h2);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.setup-section-help {
+  margin: 5px 0 0;
+  max-width: 68ch;
+  font-size: var(--fs-set-help);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.setup-section-body {
+  padding-left: 44px;
+}
+
+/* ----------------------------------------------------------------- inputs */
+
+.setup-input {
+  width: 100%;
+  max-width: 640px;
+}
+
+textarea.setup-input {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.setup-hint {
+  margin: 10px 0 0;
+  max-width: 68ch;
+  font-size: var(--fs-set-help);
+  line-height: 1.5;
+  color: var(--muted-2);
+}
+
+/* The cost of the import, stated before it is incurred. Louder than a hint
+   because it is the one sentence that changes what the reader does next. */
+.setup-hint-strong {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--accent-100);
+  background: var(--accent-soft);
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+.setup-msg {
+  margin: 12px 0 0;
+  font-size: var(--fs-set-help);
+  color: var(--muted);
+}
+
+/* -------------------------------------------------------------- questions */
+
+.setup-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 640px;
+}
+
+.setup-question {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 28px;
+  gap: 8px;
+  align-items: center;
+}
+
+.setup-question-mark {
+  color: var(--muted-3);
+  font-family: var(--mono);
+  font-size: 14px;
+  text-align: center;
+  transition: color 150ms ease-in-out;
+}
+
+.setup-question:focus-within .setup-question-mark {
+  color: var(--accent);
+}
+
+.setup-question-remove {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-3);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 150ms ease-in-out, color 150ms ease-in-out,
+    border-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+
+.setup-question-remove:hover {
+  background: var(--danger-soft);
+  border-color: var(--danger-100);
+  color: var(--danger-strong);
+}
+
+.setup-question-remove:active {
+  background: var(--danger-100);
+  border-color: var(--danger);
+}
+
+.setup-question-remove:focus-visible {
+  outline: none;
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-100);
+  color: var(--danger-strong);
+}
+
+.setup-question-remove:disabled {
+  cursor: default;
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted-3);
+  opacity: 0.4;
+}
+
+/* ---------------------------------------------------------------- schemas */
+
+/* The two halves of the no-schema answer. The warning leads; the reassurance
+   follows it in the same block, because either alone misleads. */
+.setup-noschema {
+  max-width: 66ch;
+  padding: 16px 18px;
+  border: 1px solid var(--warn-soft);
+  border-radius: var(--radius-card);
+  background: var(--warn-soft);
+}
+
+.setup-noschema-warn {
+  margin: 0 0 8px;
+  font-size: var(--fs-set-body);
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--warn-strong);
+}
+
+.setup-noschema-ok {
+  margin: 0 0 14px;
+  font-size: var(--fs-set-help);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.setup-newschema {
+  margin-top: 12px;
+}
+
+/* ----------------------------------------------------------------- papers */
+
+/* The Papers screen's widgets, mounted inside this form. `.ingest` is here to
+   carry their rules (see the note at the call site); it must not also bring
+   that screen's own page geometry — its top padding and its entry animation
+   would make a section of this form animate in on its own. */
+.setup-import.ingest {
+  width: 100%;
+  padding-top: 0;
+  animation: none;
+}
+
+/* Tighter than the Papers screen's, because here it is one section of a long
+   form rather than the whole surface. */
+.ingest .ing-drop.is-compact {
+  padding: 22px 18px;
+  gap: 8px;
+}
+
+/* Queueing in flight. Distinct from both default and hover, and from disabled:
+   the zone is still a drop target, it is just busy. */
+.ingest .ing-drop.is-busy {
+  border-color: var(--busy);
+  background: var(--panel);
+  cursor: progress;
+}
+
+.setup-papers {
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.setup-papers-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.setup-papers-count {
+  font-size: var(--fs-set-meta);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.setup-paper-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setup-paper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Quiet until the row is under the pointer: it is a per-row action on a list
+   the reader is mostly scanning, and eight always-lit ✕s pull the eye away from
+   the titles. It stays reachable by keyboard regardless — `:focus-visible`
+   below brings it back, so it is hidden from attention, never from use. */
+.setup-paper-remove {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-3);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 150ms ease-in-out, background 150ms ease-in-out,
+    color 150ms ease-in-out, border-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+.setup-paper:hover .setup-paper-remove {
+  opacity: 1;
+}
+.setup-paper-remove:hover {
+  opacity: 1;
+  background: var(--danger-soft);
+  border-color: var(--danger-100);
+  color: var(--danger-strong);
+}
+.setup-paper-remove:active {
+  background: var(--danger-100);
+  border-color: var(--danger);
+}
+.setup-paper-remove:focus-visible {
+  opacity: 1;
+  outline: none;
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-100);
+  color: var(--danger-strong);
+}
+
+/* `flex: 1` and `min-width: 0`, NOT `width: 100%`. The row is a flex line
+   holding this button AND the ✕ beside it, so asking for the full width made
+   the line 100% + 28px + the gap: the button filled the card and pushed the
+   remove control past its right edge, which is what put a ✕ out in the margin
+   with the card's border running behind it. `min-width: 0` lets the title
+   inside actually shrink — a flex item defaults to `min-width: auto` and would
+   otherwise refuse to go below its content's width and overflow anyway. */
+.setup-paper-btn {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--fs-set-body);
+  cursor: pointer;
+  transition: background 150ms ease-in-out, border-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+
+.setup-paper-btn:hover {
+  background: var(--panel);
+  border-color: var(--border);
+}
+
+.setup-paper-btn:active {
+  background: var(--panel-2);
+}
+
+.setup-paper-btn:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+
+.setup-paper-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.setup-paper-year {
+  flex-shrink: 0;
+  font-size: var(--fs-set-meta);
+  color: var(--muted-2);
+}
+
+/* WHICH paper is holding things up, on the paper itself. The count above says
+   how many; only this says which, and a count naming nothing is a count the
+   reader cannot act on. Shown for the exceptions alone — a ready paper is
+   silent. */
+.setup-paper-state {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--fs-set-meta);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.setup-paper-state.is-loading {
+  background: var(--panel-2);
+  color: var(--muted);
+}
+/* Never colour alone: the failed state carries a border as well, so it survives
+   a colourblind reader and a low-contrast panel. */
+.setup-paper-state.is-failed {
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-100);
+  color: var(--danger-strong);
+}
+
+/* THE PDF NEVER ARRIVED — a different fact from a file that would not parse, and
+   drawn as a different thing rather than a second red pill. Amber, because the
+   paper is still usable from its abstract and the reader has something to do
+   about it; a dashed border and the barred glyph carry the distinction for
+   anyone who cannot separate the two tints, since red-vs-amber is the single
+   worst pair to signal with colour alone. */
+.setup-paper-state.is-no-pdf {
+  background: var(--warn-soft);
+  border: 1px dashed color-mix(in srgb, var(--warn) 55%, var(--border));
+  color: var(--warn-strong);
+}
+.setup-paper-state-mark {
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* The row that owns a no-PDF paper reads as SECONDARY, not broken: the title
+   dims while the pill stays at full strength, so the eye lands on the reason
+   rather than on a greyed row it cannot explain. Hovering still restores it —
+   the paper is openable, and a row that stayed flat under the pointer would
+   read as inert. */
+.setup-paper:has(.setup-paper-state.is-no-pdf) .setup-paper-title {
+  opacity: 0.62;
+  transition: opacity 150ms ease-in-out;
+}
+.setup-paper:has(.setup-paper-state.is-no-pdf):hover .setup-paper-title,
+.setup-paper:has(.setup-paper-state.is-no-pdf):focus-within .setup-paper-title {
+  opacity: 1;
+}
+
+/* Sits beside the danger badge, so it must not be mistaken for it at a glance:
+   the dashed edge is the same signal the row's pill uses. */
+.setup-papers-unfetched {
+  border-style: dashed;
+}
+
+.setup-paper-spinner {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--border-2);
+  border-top-color: var(--muted-2);
+  border-radius: 50%;
+  animation: setup-spin 900ms linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .setup-paper-spinner {
+    animation: none;
+    border-top-color: var(--muted-2);
+    border-right-color: var(--muted-2);
+  }
+}
+
+/* ------------------------------------------------------------ the finish */
+
+.setup-finish {
+  font-size: var(--fs-set-body);
+  padding: 11px 20px;
+}
+
+/* Disabled must LOOK disabled and explain itself — the `data-tip` on the button
+   carries the reason, which is either "no papers yet" or "still being read". */
+.setup-finish:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: saturate(0.4);
+}
+
+.setup-building {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-card);
+  background: var(--panel);
+}
+
+.setup-building-spinner {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border: 2px solid var(--accent-100);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: setup-spin 900ms linear infinite;
+}
+
+@keyframes setup-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The spinner is the only thing on this page that moves for minutes at a time,
+   so it is the one that must respect a reduced-motion preference. It keeps a
+   static ring — the state still reads, it simply stops turning. */
+@media (prefers-reduced-motion: reduce) {
+  .setup-building-spinner {
+    animation: none;
+    border-top-color: var(--accent);
+    border-right-color: var(--accent);
+  }
+}
+
+.setup-building-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.setup-building-title {
+  font-size: var(--fs-set-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.setup-building-hint {
+  font-size: var(--fs-set-help);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------------ rail */
+
+/* FOLLOWS THE READER. The form is long enough that the last two sections sit
+   well below the fold, and a contents list that scrolls away is a contents list
+   for the part you have already read.
+
+   `max-height` + its own `overflow-y` so the rail can never outgrow the window
+   and strand its own last entry — six steps fit easily today, but a rail that
+   is taller than the viewport cannot stick at all. */
+.setup-rail {
+  position: sticky;
+  top: 4px;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setup-rail-step {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: var(--fs-set-help);
+  transition: background 150ms ease-in-out, color 150ms ease-in-out,
+    border-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+
+.setup-rail-step:hover {
+  background: var(--panel);
+  border-color: var(--border);
+  color: var(--ink-2);
+}
+
+.setup-rail-step:active {
+  background: var(--panel-2);
+}
+
+.setup-rail-step:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+
+/* DONE is marked three ways at once — the dot fills, it carries a tick instead
+   of a number, and the label goes to full ink — so it survives a colourblind
+   reader and a low-contrast panel. */
+.setup-rail-step.is-done {
+  color: var(--ink);
+}
+
+.setup-rail-dot {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--border-2);
+  border-radius: 50%;
+  background: var(--bg-2);
+  color: var(--muted-2);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  transition: background 250ms ease-in-out, border-color 250ms ease-in-out,
+    color 250ms ease-in-out;
+}
+
+.setup-rail-step.is-done .setup-rail-dot {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: var(--bg-2);
+  font-weight: 700;
+}
+
+.setup-rail-step.is-done:hover .setup-rail-dot {
+  background: var(--ok);
+  border-color: var(--ink);
+}
+
+.setup-rail-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.setup-rail-step.is-done .setup-rail-label {
+  font-weight: 600;
+}
+
+.setup-rail-optional {
+  grid-column: 2;
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--muted-3);
+}
+
+/* ------------------------------------------- the marks outside this screen */
+
+/* The sidebar, while a project is being set up. Every project item is inert;
+   this must not look like the active item, nor like an ordinary idle one. */
+.side-nav-item.is-setup-locked {
+  cursor: not-allowed;
+  opacity: 0.42;
+  background: transparent;
+}
+
+.side-nav-item.is-setup-locked:hover {
+  background: transparent;
+}
+
+/* WHY they are inert, said once above them. */
+.side-project-setup {
+  margin: 0 14px 8px;
+  padding: 4px 9px;
+  border: 1px dashed var(--warn);
+  border-radius: 7px;
+  background: var(--warn-soft);
+  color: var(--warn-strong);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* A dashboard card whose project has not been set up. Dashed, because the
+   project is not finished — and distinct from every sync state beside it. */
+.project-card.is-in-setup {
+  border-style: dashed;
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}
+
+.project-card.is-in-setup:hover {
+  border-color: var(--warn-strong);
+  background: var(--warn-soft);
+}
+
+.project-setup {
+  margin-top: 8px;
+}
+
+/* What to do about it, in place of statistics the project has not earned. */
+.project-card-setup-note {
+  margin-top: 14px;
+  font-size: var(--fs-set-help);
+  line-height: 1.5;
+  color: var(--warn-strong);
+}

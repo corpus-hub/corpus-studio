@@ -1,0 +1,576 @@
+/* Citation contexts on the Paper screen: the places this paper reaches for
+   another, grouped by the reference they point at.
+
+   Every interactive element here has its full state space styled and each state
+   is visually DISTINCT from every other — including the combinations, which is
+   where collisions actually happen. `scripts/check-citation-states.mjs` asserts
+   that mechanically rather than by eye.
+
+   The load-bearing distinction in this file is NAVIGABLE vs INERT. A card that
+   can take the reader to a place in the document is pressable and reveals a
+   "show" affordance under the pointer; a card that cannot is flat, has no
+   pressable surface at all and says why WITHOUT being asked. There is no third
+   appearance, and `checking` (the window before the document has rendered) is
+   styled as its own thing so a wait is never mistaken for a settled answer.
+
+   Nothing here goes below 11px, and nothing a reader READS is set in
+   `--muted-3` (#a89e91 = 2.6:1 on white, well under the 4.5:1 floor). That hue
+   survives only on marks — a caret, a rule — never on words. */
+
+.cc-section {
+  padding-bottom: 12px;
+}
+
+.cc-lede {
+  margin: -4px 0 12px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.cc-lede-count {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+
+/* ---------------------------------------------------------- filter selects */
+/* Two selects on one line, where eleven chips on two labelled rows used to
+   stand — a control surface taller than its own first result is one the reader
+   scrolls past. Both axes survive because they answer different questions; each
+   option carries its own count so the size of what a choice hides is visible
+   before it is chosen. */
+.cc-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+/* LAYOUT ONLY. Every appearance rule — resting, hover, pressed, focus, open,
+   and the `is-narrowed` treatment that says this filter is hiding rows — comes
+   from `.sel-trigger` in styles.css, shared with the sort dropdowns on Ranking,
+   References, the Connectome and Ingest. This block used to restate all of them
+   against a native `<select>`, which is how two controls doing the same job on
+   one screen came to be two different sizes and two different tints. */
+.cc-select {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  padding: 5px 8px;
+  border-radius: 7px;
+}
+
+/* Why the whole surface is inert right now, with the way out named. A mode that
+   disables a hundred controls and does not say why is indistinguishable from a
+   broken screen. */
+.cc-mode-note {
+  margin-bottom: 9px;
+  padding: 7px 10px;
+  border: 1px solid var(--border-2);
+  border-left: 3px solid var(--muted-3);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+/* An ABSTENTION, and it must not read as either a failure or a shrug. Warn hue
+   rather than the error red — nothing broke — and the ⊘ glyph carries it as
+   well, so it survives a colourblind reader and a greyscale screenshot. It is
+   the loudest note in this section on purpose: it is the one that changes what
+   the list below MEANS. */
+.cc-declined {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin-bottom: 11px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--warn) 34%, var(--border-2));
+  border-left: 4px solid var(--warn);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--warn) 7%, var(--panel-2));
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.cc-declined strong {
+  font-weight: 620;
+  color: var(--warn-strong);
+}
+.cc-declined-glyph {
+  flex: none;
+  font-size: 15px;
+  line-height: 1.25;
+  color: var(--warn-strong);
+}
+/* Three lines, not one paragraph: what happened, what it means, and the stage's
+   own measurement. Run together they read as an apology the eye slides off —
+   and the raw note ("0 distinct marker(s), fewer than 5") ended a sentence
+   mid-thought, so it looked like a rendering fault rather than evidence. */
+.cc-declined-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.cc-declined-head {
+  font-size: 12.5px;
+}
+.cc-declined-lede {
+  color: var(--muted-2);
+  max-width: 74ch;
+}
+.cc-declined-reason {
+  margin-top: 2px;
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: var(--muted-2);
+}
+
+.cc-filter-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 9px;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.cc-filter-clear {
+  font-size: 11px;
+  transition: color 0.15s ease-in-out, text-decoration-color 0.15s ease-in-out;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+}
+.cc-filter-clear:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+.cc-filter-clear:active {
+  color: var(--ink);
+  text-decoration-color: var(--ink);
+}
+.cc-filter-clear:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  color: var(--accent-strong);
+}
+
+/* ---------------------------------------------------------------- a group */
+/* Forty-six groups were forty-six rounded, rail-bearing, shadowed CARDS — a
+   panel each for one line of title. They are ROWS now, separated by a hairline,
+   and the shell itself carries no state: every state a group can be in belongs
+   to the header, which is the element the pointer is actually over. */
+.cc-groups {
+  display: flex;
+  flex-direction: column;
+}
+.cc-group {
+  border-top: 1px solid var(--border);
+}
+.cc-groups > .cc-group:first-child {
+  border-top: none;
+}
+
+.cc-group-head {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: baseline;
+  gap: 9px;
+  width: 100%;
+  padding: 10px 2px;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.cc-group-head:hover {
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+.cc-group-head:active {
+  background: var(--panel-2);
+}
+.cc-group-head:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent-100);
+}
+.cc-group-head:focus-visible:hover {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+/* An OPEN group already sits on the panel fill, so its header's hover has to go
+   further than a closed one's — otherwise `open+hover === open` and the pointer
+   reads as dead over the row the reader is working in. */
+.cc-group.is-open > .cc-group-head {
+  background: var(--panel);
+}
+.cc-group.is-open > .cc-group-head:hover {
+  background: color-mix(in srgb, var(--accent) 9%, var(--panel));
+}
+.cc-group.is-open > .cc-group-head:active {
+  background: var(--accent-soft);
+}
+
+/* ONE glyph, ROTATED. Swapping ▸ for ▾ is a character change, which cannot be
+   eased — the disclosure would snap while everything around it glides. */
+.cc-caret {
+  color: var(--muted-3);
+  font-size: 11px;
+  transition: transform 0.2s ease-in-out, color 0.15s ease-in-out;
+}
+.cc-group-head:hover .cc-caret {
+  color: var(--muted);
+}
+.cc-group.is-open .cc-caret {
+  transform: rotate(90deg);
+}
+
+.cc-group-title {
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--ink-2);
+  min-width: 0;
+}
+.cc-group-n {
+  font-size: 11.5px;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+
+/* The EXCEPTION, and only the exception: a reference the corpus does not hold.
+   Its counterpart — "in corpus", true of forty of forty-six — renders nothing
+   at all, because a badge worn by everything stops being read and takes the
+   warning beside it down with it. */
+.cc-out {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--warn-strong);
+  background: var(--warn-soft);
+  border: 1px solid color-mix(in srgb, var(--warn) 34%, var(--warn-soft));
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+
+/* A context read from a DIFFERENT version of this paper than the one on
+   screen. Warn-toned and dashed, because it describes a document other than the
+   one the reader is looking at. */
+.cc-place-otherdoc {
+  padding: 0 5px;
+  border: 1px dashed color-mix(in srgb, var(--warn) 45%, var(--border-2));
+  border-radius: 3px;
+  color: var(--warn-strong);
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* ------------------------------------------------- one place, one sentence */
+.cc-places {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 0 10px 21px;
+}
+
+/* ONE callout: the sentence IS the card, and everything else is a quiet footer
+   under it. The six-line panel this replaces put a role chip, an occurrence
+   kind, a cue id, a page and a "show in the document" line around every
+   sentence — five rows of chrome for one row of prose, a hundred times over. */
+.cc-place {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-left: 2px solid var(--border-2);
+  border-radius: 0 7px 7px 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  /* Every property that CHANGES between any two of this card's states is
+     listed. One that changes but is not listed SNAPS, and a card that jumps
+     under the pointer while the rest of it eases reads as a rendering glitch. */
+  transition: background-color 0.15s ease-in-out, border-left-color 0.15s ease-in-out,
+    border-left-style 0.15s ease-in-out, box-shadow 0.15s ease-in-out,
+    opacity 0.15s ease-in-out;
+}
+
+/* --- navigable: a real button. --- */
+.cc-place-navigable {
+  cursor: pointer;
+}
+.cc-place-navigable:hover {
+  background: var(--panel);
+  border-left-color: var(--muted-3);
+}
+.cc-place-navigable:active {
+  background: var(--panel-2);
+  border-left-color: var(--muted-2);
+}
+.cc-place-navigable:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent-100);
+}
+.cc-place-navigable:focus-visible:hover {
+  background: var(--panel);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/* --- selected: THE passage currently shown in the document. --- */
+/* Rail plus fill, so selection is never carried by tint alone; and every
+   selected combination is pushed further than its unselected twin, so
+   `selected+hover === selected` cannot happen and tell the reader their
+   pointer is dead over the one card that is live. */
+.cc-place-navigable.is-selected {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+}
+.cc-place-navigable.is-selected:hover {
+  background: var(--accent-100);
+  border-left-color: var(--accent-strong);
+}
+.cc-place-navigable.is-selected:active {
+  background: color-mix(in srgb, var(--accent) 26%, var(--bg-2));
+  border-left-color: var(--ink-2);
+}
+.cc-place-navigable.is-selected:focus-visible {
+  outline: none;
+  background: var(--accent-soft);
+  border-left-color: var(--accent-strong);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.cc-place-navigable.is-selected:focus-visible:hover {
+  background: var(--accent-100);
+  box-shadow: inset 0 0 0 2px var(--accent-strong);
+}
+
+/* --- inert: not a button at all. Flat, dotted rail, no pointer. --- */
+/* It still receives pointer events, because the delegated tooltip is how it
+   says WHY it cannot navigate — a control that only fails to respond has
+   explained nothing. So hover DOES answer, but in the muted register. What it
+   must never do is borrow the accent, which on this screen means "there is a
+   place at the other end of this". */
+.cc-place-inert {
+  cursor: help;
+  border-left-style: dotted;
+  border-left-color: var(--border-2);
+  opacity: 0.9;
+}
+.cc-place-inert:hover {
+  background: var(--panel-2);
+  border-left-color: var(--muted-3);
+  opacity: 1;
+}
+
+/* --- checking: a WAIT, not an answer. --- */
+/* Solid rail like the navigable card (it may yet become one) but with a
+   breathing surface, so it is never mistaken for a settled inert card. */
+.cc-place-checking {
+  cursor: progress;
+  border-left-color: var(--border);
+  animation: cc-breathe 1.6s ease-in-out infinite;
+}
+.cc-place-checking:hover {
+  background: var(--panel);
+  border-left-color: var(--border-2);
+}
+/* A card can be selected AND rechecking: a zoom rebuilds the text index, so the
+   verdict is briefly unknown while the band it drew is still on the page. The
+   selection rail stays (it is still the passage being shown) but the surface
+   keeps the wait's treatment, so neither claim is dropped. */
+.cc-place-checking.is-selected {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--panel));
+}
+.cc-place-checking.is-selected:hover {
+  border-left-color: var(--accent-strong);
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel-2));
+}
+/* Selected and then refused. The parent clears the selection the moment the
+   viewer reports the refusal, so this is one frame wide — but one frame of a
+   card claiming to be shown in a document that refused it is still a false
+   claim, so it is struck through rather than left looking selected. */
+.cc-place-inert.is-selected {
+  border-left-color: var(--danger);
+  background: var(--danger-soft);
+}
+.cc-place-inert.is-selected:hover {
+  border-left-color: var(--danger-strong);
+  background: color-mix(in srgb, var(--danger) 14%, var(--panel));
+}
+.cc-place-inert.is-selected .cc-place-blocked {
+  color: var(--danger-strong);
+  font-weight: 600;
+  text-decoration: line-through;
+  text-decoration-color: var(--danger);
+}
+.cc-place-inert.is-selected:hover .cc-place-blocked {
+  color: var(--danger-strong);
+  font-weight: 700;
+  text-decoration: line-through;
+  text-decoration-color: var(--danger-strong);
+}
+/* Still the passage on screen, but its verdict is being recomputed. Bolder
+   than an unselected wait so the selection survives the recheck, without
+   borrowing the settled navigable treatment. */
+.cc-place-checking.is-selected .cc-place-blocked {
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+.cc-place-checking.is-selected:hover .cc-place-blocked {
+  color: var(--ink);
+  font-weight: 600;
+}
+@keyframes cc-breathe {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cc-place-checking {
+    animation: none;
+    opacity: 0.86;
+  }
+}
+
+/* The prose. This is what the reader came for, so it is set at reading size —
+   not at the 12px italic the metadata around it had dragged it down to. */
+.cc-place-quote {
+  display: block;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.cc-place-inert .cc-place-quote {
+  color: var(--muted);
+}
+
+/* Wraps rather than truncates. This panel is resizable and narrow by default,
+   and the item most likely to be pushed off the end is the one saying the card
+   cannot be jumped to — the single thing here that must never go unread. */
+.cc-place-foot {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 3px 8px;
+  margin-top: 5px;
+  font-size: 11.5px;
+  color: var(--muted-2);
+  letter-spacing: 0.04em;
+}
+.cc-place-kind,
+.cc-place-where {
+  font-size: 11.5px;
+  color: var(--muted-2);
+}
+/* Only the exceptional occurrence kinds reach this rule at all, so it may be
+   emphatic without shouting on every card. */
+.cc-place-kind {
+  color: var(--muted);
+  font-style: italic;
+}
+.cc-foot-spacer {
+  flex: 1;
+}
+
+/* The jump affordance is REVEALED BY THE POINTER. It used to be a line of text
+   on every card saying the card was a button — which the card already is. */
+.cc-place-jump {
+  font-size: 11.5px;
+  color: var(--accent-strong);
+  opacity: 0;
+  transform: translateX(-3px);
+  transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out,
+    color 0.15s ease-in-out, font-weight 0.15s ease-in-out;
+}
+.cc-place-navigable:hover .cc-place-jump,
+.cc-place-navigable:focus-visible .cc-place-jump {
+  opacity: 1;
+  transform: none;
+}
+/* Selection is a standing claim about the document, not a hover hint, so it
+   stays put — and is heavier than the hovered hint so the two cannot be read
+   as the same statement. */
+.cc-place-navigable.is-selected .cc-place-jump {
+  opacity: 1;
+  transform: none;
+  font-weight: 600;
+}
+.cc-place-navigable.is-selected:hover .cc-place-jump {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* A card that CANNOT be jumped to is the one case that still speaks unprompted:
+   it is the reader's only warning that a sentence they can see has nowhere to
+   go, and it must never be discovered by pressing. */
+.cc-place-blocked {
+  font-size: 11.5px;
+  color: var(--muted-2);
+  border-bottom: 1px dotted var(--border-2);
+  transition: color 0.15s ease-in-out, border-color 0.15s ease-in-out,
+    font-weight 0.15s ease-in-out;
+}
+.cc-place-inert:hover .cc-place-blocked {
+  color: var(--muted);
+  border-bottom-color: var(--muted-3);
+}
+.cc-place-checking .cc-place-blocked {
+  color: var(--muted-2);
+  border-bottom-style: dashed;
+}
+.cc-place-checking:hover .cc-place-blocked {
+  color: var(--muted);
+  border-bottom-color: var(--muted-3);
+}
+
+/* ------------------------------------------------ role and its provenance */
+.cc-role-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+/* The role sits IN the footer line now rather than in a chip above the
+   sentence, so it is set as words, not as a pill: at footer scale a bordered
+   capsule around a two-word label is more edge than text. */
+.cc-role {
+  display: inline-flex;
+  align-items: baseline;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.cc-role-set {
+  color: var(--muted);
+}
+/* The absence of a label, rendered as an absence: dashed, hollow, italic and
+   muted. It must never be legible as a role — least of all as `other`, which
+   means a classifier looked and found none of the named uses to fit. */
+.cc-role-none {
+  border-bottom: 1px dashed var(--border-2);
+  color: var(--muted-2);
+  font-weight: 500;
+  font-style: italic;
+}
+
+/* Who said so. Only a claim carrying a NUMBER earns a mark here: a model's
+   judgement reports a probability, a cue rule reports nothing a reader could
+   weigh, so the rule names its cue on the role's own tooltip instead of
+   spending a chip on every card to print an internal id. */
+.cc-rolesrc {
+  display: inline-flex;
+  align-items: baseline;
+  padding: 0 5px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+.cc-rolesrc-llm {
+  border: 1px solid color-mix(in srgb, var(--ok) 34%, var(--border));
+  border-radius: 999px;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+

@@ -1,0 +1,1066 @@
+[
+  {
+    "title": "Kemp elimination catalysts by computational enzyme design",
+    "authors": [
+      {
+        "given": "Daniela",
+        "family": "Röthlisberger",
+        "affiliation": ""
+      },
+      {
+        "given": "Olga",
+        "family": "Khersonsky",
+        "affiliation": ""
+      },
+      {
+        "given": "Andrew M.",
+        "family": "Wollacott",
+        "affiliation": ""
+      },
+      {
+        "given": "Lin",
+        "family": "Jiang",
+        "affiliation": ""
+      },
+      {
+        "given": "Jason",
+        "family": "DeChancie",
+        "affiliation": ""
+      },
+      {
+        "given": "Jamie",
+        "family": "Betker",
+        "affiliation": ""
+      },
+      {
+        "given": "Jasmine L.",
+        "family": "Gallaher",
+        "affiliation": ""
+      },
+      {
+        "given": "Eric A.",
+        "family": "Althoff",
+        "affiliation": ""
+      },
+      {
+        "given": "Alexandre",
+        "family": "Zanghellini",
+        "affiliation": ""
+      },
+      {
+        "given": "Orly",
+        "family": "Dym",
+        "affiliation": ""
+      },
+      {
+        "given": "Shira",
+        "family": "Albeck",
+        "affiliation": ""
+      },
+      {
+        "given": "Kendall N.",
+        "family": "Houk",
+        "affiliation": ""
+      },
+      {
+        "given": "Dan S.",
+        "family": "Tawfik",
+        "affiliation": ""
+      },
+      {
+        "given": "David",
+        "family": "Baker",
+        "affiliation": ""
+      }
+    ],
+    "doi": "10.1038/nature06879",
+    "pmid": "18354394",
+    "arxiv": null,
+    "year": 2008,
+    "venue": "Nature",
+    "abstract": "The design of new enzymes for reactions not catalysed by naturally occurring biocatalysts is a challenge for protein engineering and is a critical test of our understanding of enzyme catalysis. Here we describe the computational design of eight enzymes that use two different catalytic motifs to catalyse the Kemp elimination-a model reaction for proton transfer from carbon-with measured rate enhancements of up to 10(5) and multiple turnovers. Mutational analysis confirms that catalysis depends on the computationally designed active sites, and a high-resolution crystal structure suggests that the designs have close to atomic accuracy. Application of in vitro evolution to enhance the computational designs produced a >200-fold increase in k(cat)/K(m) (k(cat)/K(m) of 2,600 M(-1)s(-1) and k(cat)/k(uncat) of >10(6)). These results demonstrate the power of combining computational protein design with directed evolution for creating new enzymes, and we anticipate the creation of a wide range of useful new catalysts in the future.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/01_Rothlisberger2008_Nature_KE07_design.pdf",
+    "cites": [
+      "10.1021/jo00953a006",
+      "10.1038/383060a0",
+      "10.1110/ps.062353106"
+    ]
+  },
+  {
+    "title": "Evolutionary Optimization of Computationally Designed Enzymes: Kemp Eliminases of the KE07 Series",
+    "authors": [
+      {
+        "given": "Olga",
+        "family": "Khersonsky",
+        "affiliation": "Weizmann Institute of Science"
+      },
+      {
+        "given": "Daniela",
+        "family": "Röthlisberger",
+        "affiliation": "University of Washington"
+      },
+      {
+        "given": "Orly",
+        "family": "Dym",
+        "affiliation": "Weizmann Institute of Science"
+      },
+      {
+        "given": "Shira",
+        "family": "Albeck",
+        "affiliation": "Weizmann Institute of Science"
+      },
+      {
+        "given": "Colin J.",
+        "family": "Jackson",
+        "affiliation": ""
+      },
+      {
+        "given": "David",
+        "family": "Baker",
+        "affiliation": "University of Washington"
+      },
+      {
+        "given": "Dan S.",
+        "family": "Tawfik",
+        "affiliation": "Weizmann Institute of Science"
+      }
+    ],
+    "doi": "10.1016/j.jmb.2009.12.031",
+    "pmid": "20036254",
+    "arxiv": null,
+    "year": 2010,
+    "venue": "Journal of Molecular Biology",
+    "abstract": "Understanding enzyme catalysis through the analysis of natural enzymes is a daunting challenge-their active sites are complex and combine numerous interactions and catalytic forces that are finely coordinated. Study of more rudimentary (wo)man-made enzymes provides a unique opportunity for better understanding of enzymatic catalysis. KE07, a computationally designed Kemp eliminase that employs a glutamate side chain as the catalytic base for the critical proton abstraction step and an apolar binding site to guide substrate binding, was optimized by seven rounds of random mutagenesis and selection, resulting in a >200-fold increase in catalytic efficiency. Here, we describe the directed evolution process in detail and the biophysical and crystallographic studies of the designed KE07 and its evolved variants. The optimization of KE07's activity to give a k(cat)/K(M) value of approximately 2600 s(-1) M(-1) and an approximately 10(6)-fold rate acceleration (k(cat)/k(uncat)) involved the incorporation of up to eight mutations. These mutations led to a marked decrease in the overall thermodynamic stability of the evolved KE07s and in the configurational stability of their active sites. We identified two primary contributions of the mutations to KE07's improved activity: (i) the introduction of new salt bridges to correct a mistake in the original design that placed a lysine for leaving-group protonation without consideration of its \"quenching\" interactions with the catalytic glutamate, and (ii) the tuning of the environment, the pK(a) of the catalytic base, and its interactions with the substrate through the evolution of a network of hydrogen bonds consisting of several charged residues surrounding the active site.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/02_Khersonsky2010_JMB_KE07_series.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1021/ja804040s",
+      "10.1021/jo00953a006",
+      "10.1038/383060a0",
+      "10.1110/ps.062353106"
+    ]
+  },
+  {
+    "title": "Optimization of the In-Silico-Designed Kemp Eliminase KE70 by Computational Design and Directed Evolution",
+    "authors": [
+      {
+        "given": "Olga",
+        "family": "Khersonsky",
+        "affiliation": "Weizmann Institute of Science"
+      },
+      {
+        "given": "Daniela",
+        "family": "Röthlisberger",
+        "affiliation": "University of Washington"
+      },
+      {
+        "given": "Andrew M.",
+        "family": "Wollacott",
+        "affiliation": ""
+      },
+      {
+        "given": "Paul",
+        "family": "Murphy",
+        "affiliation": ""
+      },
+      {
+        "given": "Orly",
+        "family": "Dym",
+        "affiliation": "Weizmann Institute of Science"
+      },
+      {
+        "given": "Shira",
+        "family": "Albeck",
+        "affiliation": "Weizmann Institute of Science"
+      },
+      {
+        "given": "Gert",
+        "family": "Kiss",
+        "affiliation": "UCLA"
+      },
+      {
+        "given": "K. N.",
+        "family": "Houk",
+        "affiliation": "UCLA"
+      },
+      {
+        "given": "David",
+        "family": "Baker",
+        "affiliation": "University of Washington"
+      },
+      {
+        "given": "Dan S.",
+        "family": "Tawfik",
+        "affiliation": "Weizmann Institute of Science"
+      }
+    ],
+    "doi": "10.1016/j.jmb.2011.01.041",
+    "pmid": "21277311",
+    "arxiv": null,
+    "year": 2011,
+    "venue": "Journal of Molecular Biology",
+    "abstract": "Although de novo computational enzyme design has been shown to be feasible, the field is still in its infancy: the kinetic parameters of designed enzymes are still orders of magnitude lower than those of naturally occurring ones. Nonetheless, designed enzymes can be improved by directed evolution, as recently exemplified for the designed Kemp eliminase KE07. Random mutagenesis and screening resulted in variants with >200-fold higher catalytic efficiency and provided insights about features missing in the designed enzyme. Here we describe the optimization of KE70, another designed Kemp eliminase. Amino acid substitutions predicted to improve catalysis in design calculations involving extensive backbone sampling were individually tested. Those proven beneficial were combinatorially incorporated into the originally designed KE70 along with random mutations, and the resulting libraries were screened for improved eliminase activity. Nine rounds of mutation and selection resulted in >400-fold improvement in the catalytic efficiency of the original KE70 design, reflected in both higher k(cat) values and lower K(m) values, with the best variants exhibiting k(cat)/K(m) values of >5×10(4) s(-)(1) M(-1). The optimized KE70 variants were characterized structurally and biochemically, providing insights into the origins of the improvements in catalysis. Three primary contributions were identified: first, the reshaping of the active-site cavity to achieve tighter substrate binding; second, the fine-tuning of electrostatics around the catalytic His-Asp dyad; and, third, the stabilization of the active-site dyad in a conformation optimal for catalysis.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/03_Khersonsky2011_JMB_KE70.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1016/j.jmb.2009.12.031",
+      "10.1021/ja804040s",
+      "10.1073/pnas.1010381107",
+      "10.1110/ps.062353106",
+      "10.1002/pro.462"
+    ]
+  },
+  {
+    "title": "Bridging the gaps in design methodologies by evolutionary optimization of the stability and proficiency of designed Kemp eliminase KE59",
+    "authors": [
+      {
+        "given": "Olga",
+        "family": "Khersonsky",
+        "affiliation": "Weizmann Institute of Science"
+      },
+      {
+        "given": "Gert",
+        "family": "Kiss",
+        "affiliation": "UCLA"
+      },
+      {
+        "given": "Daniela",
+        "family": "Röthlisberger",
+        "affiliation": "University of Washington"
+      },
+      {
+        "given": "Orly",
+        "family": "Dym",
+        "affiliation": "Weizmann Institute of Science"
+      },
+      {
+        "given": "Shira",
+        "family": "Albeck",
+        "affiliation": "Weizmann Institute of Science"
+      },
+      {
+        "given": "Kendall N.",
+        "family": "Houk",
+        "affiliation": "UCLA"
+      },
+      {
+        "given": "David",
+        "family": "Baker",
+        "affiliation": "University of Washington / HHMI"
+      },
+      {
+        "given": "Dan S.",
+        "family": "Tawfik",
+        "affiliation": "Weizmann Institute of Science"
+      }
+    ],
+    "doi": "10.1073/pnas.1121063109",
+    "pmid": "22685214",
+    "arxiv": null,
+    "year": 2012,
+    "venue": "Proceedings of the National Academy of Sciences",
+    "abstract": "Computational design is a test of our understanding of enzyme catalysis and a means of engineering novel, tailor-made enzymes. While the de novo computational design of catalytically efficient enzymes remains a challenge, designed enzymes may comprise unique starting points for further optimization by directed evolution. Directed evolution of two computationally designed Kemp eliminases, KE07 and KE70, led to low to moderately efficient enzymes (kcat/Km values of ≤ 5 × 10^4 M^-1 s^-1). Here we describe the optimization of a third design, KE59. Although KE59 was the most catalytically efficient Kemp eliminase from this design series (by kcat/Km, and by catalyzing the elimination of nonactivated benzisoxazoles), its impaired stability prevented its evolutionary optimization. To boost KE59's evolvability, stabilizing consensus mutations were included in the libraries throughout the directed evolution process. The libraries were also screened with less activated substrates. Sixteen rounds of mutation and selection led to > 2,000-fold increase in catalytic efficiency, mainly via higher kcat values. The best KE59 variants exhibited kcat/Km values up to 0.6 × 10^6 M^-1 s^-1, and kcat/kuncat values of ≤ 10^7 almost regardless of substrate reactivity. Biochemical, structural, and molecular dynamics (MD) simulation studies provided insights regarding the optimization of KE59. Overall, the directed evolution of three different designed Kemp eliminases, KE07, KE70, and KE59, demonstrates that computational designs are highly evolvable and can be optimized to high catalytic efficiencies.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/04_Khersonsky2012_PNAS_KE59.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1016/j.jmb.2009.12.031",
+      "10.1016/j.jmb.2011.01.041",
+      "10.1021/ja804040s",
+      "10.1073/pnas.1010381107",
+      "10.1021/bi200063a",
+      "10.1073/pnas.1118082108",
+      "10.1110/ps.062353106",
+      "10.1002/pro.462"
+    ]
+  },
+  {
+    "title": "Computational Optimization of Electric Fields for Improving Catalysis of a Designed Kemp Eliminase",
+    "authors": [
+      {
+        "given": "Valerie",
+        "family": "Vaissier",
+        "affiliation": "University of California, Berkeley; Lawrence Berkeley National Labs"
+      },
+      {
+        "given": "Sudhir C.",
+        "family": "Sharma",
+        "affiliation": "University of California, Berkeley"
+      },
+      {
+        "given": "Karl",
+        "family": "Schaettle",
+        "affiliation": "University of California, Berkeley"
+      },
+      {
+        "given": "Taoran",
+        "family": "Zhang",
+        "affiliation": "University of California, Berkeley"
+      },
+      {
+        "given": "Teresa",
+        "family": "Head-Gordon",
+        "affiliation": "University of California, Berkeley; Lawrence Berkeley National Labs"
+      }
+    ],
+    "doi": "10.1021/acscatal.7b03151",
+    "pmid": null,
+    "arxiv": null,
+    "year": 2017,
+    "venue": "ACS Catalysis",
+    "abstract": "Here we report a computational method to improve efficiency of a de novo designed Kemp Eliminase enzyme KE15, by identifying mutations that enhance electric fields and chemical positioning of the substrate that contribute to free energy stabilization of the transition state. Starting from the design that has a kcat/KM of 27 M-1s-1, the most improved variant introduced 4 computationally targeted mutations to yield a kcat/KM of 403 M-1s-1, with almost all of the enzyme improvement realized through a 43-fold improvement in kcat, indicative of a direct impact on the chemical step. This work raises the prospect of computationally designing enzymes that achieve better efficiency with more minimal experimental intervention using electric field optimization as guidance.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/05_Vaissier2017_ACSCatal_ElectricFields.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1016/j.jmb.2009.12.031",
+      "10.1039/c6cp03622h",
+      "10.1038/nature12623",
+      "10.1073/pnas.1118082108"
+    ]
+  },
+  {
+    "title": "The evolution of multiple active site configurations in a designed enzyme",
+    "authors": [
+      {
+        "given": "Nan-Sook",
+        "family": "Hong",
+        "affiliation": "Australian National University"
+      },
+      {
+        "given": "Dušan",
+        "family": "Petrović",
+        "affiliation": "Uppsala University"
+      },
+      {
+        "given": "Richmond",
+        "family": "Lee",
+        "affiliation": ""
+      },
+      {
+        "given": "Ganna",
+        "family": "Gryn'ova",
+        "affiliation": ""
+      },
+      {
+        "given": "Miha",
+        "family": "Purg",
+        "affiliation": ""
+      },
+      {
+        "given": "Jake",
+        "family": "Saunders",
+        "affiliation": ""
+      },
+      {
+        "given": "Paul",
+        "family": "Bauer",
+        "affiliation": ""
+      },
+      {
+        "given": "Paul D.",
+        "family": "Carr",
+        "affiliation": ""
+      },
+      {
+        "given": "Ching-Yeh",
+        "family": "Lin",
+        "affiliation": ""
+      },
+      {
+        "given": "Peter D.",
+        "family": "Mabbitt",
+        "affiliation": ""
+      },
+      {
+        "given": "William",
+        "family": "Zhang",
+        "affiliation": ""
+      },
+      {
+        "given": "Timothy",
+        "family": "Altamore",
+        "affiliation": ""
+      },
+      {
+        "given": "Chris",
+        "family": "Easton",
+        "affiliation": ""
+      },
+      {
+        "given": "Michelle L.",
+        "family": "Coote",
+        "affiliation": ""
+      },
+      {
+        "given": "Shina C. L.",
+        "family": "Kamerlin",
+        "affiliation": "Uppsala University"
+      },
+      {
+        "given": "Colin J.",
+        "family": "Jackson",
+        "affiliation": "Australian National University"
+      }
+    ],
+    "doi": "10.1038/s41467-018-06305-y",
+    "pmid": "30254369",
+    "arxiv": null,
+    "year": 2018,
+    "venue": "Nature Communications",
+    "abstract": "Developments in computational chemistry, bioinformatics, and laboratory evolution have facilitated the de novo design and catalytic optimization of enzymes. Besides creating useful catalysts, the generation and iterative improvement of designed enzymes can provide valuable insight into the interplay between the many phenomena that have been suggested to contribute to catalysis. In this work, we follow changes in conformational sampling, electrostatic preorganization, and quantum tunneling along the evolutionary trajectory of a designed Kemp eliminase. We observe that in the Kemp Eliminase KE07, instability of the designed active site leads to the emergence of two additional active site configurations. Evolutionary conformational selection then gradually stabilizes the most efficient configuration, leading to an improved enzyme. This work exemplifies the link between conformational plasticity and evolvability and demonstrates that residues remote from the active sites of enzymes play crucial roles in controlling and shaping the active site for efficient catalysis.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/06_Otten2018_NatCommun_multiple_active_sites.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1016/j.jmb.2009.12.031",
+      "10.1021/ja804040s",
+      "10.1038/nature12623"
+    ]
+  },
+  {
+    "title": "How directed evolution reshapes the energy landscape in an enzyme to boost catalysis",
+    "authors": [
+      {
+        "given": "Renee",
+        "family": "Otten",
+        "affiliation": "Brandeis University / HHMI"
+      },
+      {
+        "given": "Ricardo A. P.",
+        "family": "Pádua",
+        "affiliation": "Brandeis University / HHMI"
+      },
+      {
+        "given": "H. Adrian",
+        "family": "Bunzel",
+        "affiliation": "ETH Zürich"
+      },
+      {
+        "given": "Vy",
+        "family": "Nguyen",
+        "affiliation": "Brandeis University / HHMI"
+      },
+      {
+        "given": "Warintra",
+        "family": "Pitsawong",
+        "affiliation": "Brandeis University / HHMI"
+      },
+      {
+        "given": "MacKenzie",
+        "family": "Patterson",
+        "affiliation": "Brandeis University / HHMI"
+      },
+      {
+        "given": "Shuo",
+        "family": "Sui",
+        "affiliation": "University of Massachusetts, Amherst"
+      },
+      {
+        "given": "Sarah L.",
+        "family": "Perry",
+        "affiliation": "University of Massachusetts, Amherst"
+      },
+      {
+        "given": "Aina E.",
+        "family": "Cohen",
+        "affiliation": "Stanford Synchrotron Radiation Lightsource"
+      },
+      {
+        "given": "Donald",
+        "family": "Hilvert",
+        "affiliation": "ETH Zürich"
+      },
+      {
+        "given": "Dorothee",
+        "family": "Kern",
+        "affiliation": "Brandeis University / HHMI"
+      }
+    ],
+    "doi": "10.1126/science.abd3623",
+    "pmid": "33214289",
+    "arxiv": null,
+    "year": 2020,
+    "venue": "Science",
+    "abstract": "Whether designed computationally or uncovered in activity screening, enzymes repurposed for biocatalysis rarely start at the peak of proficiency. However, directed evolution can in some cases increase catalytic efficiency of a poor enzyme by many orders of magnitude. Otten et al. used a suite of biochemical techniques to investigate the origins of rate enhancement in a previously evolved model enzyme. Two conformational states are present in the initial, computationally designed enzyme, but only one is active. Shifting the population toward the active state is one factor in increasing catalytic efficiency during evolution. Single mutations do not greatly increase activity, but the synergistic combination of just two out of 17 substitutions can provide most of the rate enhancement seen in the final, evolved enzyme.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/07_Otten2020_Science_energy_landscape.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1073/pnas.1118082108",
+      "10.1038/nature12623"
+    ]
+  },
+  {
+    "title": "Catalytic Mechanism and Performance of Computationally Designed Enzymes for Kemp Elimination",
+    "authors": [
+      {
+        "given": "Anastassia N.",
+        "family": "Alexandrova",
+        "affiliation": "Yale University; University of Washington"
+      },
+      {
+        "given": "Daniela",
+        "family": "Röthlisberger",
+        "affiliation": "University of Washington"
+      },
+      {
+        "given": "David",
+        "family": "Baker",
+        "affiliation": "University of Washington / HHMI"
+      },
+      {
+        "given": "William L.",
+        "family": "Jorgensen",
+        "affiliation": "Yale University"
+      }
+    ],
+    "doi": "10.1021/ja804040s",
+    "pmid": "18975945",
+    "arxiv": null,
+    "year": 2008,
+    "venue": "Journal of the American Chemical Society",
+    "abstract": "A series of enzymes for Kemp elimination of 5-nitrobenzisoxazole has been recently designed and tested. In conjunction with the design process, extensive computational analyses were carried out to evaluate the potential performance of four of the designs, as presented here. The enzyme-catalyzed reactions were modeled using mixed quantum and molecular mechanics (QM/MM) calculations in the context of Monte Carlo (MC) statistical mechanics simulations. Free-energy perturbation (FEP) calculations were used to characterize the free-energy surfaces for the catalyzed reactions as well as for reference processes in water. The simulations yielded detailed information about the catalytic mechanisms, activation barriers, and structural evolution of the active sites over the course of the reactions. The catalytic mechanism for the designed enzymes KE07, KE10(V131N), and KE15 was found to be concerted with proton transfer, generally more advanced in the transition state than breaking of the isoxazolyl N-O bond. On the basis of the free-energy results, all three enzymes were anticipated to be active. Ideas for further improvement of the enzyme designs also emerged. On the technical side, the synergy of parallel QM/MM and experimental efforts in the design of artificial enzymes is well illustrated.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/08_Alexandrova2008_JACS_mechanism.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1021/jo00953a006",
+      "10.1038/383060a0",
+      "10.1110/ps.062353106"
+    ]
+  },
+  {
+    "title": "Exploring challenges in rational enzyme design by simulating the catalysis in artificial kemp eliminase",
+    "authors": [
+      {
+        "given": "Maria P.",
+        "family": "Frushicheva",
+        "affiliation": "University of Southern California"
+      },
+      {
+        "given": "Jie",
+        "family": "Cao",
+        "affiliation": "University of Southern California"
+      },
+      {
+        "given": "Zhen T.",
+        "family": "Chu",
+        "affiliation": "University of Southern California"
+      },
+      {
+        "given": "Arieh",
+        "family": "Warshel",
+        "affiliation": "University of Southern California"
+      }
+    ],
+    "doi": "10.1073/pnas.1010381107",
+    "pmid": "20829491",
+    "arxiv": null,
+    "year": 2010,
+    "venue": "Proceedings of the National Academy of Sciences",
+    "abstract": "One of the fundamental challenges in biotechnology and in biochemistry is the ability to design effective enzymes. Doing so would be a convincing manifestation of a full understanding of the origin of enzyme catalysis. Despite an impressive progress, most of the advances on this front have been made by placing the reacting fragments in the proper places, rather than by optimizing the environment preorganization, which is the key factor in enzyme catalysis. Rational improvement of the preorganization would require approaches capable of evaluating reliably the actual catalytic effect. This work takes a previously designed kemp eliminases as a benchmark for a computer aided enzyme design, using the empirical valence bond as the main screening tool. The observed absolute catalytic effect and the effect of directed evolution are reproduced and analyzed (assuming that the substrate is in the designed site). It is found that, in the case of kemp eliminases, the transition state charge distribution makes it hard to exploit the active site polarity, even with the ability to quantify the effect of different mutations. Unexpectedly, it is found that the directed evolution mutants lead to the reduction of solvation of the reactant state by water molecules rather that to the more common mode of transition state stabilization used by naturally evolved enzymes. Finally it is pointed out that our difficulties in improving Kemp eliminase are not due to overlooking exotic effect, but to the challenge in designing a preorganized environment that would exploit the small change it charge distribution during the formation of the transition state.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/09_Frushicheva2010_PNAS_challenges.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1016/j.jmb.2009.12.031",
+      "10.1021/ja804040s",
+      "10.1110/ps.062353106"
+    ]
+  },
+  {
+    "title": "Challenges and Advances in Validating Enzyme Design Proposals: The Case of Kemp Eliminase Catalysis",
+    "authors": [
+      {
+        "given": "Maria P.",
+        "family": "Frushicheva",
+        "affiliation": "University of Southern California"
+      },
+      {
+        "given": "Jie",
+        "family": "Cao",
+        "affiliation": "University of Southern California"
+      },
+      {
+        "given": "Arieh",
+        "family": "Warshel",
+        "affiliation": "University of Southern California"
+      }
+    ],
+    "doi": "10.1021/bi200063a",
+    "pmid": "21443179",
+    "arxiv": null,
+    "year": 2011,
+    "venue": "Biochemistry",
+    "abstract": "One of the fundamental challenges in biotechnology and biochemistry is the ability to design effective enzymes. Despite recent progress, most of the advances on this front have been made by placing the reacting fragments in the proper places, rather than by optimizing the preorganization of the environment, which is the key factor in enzyme catalysis. Thus, rational improvement of the preorganization would require approaches capable of evaluating reliably the actual catalytic effect. This work considers the catalytic effects in different Kemp eliminases as a benchmark for a computer-aided enzyme design. It is shown that the empirical valence bond provides a powerful screening tool, with significant advantages over current alternative strategies. The insights provided by the empirical valence bond calculations are discussed with an emphasis on the ability to analyze the difference between the linear free energy relationships obtained in solution and those found in the enzymes. We also point out the trade-off between the reliability and speed of the calculations and try to determine what it takes to realize reliable computer-aided screening.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/10_Frushicheva2011_Biochemistry_validating.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1016/j.jmb.2009.12.031",
+      "10.1021/ja804040s",
+      "10.1073/pnas.1010381107",
+      "10.1110/ps.062353106"
+    ]
+  },
+  {
+    "title": "Optimization of reorganization energy drives evolution of the designed Kemp eliminase KE07",
+    "authors": [
+      {
+        "given": "A.",
+        "family": "Labas",
+        "affiliation": "University of Debrecen"
+      },
+      {
+        "given": "E.",
+        "family": "Szabo",
+        "affiliation": "University of Debrecen"
+      },
+      {
+        "given": "L.",
+        "family": "Mones",
+        "affiliation": ""
+      },
+      {
+        "given": "M.",
+        "family": "Fuxreiter",
+        "affiliation": "University of Debrecen"
+      }
+    ],
+    "doi": "10.1016/j.bbapap.2013.01.005",
+    "pmid": "23380188",
+    "arxiv": null,
+    "year": 2013,
+    "venue": "Biochimica et Biophysica Acta (BBA) - Proteins and Proteomics",
+    "abstract": "Understanding enzymatic evolution is essential to engineer enzymes with improved activities or to generate enzymes with tailor-made activities. The computationally designed Kemp eliminase KE07 carries out an unnatural reaction by converting of 5-nitrobenzisoxazole to cyanophenol, but its catalytic efficiency is significantly lower than those of natural enzymes. Three series of designed Kemp eliminases (KE07, KE70, KE59) were shown to be evolvable with considerable improvement in catalytic efficiency. Here we use the KE07 enzyme as a model system to reveal those forces, which govern enzymatic evolution and elucidate the key factors for improving activity. We applied the Empirical Valence Bond (EVB) method to construct the free energy pathway of the reaction in the original KE07 design and the evolved R7 1/3H variant. We analyzed catalytic effect of residues and demonstrated that not all mutations in evolution are favorable for activity. In contrast to the small decrease in the activation barrier, in vitro evolution significantly reduced the reorganization energy. We developed an algorithm to evaluate group contributions to the reorganization energy and used this approach to screen for KE07 variants with potential for improvement. We aimed to identify those mutations that facilitate enzymatic evolution, but might not directly increase catalytic efficiency. Computational results in accord with experimental data show that all mutations, which appear during in vitro evolution were either neutral or favorable for the reorganization energy. These results underscore that distant mutations can also play role in optimizing efficiency via their contribution to the reorganization energy. Exploiting this principle could be a promising strategy for computer-aided enzyme design.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/11_Labas2013_BBA_reorganization_energy.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1016/j.jmb.2009.12.031",
+      "10.1016/j.jmb.2011.01.041",
+      "10.1073/pnas.1121063109",
+      "10.1021/ja804040s",
+      "10.1073/pnas.1010381107",
+      "10.1021/bi200063a"
+    ]
+  },
+  {
+    "title": "The role of side chain entropy and mutual information for improving the de novo design of Kemp eliminase KE07",
+    "authors": [
+      {
+        "given": "Asmit",
+        "family": "Bhowmick",
+        "affiliation": "University of California, Berkeley"
+      },
+      {
+        "given": "Sudhir C.",
+        "family": "Sharma",
+        "affiliation": "University of California, Berkeley"
+      },
+      {
+        "given": "Teresa",
+        "family": "Head-Gordon",
+        "affiliation": "University of California, Berkeley"
+      }
+    ],
+    "doi": "10.1039/c6cp03622h",
+    "pmid": "27374812",
+    "arxiv": null,
+    "year": 2016,
+    "venue": "Physical Chemistry Chemical Physics",
+    "abstract": "Side chain entropy and mutual entropy information between residue pairs have been calculated for two de novo designed Kemp eliminase enzymes, KE07 and KE70, and for their most improved versions at the end of laboratory directed evolution (LDE). We find that entropy, not just enthalpy, helped to destabilize the preference for the reactant state complex of the designed enzyme as well as favoring stabilization of the transition state complex for the best LDE enzymes. Furthermore, residues with the highest side chain couplings as measured by mutual information, when experimentally mutated, were found to diminish or annihilate catalytic activity, some of which were far from the active site. In summary, our findings demonstrate how side chain fluctuations and their coupling can be an important design feature for de novo enzymes, and furthermore could be utilized in the computational steps in lieu of or in addition to the LDE steps in future enzyme design projects.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/12_Bhowmick2016_PCCP_side_chain_entropy_KE07.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1016/j.jmb.2009.12.031",
+      "10.1016/j.jmb.2011.01.041",
+      "10.1021/ja804040s",
+      "10.1073/pnas.1010381107",
+      "10.1038/nature12623"
+    ]
+  },
+  {
+    "title": "Iterative approach to computational enzyme design",
+    "authors": [
+      {
+        "given": "Heidi K.",
+        "family": "Privett",
+        "affiliation": "California Institute of Technology"
+      },
+      {
+        "given": "Gert",
+        "family": "Kiss",
+        "affiliation": "UCLA"
+      },
+      {
+        "given": "Toni M.",
+        "family": "Lee",
+        "affiliation": "California Institute of Technology"
+      },
+      {
+        "given": "Rebecca",
+        "family": "Blomberg",
+        "affiliation": "ETH Zürich"
+      },
+      {
+        "given": "Roberto A.",
+        "family": "Chica",
+        "affiliation": "California Institute of Technology"
+      },
+      {
+        "given": "Leonard M.",
+        "family": "Thomas",
+        "affiliation": "California Institute of Technology / HHMI"
+      },
+      {
+        "given": "Donald",
+        "family": "Hilvert",
+        "affiliation": "ETH Zürich"
+      },
+      {
+        "given": "Kendall N.",
+        "family": "Houk",
+        "affiliation": "UCLA"
+      },
+      {
+        "given": "Stephen L.",
+        "family": "Mayo",
+        "affiliation": "California Institute of Technology"
+      }
+    ],
+    "doi": "10.1073/pnas.1118082108",
+    "pmid": "22357762",
+    "arxiv": null,
+    "year": 2012,
+    "venue": "Proceedings of the National Academy of Sciences",
+    "abstract": "A general approach for the computational design of enzymes to catalyze arbitrary reactions is a goal at the forefront of the field of protein design. Recently, computationally designed enzymes have been produced for three chemical reactions through the synthesis and screening of a large number of variants. Here, we present an iterative approach that has led to the development of the most catalytically efficient computationally designed enzyme for the Kemp elimination to date. Previously established computational techniques were used to generate an initial design, HG-1, which was catalytically inactive. Analysis of HG-1 with molecular dynamics simulations (MD) and X-ray crystallography indicated that the inactivity might be due to bound waters and high flexibility of residues within the active site. This analysis guided changes to our design procedure, moved the design deeper into the interior of the protein, and resulted in an active Kemp eliminase, HG-2. The cocrystal structure of this enzyme with a transition state analog (TSA) revealed that the TSA was bound in the active site, interacted with the intended catalytic base in a catalytically relevant manner, but was flipped relative to the design model. MD analysis of HG-2 led to an additional point mutation, HG-3, that produced a further threefold improvement in activity. This iterative approach to computational enzyme design, including detailed MD and structural analysis of both active and inactive designs, promises a more complete understanding of the underlying principles of enzymatic catalysis and furthers progress toward reliably producing active enzymes.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/13_Privett2012_PNAS_HG3_iterative.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1021/ja804040s",
+      "10.1110/ps.062353106",
+      "10.1002/pro.462"
+    ]
+  },
+  {
+    "title": "Precision is essential for efficient catalysis in an evolved Kemp eliminase",
+    "authors": [
+      {
+        "given": "Rebecca",
+        "family": "Blomberg",
+        "affiliation": "ETH Zürich"
+      },
+      {
+        "given": "Hajo",
+        "family": "Kries",
+        "affiliation": "ETH Zürich"
+      },
+      {
+        "given": "Daniel M.",
+        "family": "Pinkas",
+        "affiliation": "University of Zürich"
+      },
+      {
+        "given": "Peer R. E.",
+        "family": "Mittl",
+        "affiliation": "University of Zürich"
+      },
+      {
+        "given": "Markus G.",
+        "family": "Grütter",
+        "affiliation": "University of Zürich"
+      },
+      {
+        "given": "Heidi K.",
+        "family": "Privett",
+        "affiliation": "California Institute of Technology"
+      },
+      {
+        "given": "Stephen L.",
+        "family": "Mayo",
+        "affiliation": "California Institute of Technology"
+      },
+      {
+        "given": "Donald",
+        "family": "Hilvert",
+        "affiliation": "ETH Zürich"
+      }
+    ],
+    "doi": "10.1038/nature12623",
+    "pmid": "24132235",
+    "arxiv": null,
+    "year": 2013,
+    "venue": "Nature",
+    "abstract": "Linus Pauling established the conceptual framework for understanding and mimicking enzymes more than six decades ago. The notion that enzymes selectively stabilize the rate-limiting transition state of the catalysed reaction relative to the bound ground state reduces the problem of design to one of molecular recognition. Nevertheless, past attempts to capitalize on this idea, for example by using transition state analogues to elicit antibodies with catalytic activities, have generally failed to deliver true enzymatic rates. The advent of computational design approaches, combined with directed evolution, has provided an opportunity to revisit this problem. Starting from a computationally designed catalyst for the Kemp elimination--a well-studied model system for proton transfer from carbon--we show that an artificial enzyme can be evolved that accelerates an elementary chemical reaction 6 × 10(8)-fold, approaching the exceptional efficiency of highly optimized natural enzymes such as triosephosphate isomerase. A 1.09 Å resolution crystal structure of the evolved enzyme indicates that familiar catalytic strategies such as shape complementarity and precisely placed catalytic groups can be successfully harnessed to afford such high rate accelerations, making us optimistic about the prospects of designing more sophisticated catalysts.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/14_Blomberg2013_Nature_HG3.17.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1016/j.jmb.2009.12.031",
+      "10.1073/pnas.1118082108",
+      "10.1038/383060a0",
+      "10.1110/ps.062353106"
+    ]
+  },
+  {
+    "title": "Physical organic chemistry of benzisoxazoles. I. Mechanism of the base-catalyzed decomposition of benzisoxazoles",
+    "authors": [
+      {
+        "given": "Martha L.",
+        "family": "Casey",
+        "affiliation": "Massachusetts Institute of Technology"
+      },
+      {
+        "given": "D. S.",
+        "family": "Kemp",
+        "affiliation": "Massachusetts Institute of Technology"
+      },
+      {
+        "given": "Kenneth G.",
+        "family": "Paul",
+        "affiliation": "Massachusetts Institute of Technology"
+      },
+      {
+        "given": "Daniel D.",
+        "family": "Cox",
+        "affiliation": "Massachusetts Institute of Technology"
+      }
+    ],
+    "doi": "10.1021/jo00953a006",
+    "pmid": null,
+    "arxiv": null,
+    "year": 1973,
+    "venue": "The Journal of Organic Chemistry",
+    "abstract": null,
+    "work_type": "foundational",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/15_Casey1973_JOC_benzisoxazoles.pdf",
+    "cites": []
+  },
+  {
+    "title": "Off-the-shelf proteins that rival tailor-made antibodies as catalysts",
+    "authors": [
+      {
+        "given": "Florian",
+        "family": "Hollfelder",
+        "affiliation": "University of Cambridge"
+      },
+      {
+        "given": "Anthony J.",
+        "family": "Kirby",
+        "affiliation": "University of Cambridge"
+      },
+      {
+        "given": "Dan S.",
+        "family": "Tawfik",
+        "affiliation": "University of Cambridge"
+      }
+    ],
+    "doi": "10.1038/383060a0",
+    "pmid": "8779715",
+    "arxiv": null,
+    "year": 1996,
+    "venue": "Nature",
+    "abstract": "Mimicking the efficiency of enzyme catalysis is a daunting challenge. An enzyme selectively binds and stabilizes the transition state(s) for a particular reaction. Artificial host systems can bind ground states just as efficiently, and rate enhancements comparable to those in enzymatic reactions can be achieved by bringing catalytic and substrate groups together in intramolecular reactions. But the combination of selective binding and efficient catalysis remains elusive. The best enzyme mimics currently known are catalytic antibodies. They bind transition-state analogues with high affinity, but their catalytic efficiency generally falls far short of that of enzymes. Thorn et al. recently described an antibody that catalyses the eliminative ring-opening of a benziosoxazole \"exceptionally efficiently\" using carboxylate as the general base, raising the intriguing possibility that this high efficiency derives from precise positioning of catalytic and substrate groups. Here we show that familiar 'off-the-shelf' proteins--serum albumins--catalyse the same reaction at similar rates, using a lysine side-chain amino group as the catalytic general base. Comparisons suggest that formal general base catalysis is of only modest efficiency in both systems, and that the antibody catalysis is boosted by a non-specific medium effect.",
+    "work_type": "foundational",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/16_Hollfelder1996_Nature_off_the_shelf.pdf",
+    "cites": [
+      "10.1021/jo00953a006"
+    ]
+  },
+  {
+    "title": "New algorithms and an in silico benchmark for computational enzyme design",
+    "authors": [
+      {
+        "given": "Alexandre",
+        "family": "Zanghellini",
+        "affiliation": "University of Washington"
+      },
+      {
+        "given": "Lin",
+        "family": "Jiang",
+        "affiliation": "University of Washington"
+      },
+      {
+        "given": "Andrew M.",
+        "family": "Wollacott",
+        "affiliation": "University of Washington"
+      },
+      {
+        "given": "Gong",
+        "family": "Cheng",
+        "affiliation": ""
+      },
+      {
+        "given": "Jens",
+        "family": "Meiler",
+        "affiliation": ""
+      },
+      {
+        "given": "Eric A.",
+        "family": "Althoff",
+        "affiliation": ""
+      },
+      {
+        "given": "Daniela",
+        "family": "Röthlisberger",
+        "affiliation": "University of Washington"
+      },
+      {
+        "given": "David",
+        "family": "Baker",
+        "affiliation": "University of Washington / HHMI"
+      }
+    ],
+    "doi": "10.1110/ps.062353106",
+    "pmid": "17132862",
+    "arxiv": null,
+    "year": 2006,
+    "venue": "Protein Science",
+    "abstract": "The creation of novel enzymes capable of catalyzing any desired chemical reaction is a grand challenge for computational protein design. Here we describe two new algorithms for enzyme design that employ hashing techniques to allow searching through large numbers of protein scaffolds for optimal catalytic site placement. We also describe an in silico benchmark, based on the recapitulation of the active sites of native enzymes, that allows rapid evaluation and testing of enzyme design methodologies. In the benchmark test, which consists of designing sites for each of 10 different chemical reactions in backbone scaffolds derived from 10 enzymes catalyzing the reactions, the new methods succeed in identifying the native site in the native scaffold and ranking it within the top five designs for six of the 10 reactions. The new methods can be directly applied to the design of new enzymes, and the benchmark provides a powerful in silico test for guiding improvements in computational enzyme design.",
+    "work_type": "method",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/17_Zanghellini2006_ProteinSci_benchmark.pdf",
+    "cites": []
+  },
+  {
+    "title": "Computational Enzyme Design",
+    "authors": [
+      {
+        "given": "Gert",
+        "family": "Kiss",
+        "affiliation": "UCLA"
+      },
+      {
+        "given": "Nihan",
+        "family": "Çelebi-Ölçüm",
+        "affiliation": "UCLA"
+      },
+      {
+        "given": "Rocco",
+        "family": "Moretti",
+        "affiliation": ""
+      },
+      {
+        "given": "David",
+        "family": "Baker",
+        "affiliation": "University of Washington"
+      },
+      {
+        "given": "K. N.",
+        "family": "Houk",
+        "affiliation": "UCLA"
+      }
+    ],
+    "doi": "10.1002/anie.201204077",
+    "pmid": "23526810",
+    "arxiv": null,
+    "year": 2013,
+    "venue": "Angewandte Chemie International Edition",
+    "abstract": "Recent developments in computational chemistry and biology have come together in the \"inside-out\" approach to enzyme engineering. Proteins have been designed to catalyze reactions not previously accelerated in nature. Some of these proteins fold and act as catalysts, but the success rate is still low. The achievements and limitations of the current technology are highlighted and contrasted to other protein engineering techniques. On its own, computational \"inside-out\" design can lead to the production of catalytically active and selective proteins, but their kinetic performances fall short of natural enzymes. When combined with directed evolution, molecular dynamics simulations, and crowd-sourced structure-prediction approaches, however, computational designs can be significantly improved in terms of binding, turnover, and thermal stability.",
+    "work_type": "review",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/18_Kiss2013_Angew_review.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1016/j.jmb.2009.12.031",
+      "10.1016/j.jmb.2011.01.041",
+      "10.1073/pnas.1121063109",
+      "10.1021/ja804040s",
+      "10.1073/pnas.1010381107",
+      "10.1073/pnas.1118082108",
+      "10.1038/nature12623",
+      "10.1038/383060a0",
+      "10.1110/ps.062353106",
+      "10.1002/pro.462"
+    ]
+  },
+  {
+    "title": "Evaluation and ranking of enzyme designs",
+    "authors": [
+      {
+        "given": "Gert",
+        "family": "Kiss",
+        "affiliation": "UCLA"
+      },
+      {
+        "given": "Daniela",
+        "family": "Röthlisberger",
+        "affiliation": "University of Washington"
+      },
+      {
+        "given": "David",
+        "family": "Baker",
+        "affiliation": "University of Washington / HHMI"
+      },
+      {
+        "given": "K. N.",
+        "family": "Houk",
+        "affiliation": "UCLA"
+      }
+    ],
+    "doi": "10.1002/pro.462",
+    "pmid": "20665693",
+    "arxiv": null,
+    "year": 2010,
+    "venue": "Protein Science",
+    "abstract": "In 2008, a successful computational design procedure was reported that yielded active enzyme catalysts for the Kemp elimination. Here, we studied these proteins together with a set of previously unpublished inactive designs to determine the sources of activity or lack thereof, and to predict which of the designed structures are most likely to be catalytic. Methods that range from quantum mechanics (QM) on truncated model systems to the treatment of the full protein with ONIOM QM/MM and AMBER molecular dynamics (MD) were explored. The most effective procedure involved molecular dynamics, and a general MD protocol was established. Substantial deviations from the ideal catalytic geometries were observed for a number of designs. Penetration of water into the catalytic site and insufficient residue-packing around the active site are the main factors that can cause enzyme designs to be inactive. Where in the past, computational evaluations of designed enzymes were too time-extensive for practical considerations, it has now become feasible to rank and refine candidates computationally prior to and in conjunction with experimentation, thus markedly increasing the efficiency of the enzyme design process.",
+    "work_type": "method",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/19_Kiss2010_ProteinSci_ranking.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1021/ja804040s",
+      "10.1110/ps.062353106"
+    ]
+  },
+  {
+    "title": "Distal mutations enhance catalysis in designed enzymes by facilitating substrate binding and product release",
+    "authors": [
+      {
+        "given": "Niayesh",
+        "family": "Zarifi",
+        "affiliation": "University of Ottawa"
+      },
+      {
+        "given": "Pauline",
+        "family": "Asthana",
+        "affiliation": ""
+      },
+      {
+        "given": "Hossein",
+        "family": "Doustmohammadi",
+        "affiliation": ""
+      },
+      {
+        "given": "James S.",
+        "family": "Fraser",
+        "affiliation": "University of California, San Francisco"
+      },
+      {
+        "given": "Roberto A.",
+        "family": "Chica",
+        "affiliation": "University of Ottawa"
+      }
+    ],
+    "doi": "10.1038/s41467-025-63802-7",
+    "pmid": "41027962",
+    "arxiv": null,
+    "year": 2025,
+    "venue": "Nature Communications",
+    "abstract": "The role of amino-acid residues distant from an enzyme's active site in facilitating the complete catalytic cycle-including substrate binding, chemical transformation, and product release-remains poorly understood. Here, we investigate how distal mutations promote the catalytic cycle by engineering mutants of three de novo Kemp eliminases containing either active-site or distal mutations identified through directed evolution. Kinetic analyses, X-ray crystallography, and molecular dynamics simulations reveal that while active-site mutations create preorganized catalytic sites for efficient chemical transformation, distal mutations enhance catalysis by facilitating substrate binding and product release through tuning structural dynamics to widen the active-site entrance and reorganize surface loops. These distinct contributions work together to improve overall activity, demonstrating that a well-organized active site, though necessary, is not sufficient for optimal catalysis. Our findings reveal critical roles that distal residues play in shaping the catalytic cycle to enhance efficiency, yielding valuable insights for enzyme design.",
+    "work_type": "primary-research",
+    "pdf_path": "/media/varingait/Lobotomite/Repository/Repository/KE07-corpus/20_Zarifi2025_NatCommun_distal_mutations.pdf",
+    "cites": [
+      "10.1038/nature06879",
+      "10.1016/j.jmb.2009.12.031",
+      "10.1038/s41467-018-06305-y",
+      "10.1126/science.abd3623",
+      "10.1073/pnas.1118082108",
+      "10.1038/nature12623"
+    ]
+  }
+]

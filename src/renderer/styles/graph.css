@@ -1,0 +1,1696 @@
+/* graph screen styles — owned by the graph design agent.
+   Rebuilds the CONNECTOME body to match Corpus.dc.html (lines 256-331): a
+   two-column layout — a graph area (toolbar + force canvas + legend) on the
+   left and a FIXED 320px, always-visible inspector on the right. Tokens:
+   panel #faf8f5, line #f1ece5 / #ece7e0, accent #e2600f, accent-strong #c2510c,
+   track #f1ece5, rel gradient #f6a35f→#e2600f, exp gradient #e6c8a8→#c2510c,
+   ring colors primary #ccc1b2 / review #e2600f / highly-cited #211a12 /
+   method #b7ab9b. Mono eyebrows use #a89e91 like the design. */
+
+/* FILLS ITS FRAME, and the frame is `.tab-pane-scroll` — not `.route-area`,
+   which drops its padding when tabs are present. The scroller stands down and
+   this screen owns its own height, exactly as review and dossier do: all three
+   panes inside scroll internally, so a page-level scrollbar here is never
+   anything but a layout that overshot. */
+.tab-pane-scroll:has(> .screen-graph) {
+  padding: 0;
+  overflow: hidden;
+}
+.screen-graph {
+  /* Local edge token — the design's connectome edges are a hair warmer/lighter
+     than --border-2 (#e6ded3); #e0d9cf matches graph-final.png exactly. */
+  --cg-edge: #e0d9cf;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 24px 26px;
+}
+
+/* Three-column grid: a fixed 260px papers rail, the fluid graph column, and the
+   fixed 320px inspector. The rail is the entry point — the canvas draws ONE
+   paper's neighbourhood at a time rather than the whole project at once, so the
+   list of papers has to be permanently reachable. The route-area scrolls, so we
+   pin the connectome to a bounded viewport height to get the design's
+   full-panel feel while keeping it inside the padded content. The subtraction
+   budgets for the topbar (62), the route-area vertical padding (52), and the
+   action row + its margin (~74) so the bottom legend row stays IN FRAME rather
+   than falling below the fold. */
+.cg-grid {
+  display: grid;
+  /* The inspector is the widest thing on this screen by content: a cluster of
+     202 cited-but-absent papers lists a title, a raw bibliography line and a
+     score per row, and at 320px every one of those wrapped. The canvas gives
+     up the width because it is elastic and they are not. */
+  grid-template-columns: 268px minmax(0, 1fr) 420px;
+  /* FILLS ITS FRAME rather than budgeting for it. This was
+     `calc(100vh - 62px - 52px)`, subtracting the title bar and what was then
+     the route area's padding — but with tabs present that padding lives on
+     `.tab-pane-scroll` one level in, so the arithmetic described a box nobody
+     had and the grid stood taller than the space it occupied, putting a
+     scrollbar on a screen whose three panes all scroll internally. `100%`
+     against the pane the rule below hands it is a measurement, not an estimate.
+
+     `min-height` stays: on a very short window the panes need a floor to stop
+     the canvas collapsing to nothing, and THAT is when the page may scroll.
+     `flex: 1` rather than a percentage because the screen is a flex column with
+     a header above this — a percentage would resolve against the whole box and
+     stand exactly the header's height too tall. */
+  flex: 1;
+  min-height: 440px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--bg-2);
+  animation: screenIn 0.4s ease both;
+}
+
+/* ---- LEFT rail: every paper in the project -----------------------------
+   Deliberately the SAME treatment as the reference tree's paper list
+   (.rt-list*): both rails answer "which paper am I looking at?", so they read
+   as one component across the two screens. Head + filter are fixed-height; only
+   the rows scroll. */
+.cg-papers {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-2);
+}
+.cg-papers-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px 4px;
+}
+.cg-papers-n {
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.cg-papers-filter {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 12px 10px;
+  border-bottom: 1px solid var(--border);
+}
+/* `.input-sm` is only a PADDING modifier — the border, background and radius
+   live on `.input`, so the field must carry both classes or it renders as a raw
+   browser input. Height is pinned because in a flex column an auto-height field
+   stretches to share the free space with the row list. */
+.cg-papers-input {
+  width: 100%;
+  height: 30px;
+}
+.cg-papers-filter .sel-trigger {
+  width: 100%;
+}
+.cg-papers-rows {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cg-papers-none {
+  padding: 22px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-2);
+  text-align: center;
+}
+
+/* Sits under the switch that asked for the list, because that switch is now
+   showing nothing and the reader would otherwise read the empty canvas as an
+   answer. Tint + border + glyph + weight, so it is legible with no colour, and
+   it fades in because it arrives after the canvas is already being looked at. */
+.cg-unknowns-unread {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--warn);
+  border-radius: 7px;
+  background: var(--warn-soft);
+  color: var(--warn-strong);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  animation: cg-unknowns-unread-in 250ms ease-in-out both;
+}
+.cg-unknowns-unread svg { flex: none; margin-top: 2px; }
+.cg-unknowns-retry {
+  flex: none;
+  height: 24px;
+  padding: 0 9px;
+  font-size: 11px;
+  border-color: var(--warn);
+  color: var(--warn-strong);
+  transition: background 150ms ease-in-out, border-color 150ms ease-in-out,
+              color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+.cg-unknowns-retry:hover {
+  background: var(--warn-200);
+  border-color: var(--warn-strong);
+}
+.cg-unknowns-retry:active {
+  background: var(--warn-200);
+  border-color: var(--warn-strong);
+  box-shadow: inset 0 1px 2px color-mix(in srgb, var(--warn-strong) 25%, transparent);
+}
+.cg-unknowns-retry:focus-visible {
+  outline: 2px solid var(--warn-strong);
+  outline-offset: 2px;
+}
+@keyframes cg-unknowns-unread-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cg-unknowns-unread { animation: none; }
+  .cg-unknowns-retry { transition: none; }
+}
+
+/* One paper row — mirrors .rt-list-row. Picking it re-roots the exploration. */
+.cg-paper-row {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+.cg-paper-row:hover {
+  background: var(--panel-2);
+  border-color: var(--border);
+}
+.cg-paper-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.cg-paper-row.is-on {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  color: var(--ink);
+}
+.cg-paper-row.is-on:hover {
+  border-color: var(--accent);
+}
+/* Role colour, carried over from the node rings so the rail and the canvas
+   agree on what kind of paper this is. */
+.cg-paper-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+/* Two lines, then ellipsis: enough to tell papers apart without letting one
+   long title push the score column out of alignment. */
+.cg-paper-title {
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+}
+.cg-paper-rel {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.cg-paper-row.is-on .cg-paper-rel {
+  color: var(--accent-strong);
+}
+
+/* ---- LEFT column ------------------------------------------------------- */
+.cg-left {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* toolbar (in flow, bottom border) */
+.cg-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--panel-2);
+}
+
+/* "Search within graph" pill (icon + input) */
+.cg-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 13px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--muted-2);
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 230px;
+  transition: border-color 0.2s ease;
+}
+.cg-search:focus-within {
+  border-color: var(--border-2);
+}
+.cg-search svg {
+  flex-shrink: 0;
+}
+.cg-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  color: var(--ink);
+  width: 100%;
+  min-width: 0;
+}
+.cg-search-input::placeholder {
+  color: var(--muted-2);
+}
+
+/* chip filter row (rounded #faf8f5 container) */
+.cg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--panel-2);
+  border-radius: 11px;
+}
+/* Every pointer rule is gated on `:not([aria-disabled='true'])`. An empty chip
+   keeps its pointer events so its tooltip can explain the zero, so without the
+   gate it would light up under the cursor and promise a click that is refused. */
+.cg-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  border: none;
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease-in-out,
+    color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out,
+    opacity 0.15s ease-in-out,
+    transform 0.15s ease-in-out;
+  background: transparent;
+  color: var(--muted);
+}
+.cg-chip:not([aria-disabled='true']):hover {
+  background: #f1ece5;
+  color: var(--ink);
+}
+.cg-chip:not([aria-disabled='true']):active {
+  background: #e6ded4;
+  transform: translateY(1px);
+}
+.cg-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.cg-chip-active {
+  background: var(--ink);
+  color: #fff;
+}
+/* Selected+hover must differ from selected, or hovering a chosen chip reads as
+   a dead pointer. Lifted a step off the ink, plus a ring so it is not colour
+   alone. */
+.cg-chip-active:not([aria-disabled='true']):hover {
+  background: #3d3227;
+  color: #fff;
+  box-shadow: 0 0 0 2px #e6ded4;
+}
+.cg-chip-active:not([aria-disabled='true']):active {
+  background: var(--ink);
+  box-shadow: 0 0 0 2px #d9cfc2;
+  transform: translateY(1px);
+}
+/* Nothing to filter for. Faded AND struck through the count, so the refusal
+   survives a low-contrast panel and a colourblind reader; `cursor: default`
+   says it before the tooltip does. */
+.cg-chip[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: default;
+}
+.cg-chip[aria-disabled='true'] .cg-chip-count {
+  text-decoration: line-through;
+}
+.cg-chip-count {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-2, #8a8073);
+  transition: color 0.15s ease-in-out;
+}
+.cg-chip:not([aria-disabled='true']):hover .cg-chip-count {
+  color: var(--muted);
+}
+.cg-chip-active .cg-chip-count {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* canvas */
+.cg-canvas-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+.cg-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+/* Quiet metadata caption (design keeps the canvas clean; the count reads as a
+   faint mono label in the corner rather than a boxed badge). */
+.cg-count {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  z-index: 2;
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: var(--muted-2);
+  pointer-events: none;
+}
+
+/* Dark hover card (design): floats near the cursor over a hovered node with the
+   node label + REL/EXP scores. Offset from the pointer and non-interactive so it
+   never steals clicks from the node beneath it. */
+.cg-hovercard {
+  /* FIXED, not absolute: the canvas is nested inside three `overflow: hidden`
+     boxes (.cg-grid > .cg-left > .cg-canvas-wrap), which CLIP an absolutely
+     positioned child at the canvas edge regardless of z-index — clipping is not
+     a stacking-order problem. Fixed positioning leaves that clip chain, so the
+     card can overhang the graph panel. Coordinates are therefore viewport
+     coords (clientX/clientY) straight from the pointer event. */
+  position: fixed;
+  z-index: 60;
+  transform: translate(14px, 14px);
+  max-width: 240px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(33, 26, 18, 0.28);
+  pointer-events: none;
+}
+/* Full title, no clamp: the hovercard exists to identify the paper, and a
+   2-line ellipsis cut exactly the part that distinguishes one KE07 paper from
+   the next. The card wraps and grows instead. */
+.cg-hovercard-title {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.cg-hovercard-stats {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--accent-100);
+}
+
+/* Empty canvas: no paper has been picked yet, so there is nothing to draw. This
+   states the entry point rather than leaving an unexplained blank field. */
+.cg-canvas-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  padding: 0 40px;
+  pointer-events: none;
+}
+.cg-canvas-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.cg-canvas-empty-hint {
+  font-size: 12.5px;
+  line-height: 1.55;
+  max-width: 340px;
+  color: #a89e91;
+}
+
+/* ---- edge evidence popover --------------------------------------------- */
+/* Hovering a citation edge shows WHY the edge exists: the two papers as a
+   citing → cited pair, then each parsed occurrence with its role and section.
+   Light (not the dark node hovercard) because it carries
+   several lines of readable prose rather than two numbers. Non-interactive so
+   it never steals the pointer from the edge that spawned it. */
+.cg-edgecard {
+  /* Fixed for the same reason as .cg-hovercard — see the note there. Sits one
+     level above it: an edge card and a node card can never be open at once (the
+     JSX suppresses the node card while an edge is hovered), but the edge card is
+     the taller of the two and must win any race. */
+  position: fixed;
+  z-index: 61;
+  transform: translate(14px, 14px);
+  /* The two paper headings sit side by side and the passages below them are
+     prose; at 340 the quotes wrapped to two or three words a line. */
+  width: 460px;
+  max-width: 460px;
+  padding: 11px 12px;
+  border-radius: 11px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-2);
+  box-shadow: 0 12px 30px rgba(33, 26, 18, 0.18);
+  pointer-events: none;
+}
+.cg-edgecard-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a89e91;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--panel-2);
+}
+.cg-edgecard-type {
+  color: var(--accent);
+  font-weight: 600;
+}
+.cg-edgecard-side {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: #a89e91;
+}
+.cg-edgecard-paper {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* ---- the THREE taxonomies, told apart ------------------------------------
+   Occurrence kind, role and place are three different questions about a
+   citation, and each must stay legible as its own answer while the row stays
+   ONE line — a popover is a glance, and a citation that takes four lines is
+   read as a form.
+
+   So each mark is distinguished by its own treatment rather than by a printed
+   label: the kind carries a glyph, the role carries the weight and the accent,
+   the place is the quietest and is set in the mono face with a `p.` prefix.
+   The sentence each abbreviates lives in its tooltip and its aria-label. */
+.cg-edgecard-marks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin-bottom: 5px;
+}
+.cg-mark-value {
+  font-size: 10.5px;
+  line-height: 1.35;
+  min-width: 0;
+}
+/* The divider belongs to the SEPARATION, not to any one mark, so it is drawn
+   only between marks — a trailing hairline after the last one would read as a
+   fourth, empty mark. */
+.cg-edgecard-marks > .cg-mark-value + .cg-mark-value::before {
+  margin-right: 8px;
+  color: #d8cfc2;
+  content: '│';
+}
+/* WHAT the row is. A bibliography entry and an in-text callout must never read
+   alike: the entry gets a hollow glyph and a plain weight (it is a listing),
+   the callout a filled one and the ink colour (it is the author speaking). The
+   glyph carries the distinction alongside the colour, so it survives a
+   colourblind reader. */
+.cg-mark-kind-value {
+  font-weight: 600;
+  color: var(--ink);
+}
+.cg-mark-kind-value::before {
+  margin-right: 4px;
+  font-weight: 400;
+  content: '◆';
+}
+.cg-mark-kind-value[data-kind='bibliography'] {
+  font-weight: 500;
+  color: var(--muted);
+}
+.cg-mark-kind-value[data-kind='bibliography']::before {
+  content: '▤';
+}
+.cg-mark-kind-value[data-kind='footnote']::before {
+  content: '†';
+}
+.cg-mark-kind-value[data-kind='unknown'] {
+  font-weight: 500;
+  font-style: italic;
+  color: var(--muted-2);
+}
+.cg-mark-kind-value[data-kind='unknown']::before {
+  content: '?';
+}
+/* HOW it is used. A real role is the headline of the occurrence, so it reads as
+   words in the accent. */
+.cg-role-set {
+  font-weight: 600;
+  color: var(--accent-strong);
+}
+/* "not classified yet" is the ABSENCE of a claim, so it must not look like one
+   of the classes. Italic, muted and un-accented — three signals, not just a
+   paler colour. */
+.cg-role-none {
+  font-style: italic;
+  color: var(--muted-2);
+}
+/* "does not apply" is a DIFFERENT statement from "nobody has looked", and the
+   two must not render alike. Upright rather than italic, with a dotted
+   underline that says the field is closed rather than empty. */
+.cg-role-na {
+  color: #a89e91;
+  text-decoration: underline dotted #d6ccbf;
+  text-underline-offset: 3px;
+}
+/* WHERE it sits. Deliberately the quietest of the three: it is a locator, not a
+   judgement, and it was the loudest thing on the old card. */
+.cg-place-value {
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: #a89e91;
+}
+/* Every mark carries an EXPLANATION in its tooltip, and a mark that does not
+   react to the pointer gives no sign there is one to be had — the reader who
+   had to ask what these words meant would first have had to guess that hovering
+   them would answer. So each one answers the pointer: the help cursor plus a
+   darkening, which says "there is more here" without hanging a badge on a line
+   already carrying three marks. Two signals, not colour alone.
+
+   Scoped to the PINNED card: the hover card sets `pointer-events: none`, so a
+   hover rule there could never fire and would only be a claim in the stylesheet
+   that nothing upholds. */
+.cg-mark-value[data-tip] {
+  transition:
+    color 0.15s ease-in-out,
+    background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
+}
+.cg-edgecard-pinned .cg-mark-value[data-tip]:hover {
+  cursor: help;
+  color: var(--ink);
+}
+/* The tab stop the inert marker needs so its REASON is not pointer-only. */
+.cg-edgecard-goto-inert:focus-visible {
+  outline: 2px solid var(--muted-2);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+/* The verbatim parsed citation text. Quoted and clamped — the popover exists to
+   show the evidence at a glance, not to replace the paper detail view. The
+   clamp is REVERSIBLE (see .cg-edgecard-expand): hiding evidence with no way
+   to see it is not a summary, it is a truncation. */
+.cg-edgecard-quote {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+  padding-left: 8px;
+  border-left: 2px solid var(--panel-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  /* A bibliography line carries a bare DOI or URL with no break opportunity in
+     it. Without this the `-webkit-box` overflow clips it mid-token instead of
+     wrapping, so the identifier the reader came for is the part that vanishes. */
+  overflow-wrap: anywhere;
+}
+.cg-edgecard-quote.is-open {
+  -webkit-line-clamp: 999;
+}
+/* The clamp release. A text control, matching "go to reference →" in weight so
+   the two never compete, but in the neutral ink rather than the accent — the
+   accent belongs to the action that leaves this card. */
+.cg-edgecard-expand {
+  align-self: flex-start;
+  margin-top: 3px;
+  margin-left: 10px;
+  padding: 1px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 9.5px;
+  letter-spacing: 0.03em;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition:
+    color 0.15s ease-in-out,
+    opacity 0.15s ease-in-out;
+}
+/* A caret that POINTS at what pressing will do, so open and shut differ by more
+   than their two words. The state-collision script caught them resolving to
+   identical style: the text alone told them apart, which fails a reader
+   scanning shapes rather than reading, and leaves the control looking dead. */
+.cg-edgecard-expand::before {
+  display: inline-block;
+  margin-right: 4px;
+  content: '▾';
+  transition: transform 0.18s ease-in-out;
+}
+.cg-edgecard-expand[aria-expanded='true']::before {
+  transform: rotate(180deg);
+}
+.cg-edgecard-expand:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+.cg-edgecard-expand:active {
+  color: var(--ink);
+  opacity: 0.7;
+}
+.cg-edgecard-expand:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+/* A bibliography line is NOT the sentence that made the citation, so it is
+   marked as such — same quote frame, dashed rule and a footer naming what it
+   is. Two passages that render identically while meaning different things is
+   exactly the collision the state rule forbids. */
+.cg-edgecard-quote-bib {
+  border-left-style: dashed;
+}
+/* Waiting on a producer, not quoting anything. Deliberately carries none of the
+   quote frame: a left rule beside "not located yet" reads as evidence. */
+.cg-edgecard-await {
+  font-size: 10.5px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--muted-2);
+}
+.cg-edgecard-hint {
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid var(--panel-2);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  text-align: center;
+}
+
+/* ---- PINNED evidence card ----------------------------------------------
+   The hover card cannot hold links (it follows the pointer, so you can never
+   reach them). Clicking an edge pins a copy that stops tracking, gains a drag
+   handle + close button, and turns the papers and passages into real controls.
+   `pointer-events: auto` overrides the inherited hover-card rule. */
+.cg-edgecard-pinned {
+  pointer-events: auto;
+  z-index: 70;
+  transform: none;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  box-shadow: 0 18px 44px rgba(33, 26, 18, 0.26);
+}
+/* The header IS the drag handle, so it says so with the cursor. */
+/* The header BAND of a standing card. `.cg-edgecard-pinned` zeroes the card's
+   own padding so this strip can run edge to edge, which means the header has to
+   supply its own — split out of `-grab` because the reference tree's card is
+   not draggable and was left with its type/count/close row flush against the
+   border. */
+.cg-edgecard-bar {
+  padding: 10px 12px;
+  margin: 0;
+  border-bottom: 1px solid var(--panel-2);
+  background: var(--panel);
+}
+.cg-edgecard-grab {
+  cursor: grab;
+  user-select: none;
+  padding: 10px 12px;
+  margin: 0;
+  border-bottom: 1px solid var(--panel-2);
+  background: var(--panel);
+  border-radius: 11px 11px 0 0;
+}
+.cg-edgecard-grab:active {
+  cursor: grabbing;
+  background: var(--panel-2);
+}
+.cg-edgecard-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.cg-edgecard-close:hover {
+  background: var(--border-2);
+  color: var(--ink);
+}
+.cg-edgecard-close:active {
+  background: var(--muted-2);
+  color: #fff;
+}
+.cg-edgecard-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+/* The passage LIST scrolls, not the card — see .cg-edgecard-list. An outer
+   scroller here too would nest two scroll regions, so a wheel over a passage
+   would move whichever one the browser guessed. This is a plain padded body. */
+.cg-edgecard-scroll {
+  padding: 0 12px 11px;
+}
+
+/* ---- header: the two papers, side by side ---------------------------------
+   The card is two SIDES of one citation, so both the papers and their passages
+   are columns that hold their meaning top to bottom. The reader never has to
+   re-derive which side a control belongs to. */
+.cg-edgecard-heads {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  padding: 10px 0 11px;
+}
+.cg-edgecard-head-col {
+  min-width: 0;
+}
+/* The paper title + thumbnail IS the control that opens the whole paper, so the
+   two destinations stay distinct: the header opens the paper, a passage's own
+   button opens the paper AT that passage. */
+.cg-edgecard-head-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 4px;
+  margin: -4px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.13s ease, border-color 0.13s ease;
+}
+.cg-edgecard-head-body:hover:not(:disabled) {
+  background: var(--panel);
+  border-color: var(--border);
+}
+.cg-edgecard-head-body:active:not(:disabled) {
+  background: var(--panel-2);
+}
+.cg-edgecard-head-body:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.cg-edgecard-head-body:hover:not(:disabled) .cg-edgecard-paper {
+  color: var(--accent-strong);
+}
+/* Inert on the hover card — it follows the pointer, so it could never be
+   clicked. Legible, not broken-looking. */
+.cg-edgecard-head-body:disabled {
+  cursor: default;
+}
+
+/* Page-1 preview, matching the reference tree's node thumbnails. Fixed size so
+   the two titles start at the same x whatever each PDF's aspect ratio is. */
+.paper-thumb {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 44px;
+  border-radius: 3px;
+  border: 1px solid var(--border-2);
+  background: #fff;
+  object-fit: cover;
+  object-position: top center;
+}
+/* No document: dashed frame + "?", the same vocabulary the reference tree uses
+   for a paper that is real but has no file. */
+.paper-thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+  background: var(--panel);
+  color: var(--muted-2);
+  font-size: 13px;
+  line-height: 1;
+}
+/* Still rasterising — blank, no "?", because the answer is not known yet.
+   Distinct from the settled empty state by the absence of the glyph. */
+.paper-thumb-loading {
+  border-style: solid;
+  background: var(--panel-2);
+}
+/* A PDF the corpus HAS and this computer could not open — a drive that is not
+   connected, a permission, a corrupt file. Four signals at once, so it survives
+   a colourblind reader and never reads as "this paper has no PDF": a SOLID
+   border rather than the absent state's dashed one, a warning tint, a warning
+   colour, and a triangle glyph in place of the neutral "?". */
+.paper-thumb-broken {
+  border-style: solid;
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger-strong);
+}
+/* THE PREVIEW FAILED, and nothing was learned about the file. Warn, not danger,
+   because no claim is being made about the PDF — and a solid frame plus the
+   circled glyph keep it apart from both the dashed "no document" chip and the
+   danger-framed "this file will not open" one, by shape as well as by hue. */
+.paper-thumb-faulted {
+  border-style: solid;
+  border-color: var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn-strong);
+}
+.paper-thumb-glyph {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+.rt-profile-preview .paper-thumb-glyph {
+  width: 34px;
+  height: 34px;
+}
+/* Ambient emphasis, so a thumbnail that settles from loading into an answer
+   fades rather than snaps. */
+.paper-thumb-empty {
+  transition:
+    background 0.25s ease-in-out,
+    border-color 0.25s ease-in-out,
+    color 0.25s ease-in-out;
+}
+/* The thumbnail is inside the button that opens the paper, so its pointer
+   states are driven from there — and the broken one keeps its own vocabulary
+   under hover and press instead of being overwritten by the neutral ones. */
+.cg-edgecard-head-body:hover:not(:disabled) .paper-thumb {
+  border-color: var(--muted-3);
+}
+.cg-edgecard-head-body:hover:not(:disabled) .paper-thumb-empty {
+  background: var(--panel-2);
+  color: var(--muted);
+}
+.cg-edgecard-head-body:active:not(:disabled) .paper-thumb-empty {
+  background: color-mix(in srgb, var(--panel-2) 88%, var(--ink));
+  border-color: var(--muted-2);
+}
+.cg-edgecard-head-body:hover:not(:disabled) .paper-thumb-broken,
+.cg-edgecard-head-body:active:not(:disabled) .paper-thumb-broken {
+  border-color: var(--danger-strong);
+  color: var(--danger-strong);
+}
+.cg-edgecard-head-body:hover:not(:disabled) .paper-thumb-broken {
+  background: var(--danger-100);
+}
+.cg-edgecard-head-body:active:not(:disabled) .paper-thumb-broken {
+  background: var(--danger-200);
+}
+/* The faulted chip keeps its own vocabulary under the pointer too. Sharing the
+   neutral hover would make it settle back into looking like an ordinary empty
+   thumbnail on exactly the interaction the user is most likely to try. */
+.cg-edgecard-head-body:hover:not(:disabled) .paper-thumb-faulted,
+.cg-edgecard-head-body:active:not(:disabled) .paper-thumb-faulted {
+  border-color: var(--warn-strong);
+  color: var(--warn-strong);
+}
+.cg-edgecard-head-body:hover:not(:disabled) .paper-thumb-faulted {
+  background: color-mix(in srgb, var(--warn-soft) 82%, var(--warn));
+}
+.cg-edgecard-head-body:active:not(:disabled) .paper-thumb-faulted {
+  background: color-mix(in srgb, var(--warn-soft) 68%, var(--warn));
+}
+.cg-edgecard-head-body:focus-visible .paper-thumb {
+  border-color: var(--accent);
+}
+.cg-edgecard-head-body:focus-visible .paper-thumb-broken {
+  border-color: var(--danger-strong);
+}
+.cg-edgecard-head-body:focus-visible .paper-thumb-faulted {
+  border-color: var(--warn-strong);
+}
+.cg-edgecard-head-body:disabled .paper-thumb {
+  opacity: 0.75;
+}
+@media (prefers-reduced-motion: reduce) {
+  .paper-thumb-empty {
+    transition: none;
+  }
+}
+.cg-edgecard-paper {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* The exchange glyph. Decorative: the CITING / CITED labels carry the meaning,
+   so this never has to be read to understand the card. */
+.cg-edgecard-swap {
+  align-self: center;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--muted-2);
+}
+
+/* ---- body: the citing paper's passages ------------------------------------
+   ONE column, because only one side has passages to show. The cited side had a
+   column of its own and it was permanently empty behind a dead button: no
+   producer fills `target_sentence`, so it rendered its placeholder on every
+   card ever drawn. The heads above still name both papers and both open. */
+.cg-edgecard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  width: 100%;
+  min-width: 0;
+  /* Scrolls rather than caps: every occurrence is rendered, none is dropped. */
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 10px 4px 11px 0;
+  border-top: 1px solid var(--panel-2);
+}
+.cg-edgecard-list::-webkit-scrollbar {
+  width: 6px;
+}
+.cg-edgecard-list::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 3px;
+}
+.cg-edgecard-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+/* One occurrence. Passages sit close together and the marks belong to the
+   passage below them, so each row is its own block with a little air. */
+.cg-edgecard-ctx {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+.cg-edgecard-ctx + .cg-edgecard-ctx {
+  padding-top: 10px;
+  border-top: 1px dotted var(--panel-2);
+}
+
+/* "go to reference →" — one per PASSAGE. The destination is the passage, so the
+   control lives with it; a single button per column could only ever open one of
+   several passages, silently choosing for the user. A text button, not a filled
+   one: there may be five of them in a column and five filled buttons would read
+   as five competing primary actions. */
+.cg-edgecard-goto {
+  align-self: flex-start;
+  margin-top: 5px;
+  margin-left: 10px;
+  padding: 1px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 10px;
+  color: var(--accent);
+  cursor: pointer;
+  transition:
+    color 0.15s ease-in-out,
+    opacity 0.15s ease-in-out;
+}
+.cg-edgecard-goto:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+.cg-edgecard-goto:active {
+  color: var(--accent-strong);
+  opacity: 0.75;
+}
+.cg-edgecard-goto:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+/* A passage that CANNOT be jumped to. Rendered as a flat marker, never as a
+   button: the card used to offer "go to reference →" on every occurrence with
+   no reachability check at all, so a passage the viewer's locator refuses to
+   even search for still looked pressable and then drew nothing.
+
+   It is inert in every sense — no accent, no pointer cursor, no hover or active
+   response, not focusable — and it SAYS so in words next to a barred glyph, so
+   the reason is never left to be guessed. `aria-disabled` on a div rather than
+   a `disabled` button, because a disabled button receives no pointer events and
+   the delegated tooltip carrying that reason would never fire. */
+.cg-edgecard-goto-inert {
+  color: #b3a99c;
+  cursor: default;
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+.cg-edgecard-goto-inert:hover,
+.cg-edgecard-goto-inert:active {
+  color: #b3a99c;
+  opacity: 1;
+  text-decoration: none;
+}
+
+/* legend (in flow, top border) */
+.cg-legend {
+  flex-shrink: 0;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 11px 16px;
+  border-top: 1px solid var(--panel-2);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.cg-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.cg-ring {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--border-2);
+}
+/* Matches the canvas: a node that is not in the corpus wears a dashed ring, so
+   the legend swatch has to be dashed too or it names a thing the eye cannot
+   find. At 10px a `dashed` border renders as roughly two ticks, which is
+   exactly the intended "provisional" read. */
+.cg-ring-unknown {
+  border-style: dashed;
+}
+
+/* ---- the cited-but-absent inspector -----------------------------------
+   A separate body from the work inspector. It states what is KNOWN (the
+   printed bibliography line, who cites it) and offers no score, no status and
+   no expand — every one of which would be a claim about a paper this app has
+   never seen. */
+.cg-unknown-note {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.cg-unknown-bib {
+  /* Owns the leftover height so the LIST scrolls, not the whole panel — the
+     toolbar has to stay reachable while the reader is 80 references down. */
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Filter + bulk action, pinned above the scroller. A 202-entry cluster is only
+   workable if the reader can narrow it, and only worth opening if they can act
+   on the result without pressing 202 buttons. */
+.cg-unknown-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.cg-unknown-filter {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+/* Matches .rt-retrieve on the References screen, so the same action reads the
+   same in both places. */
+.cg-unknown-importall {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  font-size: 11.5px;
+}
+
+.cg-unknown-none {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 10px 2px;
+}
+
+/* The contents. ONE scroller for the whole list rather than per-row, so the
+   panel has a single scrollbar and the list reads as one list. */
+.cg-unknown-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* A row: what the paper is on the left, what can be done about it on the
+   right. The title leads because that is what a reader recognises; the raw
+   bibliography line sits under it, present but not the thing being scanned. */
+.cg-unknown-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  transition: background 150ms ease-in-out;
+}
+.cg-unknown-item:last-child {
+  border-bottom: none;
+}
+/* Hovering a row is not an action, so it only warms the background — the row
+   is not clickable and must not pretend to be. */
+.cg-unknown-item:hover {
+  background: var(--panel);
+}
+/* Nothing can be fetched for this one. Recedes rather than disappearing: the
+   citation is still real and still part of what the paper is missing. */
+.cg-unknown-item.is-dead .cg-unknown-title,
+.cg-unknown-item.is-dead .cg-unknown-meta {
+  color: var(--muted-2);
+}
+
+/* The row's two actions, STACKED, with the abstract on top: a reader decides
+   whether to import a paper by reading what it says. Side by side they doubled
+   the width of the action column on every one of 202 rows and pushed the
+   reference titles — what the list is for — into a narrow box. */
+.cg-unknown-acts {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.cg-unknown-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cg-unknown-title {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.cg-unknown-meta {
+  font-size: 10px;
+  color: var(--muted-2);
+  overflow-wrap: anywhere;
+}
+/* The publisher's line, character for character — the ontology requires it be
+   preserved, and for an entry the parser could not read it is the only thing
+   there is. Clamped to two lines: it is provenance, not the headline, and the
+   full text is on the tooltip. */
+.cg-unknown-raw {
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+/* Compact, and secondary: it repeats once per row in a narrow panel, so it
+   must not carry the weight of the bulk action above it. Every state comes
+   from `.btn.btn-secondary` (hover / active / focus-visible / aria-disabled /
+   is-busy) — the class is DOUBLED onto it rather than replacing it, because a
+   bare custom class renders an unstyled browser button. */
+.cg-unknown-import {
+  flex-shrink: 0;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  margin-top: 1px;
+}
+/* Already in the corpus: the row is done, so the button stops competing for
+   attention. The tick carries the state as a glyph, not only as a tone. */
+.cg-unknown-import.is-done {
+  color: var(--ok);
+  border-color: #cfe6d8;
+  background: #e7f2eb;
+}
+
+.cg-unknown-err {
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--danger);
+  overflow-wrap: anywhere;
+  margin-top: 2px;
+}
+.cg-legend-note {
+  padding-left: 8px;
+  border-left: 1px solid var(--border);
+}
+
+/* d3 graph layer fade-in.
+   CRITICAL: this animation is OPACITY-ONLY and must stay that way. On SVG
+   elements a CSS `transform` property OVERRIDES the `transform` presentation
+   attribute that d3 writes for each node's position — so the old per-node
+   `nodePop` pop-in (`@keyframes nodePop { transform: scale(.4) -> scale(1) }`)
+   silently parked every node at the SVG origin (0,0) for its full 300ms, which
+   is exactly the "nodes flash in the top-left corner on load" artifact. The
+   layout is now computed synchronously before the nodes are appended, so the
+   very first painted frame is already correct; this fade only softens its
+   arrival. It runs on the single layer <g>, not per node, so filter changes
+   cost one animation rather than N. */
+.cg-layer {
+  animation: cgLayerIn 0.22s ease both;
+}
+@keyframes cgLayerIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---- RIGHT inspector (always present) ---------------------------------- */
+.cg-inspector {
+  border-left: 1px solid var(--border);
+  overflow: auto;
+  background: var(--bg-2);
+  /* A containing block for the cluster body below, which fills the panel so
+     its LIST scrolls rather than the whole inspector. */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.cg-inspector-body {
+  padding: 22px 20px;
+}
+/* Only the cluster body fills the panel. The work inspector keeps its natural
+   height and lets `.cg-inspector` scroll it, which is right for a fixed-length
+   read; the cluster holds up to 202 rows and needs its own scroller so the
+   filter and Import-all stay put while the reader works down the list. */
+.cg-inspector-body[data-testid='graph-unknown-detail'] {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* The panel scrolls the list, not the body. */
+  overflow: hidden;
+}
+.cg-eyebrow {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a89e91;
+  margin-bottom: 12px;
+}
+.cg-node-title {
+  margin: 0 0 6px;
+  font-size: 16.5px;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+/* Identity of the paper, in the Paper screen's order and weights
+   (.pv-authors / .pv-doi): who wrote it, then what it is called elsewhere. */
+.cg-node-authors {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.cg-node-doi {
+  font-size: 11px;
+  color: var(--muted-2);
+  overflow-wrap: anywhere;
+}
+.cg-node-meta {
+  font-size: 11px;
+  color: #a89e91;
+  margin-top: 6px;
+  margin-bottom: 16px;
+}
+
+/* two labeled progress bars */
+.cg-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.cg-bar-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #a89e91;
+  margin-bottom: 5px;
+}
+/* Sits inside the uppercase bar label, so it drops the tracking and shrinks to
+   the label's weight rather than pulling the eye off the score beside it. It
+   carries its explanation in a tooltip and is therefore focusable. */
+.cg-scored-on {
+  margin-left: 6px;
+  font-size: 9.5px;
+  letter-spacing: 0;
+  padding: 0 6px;
+  cursor: help;
+  transition:
+    box-shadow 150ms ease-in-out,
+    filter 150ms ease-in-out;
+}
+.cg-scored-on:hover {
+  filter: brightness(0.96);
+  box-shadow: 0 0 0 2px var(--border-2);
+}
+.cg-scored-on:active { filter: brightness(0.92); }
+.cg-scored-on:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.cg-bar-val-rel {
+  color: var(--accent);
+}
+.cg-bar-val-exp {
+  color: var(--accent-strong);
+}
+.cg-bar-track {
+  height: 6px;
+  border-radius: 4px;
+  background: var(--panel-2);
+}
+.cg-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+/* The SAME viridis ramps as the ranking screen's score bars (ranking.css), and
+   for the same reason they are shared: these are the same two quantities about
+   the same paper, so a reader moving between the screens must not have to
+   re-learn what a colour means. Contrast is verified there. */
+.cg-bar-fill-rel {
+  background: linear-gradient(90deg, #440154, #2c8a8b);
+}
+.cg-bar-fill-exp {
+  background: linear-gradient(90deg, #3e4989, #2c8a8b);
+}
+
+/* CITATIONS / STATUS strip */
+.cg-stats {
+  display: flex;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--panel-2);
+  border-bottom: 1px solid var(--panel-2);
+  margin-bottom: 18px;
+}
+.cg-stat {
+  flex: 1;
+  min-width: 0;
+}
+/* Three stats in a 320px inspector: the mono labels must be allowed to shrink
+   rather than force the row to overflow. */
+.cg-stat-label {
+  white-space: nowrap;
+}
+.cg-stat-label {
+  font-size: 10px;
+  color: #a89e91;
+  margin-bottom: 3px;
+}
+.cg-stat-val {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.cg-stat-status {
+  font-size: 13.5px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+/* The "+N unresolved" tail on REFERENCES. Quieter than the resolved figure it
+   follows, because an unresolved reference is a retrieval candidate rather than
+   an edge the graph can draw. */
+.cg-stat-sub {
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted-2);
+}
+
+/* action buttons */
+.cg-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+/* "Expand citations" — the graph's primary verb, so it leads the action stack
+   and takes the filled accent; "Open paper detail" steps down to the outline
+   below it. States: default / hover / active / focus / busy / already-expanded
+   (disabled). Busy and expanded are deliberately DIFFERENT greys with different
+   text so they never read as the same dead control. */
+.cg-btn-expand {
+  height: 42px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(226, 96, 15, 0.24);
+  transition: background 0.09s ease, box-shadow 0.09s ease, filter 0.09s ease,
+    color 0.09s ease;
+}
+/* `:not([aria-disabled='true'])` as well as `:not(:disabled)` — an
+   aria-disabled button is deliberately still hoverable so its tip can open, and
+   without this guard it took the enabled fill and pressed state, making the
+   unavailable button indistinguishable from the live one under the pointer. */
+.cg-btn-expand:hover:not(:disabled):not([aria-disabled='true']) {
+  background: var(--accent-strong);
+}
+.cg-btn-expand:active:not(:disabled):not([aria-disabled='true']) {
+  background: var(--accent-strong);
+  filter: brightness(0.94);
+  box-shadow: 0 3px 9px rgba(226, 96, 15, 0.22);
+}
+.cg-btn-expand:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* Already expanded: inert, flat, and it says so in its own label. A dotted ring
+   on the node repeats the same fact on the canvas, so the state survives even
+   if the button is off-screen. */
+/* Inert and flat. Two things wear it: a button whose work is already done
+   ("Citations expanded", which says so in its own label and is repeated by the
+   node's dotted ring), and one whose capability is missing — that one is
+   `aria-disabled` rather than `disabled` so it stays HOVERABLE, because the tip
+   naming what is missing is the whole content of that state and a real
+   `disabled` would swallow it. They rest identically ON PURPOSE: both mean
+   "pressing this does nothing", and what separates them is the label and the
+   tip, not the fill. */
+.cg-btn-expand:disabled,
+.cg-btn-expand[aria-disabled='true'] {
+  background: var(--panel);
+  color: #a89e91;
+  border: 1px solid var(--panel-2);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+/* Distinct from resting-unavailable: the edge firms up so hovering registers as
+   the pointer being alive, without promising the press will do anything. */
+.cg-btn-expand[aria-disabled='true']:hover {
+  border-color: var(--border-2);
+  color: var(--muted-2);
+}
+/* In flight. Filled like the enabled button — the action IS happening — but
+   dimmed and inert, so it cannot be read as a button waiting to be pressed.
+   The pulse is what separates it from every static state here. */
+.cg-btn-expand.is-busy[aria-disabled='true'],
+.cg-btn-expand.is-busy[aria-disabled='true']:hover {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  box-shadow: none;
+  opacity: 0.72;
+  cursor: progress;
+  animation: cg-btn-busy 1.4s ease-in-out infinite;
+}
+@keyframes cg-btn-busy {
+  50% {
+    opacity: 0.94;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cg-btn-expand.is-busy[aria-disabled='true'] {
+    animation: none;
+  }
+}
+
+/* The secondary action beneath Expand: outline rather than fill, so the two are
+   distinguishable by shape as well as colour. */
+.cg-btn-open {
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--border-2);
+  background: var(--bg-2);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.09s ease, border-color 0.09s ease, filter 0.09s ease;
+}
+.cg-btn-open:hover {
+  background: var(--panel);
+  border-color: var(--muted-2);
+}
+.cg-btn-open:active {
+  background: #f1ece5;
+  filter: brightness(0.98);
+}
+.cg-btn-open:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* WHY THIS RANK card */
+.cg-why {
+  margin-top: 20px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--panel-2);
+}
+.cg-why-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: #a89e91;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.cg-why-body {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* Structured "Why this rank" — two labelled score rows (relevance vs
+   expansion_priority) split out of the DB run-on. Reusable class names
+   (`.why-rank*`) so the Ranking screen can reuse this exact treatment.
+   Score is emphasised; the reason reads as quiet secondary text. */
+.why-rank {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.why-rank-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.why-rank-row + .why-rank-row {
+  padding-top: 11px;
+  border-top: 1px solid var(--panel-2);
+}
+.why-rank-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.why-rank-name {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a89e91;
+}
+.why-rank-score {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.why-rank-score-rel {
+  color: var(--accent);
+}
+.why-rank-score-exp {
+  color: var(--accent-strong);
+}
+.why-rank-reason {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* A clause that belongs to neither axis (a hand-set score the run left alone).
+   Set apart by a rule rather than by a heading, because the stored sentence does
+   not say which score it concerns and a heading here would decide that. */
+.why-rank-note {
+  padding-top: 9px;
+  border-top: 1px solid var(--panel-2);
+  font-style: italic;
+}
+
+/* empty (no-selection) inspector state */
+.cg-inspector-empty {
+  padding: 60px 26px;
+  text-align: center;
+  color: #a89e91;
+}
+.cg-inspector-hint {
+  font-size: 13.5px;
+  line-height: 1.6;
+}

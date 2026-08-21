@@ -1,0 +1,766 @@
+/* extraction screen styles — owned by the extraction design agent.
+   Matches the shared card/badge/mono language from styles.css + the other
+   redesigned screens (dashboard/ranking): warm cream bg, 14px-radius cards,
+   #ece7e0 borders, Geist-Mono eyebrows/labels, ok/warn/danger status tokens.
+   These rules are @imported BEFORE the base .ext-*/.card rules in styles.css,
+   so table overrides use a wrapper selector (.ext-table …) to win specificity. */
+
+/* ---------------------------------------------------------------- §12 status summary */
+.card.ext-summary {
+  padding: 16px 18px;
+}
+.ext-summary-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+/* Row of stat cards — big number + mono label, tinted by status. */
+.ext-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+.ext-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-2);
+}
+.ext-stat-value {
+  font-family: var(--sans);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.ext-stat-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-2);
+}
+/* Status accents: a colored left edge + matching number, mirroring badge tokens. */
+.ext-stat-ok {
+  border-left: 3px solid var(--ok);
+  background: #f4faf6;
+}
+.ext-stat-ok .ext-stat-value {
+  color: var(--ok);
+}
+.ext-stat-warn {
+  border-left: 3px solid var(--warn);
+  background: #fdf8ee;
+}
+.ext-stat-warn .ext-stat-value {
+  color: var(--warn);
+}
+.ext-stat-danger {
+  border-left: 3px solid var(--danger);
+  background: #fdf3f1;
+}
+.ext-stat-danger .ext-stat-value {
+  color: var(--danger);
+}
+.ext-stat-neutral {
+  border-left: 3px solid var(--accent);
+}
+.ext-stat-neutral .ext-stat-value {
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------- table polish */
+/* Zebra + hover to lift the dense grid into the card language. The wrapper
+   class raises specificity so these win over the base .ext-row in styles.css. */
+.ext-table .ext-head {
+  background: var(--panel);
+}
+.ext-table .ext-row {
+  transition: background 0.14s ease;
+}
+.ext-table .ext-row:nth-child(even) {
+  background: #fdfbf8;
+}
+.ext-table .ext-row:hover {
+  background: var(--accent-soft);
+}
+.ext-table .ext-qty {
+  color: var(--ink);
+}
+.ext-table .ext-value {
+  color: var(--ink-2);
+}
+/* The schema-field name shown next to the raw reported quantity. */
+.ext-table .ext-qty-field {
+  color: var(--muted-3);
+  font-size: 11px;
+}
+
+/* ------------------------------------------------- schema-driven extraction */
+/* The screen renders one section per extraction schema, with the matrix columns
+   derived from that schema's DB field definitions. Tokens only — same cream /
+   border / mono language as the summary + record table above. */
+
+.card.ext-schema-section {
+  padding: 16px 18px;
+}
+.ext-schema-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.ext-schema-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+/* Sits on the title line of the section it removes. Muted until hovered: a
+   destructive-sounding action should not be the loudest thing in the header. */
+.ext-schema-remove {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--muted-2);
+}
+.ext-schema-remove:hover:not(:disabled) {
+  color: var(--danger);
+}
+.ext-schema-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+/* The record count opposite the section title. Muted and monospaced so it reads
+   as a tally rather than a second heading competing with the name. */
+.ext-schema-meta {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+
+/* Unassigned section — why these records are here, then one block per run that
+   produced them. The prose sets up the repeat BEFORE the reader meets it, so a
+   number they already saw above does not read as the same reading counted twice. */
+.ext-unassigned-note {
+  margin: 0 0 12px;
+  max-width: 68ch;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-2);
+}
+.ext-unassigned-group + .ext-unassigned-group {
+  margin-top: 14px;
+}
+.ext-unassigned-run {
+  margin-bottom: 6px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+
+/* Matrix — works x schema fields. `grid-template-columns` is set INLINE by the
+   component because the column count is data-driven (it comes from the DB field
+   list) and cannot be expressed statically here. */
+.ext-matrix {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  /* BOTH axes, and that is forced rather than chosen: `overflow-x: auto` alone
+     makes the used `overflow-y` compute to `auto` as well (CSS overflow §3 — a
+     `visible` axis paired with a non-visible one becomes `auto`). So this
+     element was ALREADY a scrollport, just one whose height was its content's,
+     giving it nothing to scroll. A `position: sticky` header inside it
+     therefore had no scrollport to stick to and simply scrolled away with the
+     page.
+     Bounding the height gives the header something to stick to. The cap only
+     engages when the table is taller than the space, so short schemas are
+     unaffected and nothing is ever hidden — every row is still rendered and
+     reachable. */
+  overflow: auto;
+  max-height: calc(100vh - 230px);
+  /* A table cropped to two rows is worse than one that scrolls the page, so
+     the cap never squeezes below a usable window. */
+  min-height: 180px;
+  /* Sticky descendants are clipped to the padding box, and a rounded corner
+     would otherwise shave the frozen header's top edge. */
+  overscroll-behavior: contain;
+  margin-bottom: 12px;
+}
+.ext-matrix-head,
+.ext-matrix-row {
+  /* Title + datapoint stack. The FIELD columns are laid out one level down, by
+     `.ext-subrow`, so a sub-row is a real element rather than a set of grid
+     rows with nothing to hover or border. */
+  display: grid;
+  /* Fixed title track + a stack sized to ITS OWN columns, so the field columns
+     keep their 96px floor and `.ext-matrix` scrolls instead of crushing them.
+     A proportional split gave the title 2357px and squeezed 11 data columns
+     into the remainder. */
+  grid-template-columns: 220px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: center;
+  padding: 9px 12px;
+  /* 100%, NOT max-content: max-content forced the row to its natural width
+     (1759px in a 1582px pane), so the `1fr` columns never shrank and the table
+     scrolled sideways even though its columns fit. The 96px floor still makes
+     it scroll when a schema genuinely has too many fields. */
+  min-width: 100%;
+}
+
+/* Grid items default to `min-width: auto`, which refuses to shrink below the
+   content and would reintroduce the overflow the track sizing just fixed.
+   Scoped to the TITLE column only: this rule used to hit every child, and once
+   the datapoint columns moved into a nested `.ext-subrow` its `overflow:
+   hidden` clipped that whole stack down to its first column — 10 of 11 fields
+   simply vanished. The stack manages its own overflow. */
+.ext-matrix-head > .ext-head-title,
+/* Frozen: the matrix scrolls sideways, and a title that scrolls away with it
+   leaves rows of numbers with nothing identifying them. */
+.ext-matrix-head > .ext-head-title,
+.ext-matrix-row > .ext-matrix-work {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  /* Opaque, or the data columns scroll visibly THROUGH the frozen title. Each
+     surface matches what sits behind it: header band, white row, zebra row. */
+  background: inherit;
+  padding-left: 12px;
+  margin-left: -12px;
+}
+.ext-matrix-row > .ext-matrix-work {
+  min-width: 0;
+}
+/* Schema switcher: horizontal, single-select, one row above the table it
+   governs. Underline rail rather than pills — these are views of one page, not
+   a set of independent toggles. */
+.ext-schema-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 0 0 14px;
+  border-bottom: 1px solid var(--border);
+}
+.ext-schema-tab {
+  padding: 7px 1px 8px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition: color 0.08s ease, border-color 0.08s ease;
+}
+.ext-schema-tab:hover { color: var(--ink); }
+.ext-schema-tab:active { color: var(--accent-strong); }
+.ext-schema-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ext-schema-tab.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+
+/* The header borrows `.ext-subrow` for its column grid but is NOT a datapoint,
+   so the hover rule excludes it by name. A `:hover { background: none }` reset
+   here silently lost the cascade to the later, equally-specific hover rule. */
+/* Must match `.ext-subrow`'s box EXACTLY or the header columns sit ~32px off
+   the body's: the sub-row is full-bleed to the right (padding 12 cancelled by
+   a -12 margin) and the header inherited neither. */
+.ext-head-fields {
+  padding: 0 12px 0 0;
+  margin-right: -12px;
+}
+.ext-matrix-head {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  /* Headers label the data; they must not compete with it for attention. */
+  color: var(--muted-3);
+  font-weight: 500;
+  /* Frozen against the VERTICAL scroll, exactly as the title column is frozen
+     against the horizontal one, and for the same reason: eleven columns of bare
+     numbers mean nothing once the labels have gone. This table is one row per
+     paper across a whole corpus, so scrolling past the header is the normal
+     case rather than the edge one.
+     z-index 3 beats the title column's 2 — they cross at the top-left cell, and
+     the header must win there or the paper name rides over its own label. */
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  /* `background` alone leaves a 1px seam where sub-pixel row positions show
+     through beneath the border; the shadow covers it and doubles as the cue
+     that content continues underneath. */
+  box-shadow: 0 1px 0 var(--border);
+}
+/* The header's own frozen title cell sits at the intersection of both sticky
+   axes, so it needs the higher stacking of the two to cover the body's. */
+.ext-matrix-head > .ext-head-title {
+  z-index: 4;
+}
+.ext-col-unit {
+  color: var(--muted-2);
+  text-transform: none;
+}
+.ext-matrix-row {
+  font-size: 12.5px;
+  transition: background 0.14s ease;
+  /* An explicit surface, so the sticky title cell inherits something opaque. */
+  background: #fff;
+}
+/* Internal sub-row separators. Drawn on the CELLS, not the row: the sub-rows
+   are GRID rows, so there is no element per sub-row to put a border on. Only
+   cells from the SECOND datapoint down carry the line (marked in JSX, where the
+   index is known), so the top of the block never draws a stray rule. */
+/* Sub-row separator: ONE element spanning every column of the grid.
+   Per-cell borders can never be continuous here — the 10px column gap leaves a
+   hole between each column, and the title column SPANS the sub-rows so it has
+   no cell to carry the line, which is why it stopped short on the left. A full
+   -width grid item has neither problem and needs no width arithmetic.
+   NOT --border-2: at #e6ded3 the line scored 1.15 contrast against the zebra
+   band it sits on, i.e. invisible. This is the only cue that two readings came
+   from the SAME paper, so it has to actually read. */
+/* The datapoint stack beside the title. */
+.ext-subrows {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* ONE datapoint: a real element, so it can be hovered and bordered as a unit.
+   Full-bleed to the right (cancelling the row's 12px padding) so its separator
+   and hover fill reach the edge of the table instead of stopping short. */
+.ext-subrow {
+  display: grid;
+  column-gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 5px 12px 5px 0;
+  margin-right: -12px;
+  border-radius: 6px 0 0 6px;
+  transition: background 0.1s ease;
+}
+/* Every datapoint after the first is ruled off from the one above.
+   NOT --border-2: at #e6ded3 the line scored 1.15 contrast against the zebra
+   band it sits on, i.e. invisible. This is the only cue that two readings came
+   from the SAME paper, so it has to actually read. */
+.ext-subrow + .ext-subrow {
+  border-top: 1px dashed #c4b49f;
+}
+/* Hovering a datapoint highlights THE WHOLE SUB-ROW, not just the cell under
+   the pointer — the row is the unit of meaning (one reading across the fields),
+   and lighting a single cell said nothing about what it belonged to. */
+/* Hover has to beat the zebra band it may sit on, so it is a real tint rather
+   than the near-identical `--accent-soft`. No inset bar: the sub-row starts
+   AFTER the frozen title column, so a left-edge marker floated in the middle of
+   the table instead of at the row's start. */
+.ext-subrow:not(.ext-head-fields):hover {
+  background: #fbe3d2;
+}
+/* The frozen title is OUTSIDE the hovered sub-row, so it kept its own opaque
+   background and the row appeared severed at the title. `:has()` carries the
+   hover across to it. */
+.ext-matrix-row:has(.ext-subrow:not(.ext-head-fields):hover) > .ext-matrix-work {
+  background: #fbe3d2;
+}
+
+/* Same wrapper problem as the banding: the row is never its parent's last
+   child, so the trailing hairline sat under the final row against the card
+   edge. Matched on the wrapper instead. */
+.ext-matrix-body > div:last-child > .ext-matrix-row {
+  border-bottom: none;
+}
+/* A paper occupies ONE bordered block, however many datapoints it reported.
+   The border goes on the wrapper (which contains the row AND its provenance
+   panel) so papers are separated from each other by a real edge, while the
+   sub-rows inside share it — the eye can tell "another reading from the same
+   paper" from "a different paper" without reading the title. */
+.ext-matrix-body > div {
+  border-bottom: 2px solid var(--border-2);
+}
+.ext-matrix-body > div:last-child {
+  border-bottom: none;
+}
+
+/* Banding is keyed on the WRAPPER, not the row: each row sits in its own
+   `<div>` (so the provenance panel can be a sibling rather than a clipped
+   child), which made every row `:nth-child(1)` and left `.ext-matrix-row:
+   nth-child(even)` matching nothing at all.
+   Deep enough to band across 12 columns, light enough not to stripe.
+
+   About a fifth of the tint it used to carry: #f4ede3 sat at 1.162 against the
+   white row, which reads as a striped table rather than as a guide, and the
+   band competed with the data for attention. At 1.032 it is the faintest
+   alternation the eye still tracks across twelve columns — a hint about which
+   line you are on, not a decoration.
+   Every other surface stays distinct from it: hover 1.195, the frozen header
+   1.027, and the sub-row separator reads BETTER on the lighter band (1.518, up
+   from 1.348). Going one step lighter again collapses the band into the sticky
+   header at 1.008, which is why this is the floor and not a rounder number. */
+.ext-matrix-body > div:nth-child(even) > .ext-matrix-row {
+  background: #fdfbf9;
+}
+/* Specificity must BEAT the banding selector above, or every even row would
+   ignore the pointer: `.ext-matrix-body > div:nth-child(even) > .ext-matrix-row`
+   scores higher than a bare `.ext-matrix-row:hover` and won the cascade. */
+.ext-matrix-body > div > .ext-matrix-row:hover {
+  background: var(--accent-soft);
+}
+/* Selector includes the row so it BEATS `.ext-matrix-row > *`, which forces
+   `white-space: nowrap` on every child to ellipsize the value cells — that rule
+   would otherwise flatten the title back to one line. */
+.ext-matrix-row > .ext-matrix-work {
+  /* Centred in the block it spans, so the title reads as belonging to the whole
+     group of datapoints rather than to the first one. */
+  align-self: center;
+  text-align: left;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  line-height: 1.35;
+  /* Two lines before truncating. A paper title is the row's identity, and one
+     nowrap line cut most of them mid-word; the ellipsis is the last resort for
+     titles that genuinely do not fit, not the default. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ext-matrix-empty {
+  padding: 14px 12px;
+  font-size: 11.5px;
+  color: var(--muted-2);
+}
+/* A cell can hold MORE than one measurement (a paper reporting the same field
+   twice — two thermal melts, a repeated assay). They stack so each keeps its own
+   hit area and status chip, rather than running off the row's nowrap track. */
+.ext-cell {
+  display: flex;
+  flex-direction: column;
+  /* stretch, not flex-start: the value button fills the cell so its hit area
+     matches what the user sees as "the cell". */
+  align-items: stretch;
+  gap: 3px;
+  /* Replaces the row-gap removed above: the separator now runs along the cell's
+     top EDGE, so the breathing room has to live inside the cell. */
+  padding: 5px 0;
+  min-width: 0;
+  /* Bounds the children so `max-width: 100%` on a value row resolves against
+     the grid track rather than against the content's natural width. */
+  max-width: 100%;
+}
+/* The value is a BUTTON: it opens the provenance for that one measurement, so
+   it has to invite the press rather than sit there as static text. */
+/* One line, always. The status glyph is the LAST thing that may be dropped —
+   it is what tells you whether to trust the number — so the value ellipsizes to
+   make room for it instead of the glyph wrapping to a second row.
+   `max-width: 100%` + `min-width: 0` on the text child is what actually makes
+   the shrink happen: a flex item defaults to min-content and would otherwise
+   push the glyph out of the cell rather than truncate. */
+.ext-cell-inner {
+  /* FLEX, not inline-flex, and full width: the hit area is the whole cell.
+     Sized to its text it was a target only as wide as the number, so most of
+     the cell looked pressable and did nothing. */
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 3px 5px;
+  margin: 0 -5px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+/* The value: the only part allowed to give up width. */
+.ext-cell-inner > :not(.ext-mark) {
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The SUB-ROW carries the hover emphasis; the cell only shows which value the
+   click would open, so it stays quiet enough not to compete with it. */
+/* The SUB-ROW carries the emphasis; the cell only marks WHICH value a click
+   opens, so it is a 30% accent wash over whatever row it happens to sit on —
+   ~1.4 contrast against that row rather than the 2.9 a solid fill gave, which
+   shouted louder than the row it belonged to.
+   `color-mix` against `transparent` layers over the live background, so the
+   same rule works on a white row, a zebra row and a hovered row without three
+   hardcoded colours. Text stays dark: the wash is light enough to read on. */
+.ext-cell-inner:hover {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.ext-cell-inner:active {
+  background: color-mix(in srgb, var(--accent) 45%, transparent);
+  border-color: var(--accent);
+}
+.ext-cell-inner:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.ext-cell-inner.is-open {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+}
+
+/* HOW this value was obtained, opened from the cell. It spans the row rather
+   than floating, so the matrix's column alignment survives it being open. */
+.ext-prov {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 12px 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent-100);
+  border-radius: 10px;
+  background: var(--bg-2);
+}
+.ext-prov-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ext-prov-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.ext-prov-key {
+  flex-shrink: 0;
+  width: 88px;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--muted-3);
+}
+.ext-prov-fold {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ext-prov-fold-detail {
+  font-size: 11px;
+  color: var(--muted-2);
+}
+/* The paper's own name for the quantity, trailing the value it belongs to.
+   Recessive: the value is the answer, this is the label the paper gave it. */
+.ext-prov-quantity {
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.ext-prov-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 2px;
+}
+.ext-prov-close {
+  margin-left: auto;
+  color: var(--muted-2);
+}
+.ext-cell-inner .mono {
+  color: var(--ink-2);
+  font-size: 12px;
+}
+.ext-cell-text {
+  color: var(--ink-2);
+  font-size: 12px;
+}
+.ext-cell-missing {
+  /* Half-opacity on top of the muted token: with 7 of 12 columns empty, the
+     dashes were reading as loudly as the numbers between them. */
+  color: var(--muted-3);
+  opacity: 0.55;
+  font-size: 12px;
+}
+
+/* CARRIED DOWN, not missing — a value the paper stated once that covers this
+   reading too. Visually distinct from `.ext-cell-missing` by GLYPH first (↑ vs
+   —) and only then by weight, so the difference survives a colourblind reader
+   and a low-contrast panel. It is deliberately a touch stronger than the dash:
+   "the same as above" is information, while a dash is the absence of it.
+   Hovering lifts it to full strength, since the tooltip explains which cell it
+   refers to and the cursor should confirm it found something to read. */
+.ext-cell-inherited {
+  color: var(--muted-2);
+  opacity: 0.7;
+  font-size: 12px;
+  cursor: help;
+  transition: opacity 150ms ease-in-out, color 150ms ease-in-out;
+}
+.ext-cell-inherited:hover {
+  color: var(--ink-2);
+  opacity: 1;
+}
+
+/* -------------------------------------------------------- add-schema menu */
+.ext-add-schema {
+  position: relative;
+}
+/* PORTALLED to <body>: the screen scrolls in its own stacking context, so an
+   absolutely-positioned popover paints under the sidebar at any z-index. */
+.ext-add-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 240px;
+}
+.ext-add-menu .menu-item-meta {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.ext-add-menu .menu-sep {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--border);
+}
+.card.ext-attach-error {
+  padding: 10px 14px;
+  border-color: var(--danger);
+  font-size: 12px;
+  color: var(--danger);
+}
+.card.ext-attach-empty {
+  padding: 12px 14px;
+  font-size: 11.5px;
+  color: var(--muted-2);
+}
+
+/* ---------------------------------------------------------------- coverage */
+/* How many of the project's papers carry values from this schema. Real, DB
+   derived. State is signalled by TEXT first; the left rule is a redundant cue,
+   never the only one. */
+.ext-coverage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 10px 0 4px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--border-2);
+  border-radius: 4px;
+  background: var(--bg-2);
+}
+.ext-coverage-pending {
+  border-left-color: var(--warn);
+}
+.ext-coverage-done {
+  border-left-color: var(--ok);
+}
+.ext-coverage-text {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+/* Status as a small tinted glyph beside the value it qualifies.
+   Colour AND shape, never one alone: the hue is the fast signal, the mark is
+   what survives a colourblind reader or a low-contrast display. A fixed circle
+   keeps the columns aligned however many statuses a cell carries.
+   NOT `.ext-stat` — that name is already the summary card at the top of the
+   screen, and reusing it wrecked both. */
+.ext-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  vertical-align: middle;
+  /* The row sets `overflow: hidden` on every direct child to ellipsize text.
+     That also clipped the glyph inside this box down to nothing, leaving a
+     tinted square with no mark in it. */
+  overflow: visible;
+}
+/* Explicit, because the ancestor rule above wins over the element's own
+   presentation attributes for anything it can inherit. */
+.ext-mark svg {
+  display: block;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+}
+.ext-mark-ok {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+}
+.ext-mark-danger {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+.ext-mark-warn {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 15%, transparent);
+}
+.ext-mark-muted {
+  color: var(--muted-2);
+  background: var(--panel-2);
+}
+
+/* The `review` status GOES somewhere, so it is a real button. */
+.ext-mark-link {
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.08s ease, border-color 0.08s ease, transform 0.08s ease;
+}
+.ext-mark-link:hover {
+  background: color-mix(in srgb, var(--warn) 26%, transparent);
+  border-color: var(--warn);
+}
+.ext-mark-link:active {
+  transform: scale(0.94);
+}
+.ext-mark-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* A schema this project DETACHED. Its records are kept and shown — never
+   mislabelled as "unassigned", which would be false (they ARE field-linked). */
+.card.ext-schema-detached {
+  border-style: dashed;
+}
+.ext-reattach {
+  margin: 4px 0 12px;
+}
+
+/* Disabled controls on this screen must READ as disabled, not merely be inert.
+   The shared stylesheet only defines :disabled for .btn-primary/select/.menu-item,
+   so the chip / btn-link / btn-secondary controls added here declare their own
+   (dimmed + not-allowed + hover suppressed). Scoped to this screen so the
+   shared styles.css is untouched. */
+.ext-attach .chip:disabled,
+.ext-attach .btn-link:disabled,
+.ext-schema-detached .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ext-schema-detached .btn:disabled:hover,
+.ext-attach .chip:disabled:hover,
+.ext-attach .btn-link:disabled:hover {
+  background: inherit;
+  border-color: var(--border);
+  text-decoration: none;
+}

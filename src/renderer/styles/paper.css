@@ -1,0 +1,2699 @@
+/* paper screen styles — owned by the paper design agent.
+   Recomposes the paper detail into the design's two-column evidence-viewer +
+   analysis hero. Tokens mirror the design's inline styles 1:1 (see
+   Corpus.dc.html lines 141-254). All colors go through the shared vars where a
+   var exists; the few design-only tints are inlined with their hex. */
+
+/* Evidence palette. One colour per evidence span so a claim card and the PDF
+   band that backs it read as the same thing at a glance.
+
+   The six are SAMPLES ALONG VIRIDIS, taken at t = 0.18, 0.34, 0.51, 0.67, 0.84,
+   1.00 — the dark blue-purple foot (t < 0.18) is left out on purpose. Viridis is
+   perceptually uniform in LIGHTNESS, which is exactly what a tint over black
+   text on white paper cannot afford at the dark end: at the 55% tint the focused
+   band uses, `#440154` puts the glyphs at 4.4:1 and buries them. The samples
+   kept span a wide range and still hold text at >= 6.0:1 against the tint
+   (measured, not assumed), climbing to 15:1 at the yellow end.
+
+   Even sampling of a uniform map is what keeps adjacent spans apart: the
+   closest pair differs by dE2000 12.4 at the focused 55% tint and 9.9 at the
+   ambient 42% one. Under simulated deuteranopia and protanopia the closest
+   pair holds 3.9 and 4.7 at the ambient tint, which is why that tint is 42%
+   here and not the 32% the report viewer uses (see `.pv-viewer .pdf-hl` below).
+
+   Colour is NEVER the only signal, and it is not asked to be: the samples are
+   also monotone in LIGHTNESS (relative luminance 0.46 → 0.90 at the ambient
+   tint), so the six stay ORDERABLE in greyscale even where two hues converge
+   for a colourblind reader. The focused span/claim additionally carries the
+   neutral ink ring + label emphasis below, and the claim rail carries an ink
+   ring so the pale yellow end stays visible on the panel. */
+:root {
+  --ev-1: #423d84;
+  --ev-2: #2f6a8d;
+  --ev-3: #1f928c;
+  --ev-4: #38b976;
+  --ev-5: #92d741;
+  --ev-6: #fde724;
+}
+
+/* The paper hero is a full-height, edge-to-edge split, and it is the ONE screen
+   that must never make the PAGE scroll: the left PDF pane and the right
+   analysis column own all scrolling internally.
+   THE FRAME IS `.tab-pane-scroll`, NOT `.route-area`. When tabs are present the
+   route area drops its padding (tabs.css) and the 24/26 gutter plus the page
+   scroll move one level in, onto the pane's scroller. So every rule that
+   cancelled a gutter on `.route-area` was cancelling nothing, and the negative
+   margins that went with it made the screen 52px wider than the box `.screen`'s
+   `width: 100%` resolved against — 26px early on the left, 26px short on the
+   right. That shortfall is the strip of background that appeared beside the
+   analysis column's scrollbar.
+   The SCROLLER stands down for this screen and the split fills it in normal
+   flow, which is the precedent `review.css` and `dossier.css` already set. */
+.tab-pane-scroll:has(> .paper-screen) {
+  padding: 0;
+  overflow: hidden;
+}
+/* The no-selection / loading / "work not found" states are ordinary page
+   content: they keep the gutter and the page scroll, so a short window can
+   never clip them. */
+.tab-pane-scroll:has(> .paper-screen:not(:has(.pv-grid))) {
+  padding: 24px 26px;
+  overflow: auto;
+}
+.paper-screen {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  /* Plain fade — the shared `screenIn` translates the screen 8px, which under
+     `overflow:hidden` clips a strip off the bottom of the full-height split. */
+  animation: paperIn 0.4s ease both;
+}
+@keyframes paperIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* The no-selection empty state has no `.pv-grid`; it must center in the route
+   area rather than sit at the top of a viewport-tall clipped box. */
+.paper-screen:not(:has(.pv-grid)) {
+  margin: 0;
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.paper-screen .pv-grid {
+  display: grid;
+  /* The evidence-viewer (left) is a FIXED-width column so the PDF pane never
+     reflows as pages/scrollbar load — its width is reserved up front and the
+     analysis column (right) absorbs any remaining space. This kills the
+     horizontal jitter where a late scrollbar or page-size change used to shift
+     the whole layout. */
+  /* KEEP THIS IN STEP WITH `minWidth` in `createWindow` (main/index.ts). The
+     minimum is this track plus the 560px floor on the PDF pane plus the app
+     sidebar; below it the analysis column is CLIPPED rather than scrolled,
+     because `.tab-pane-scroll` drops its overflow for this screen. */
+  grid-template-columns: minmax(560px, 1fr) 550px;
+  height: 100%;
+  min-height: 0;
+  /* stop the grid itself from ever being wider than its container */
+  overflow: hidden;
+}
+
+/* ============================ LEFT: evidence viewer ===================== */
+.pv-viewer {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.pv-viewer-head {
+  padding: 14px 22px;
+  border-bottom: 1px solid #f1ece5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.pv-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+.pv-fulltext-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fdefe4;
+  border: 1px solid #f6d3b6;
+  color: var(--accent-strong);
+}
+.pv-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.pv-dot-ok {
+  background: var(--ok);
+}
+.pv-dot-muted {
+  background: var(--muted-2);
+}
+/* Viewer toolbar: zoom out / level / zoom in, then the expand toggle. */
+.pv-zoom-group {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.pv-zoom-level {
+  min-width: 44px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted-2);
+  font-variant-numeric: tabular-nums;
+}
+.pv-viewer-expand {
+  margin-left: auto;
+}
+.pv-zoom-tile:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.pv-zoom-tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* In-app expanded viewer. Also used while the real Fullscreen API is active
+   (the element is then the fullscreen root, so the fixed inset is harmless). */
+.pv-viewer-expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--panel);
+  border-right: none;
+}
+.pv-basis-badge {
+  margin-left: 2px;
+}
+/* The measured figure inside a basis badge (OCR mean confidence). Monospaced
+   and dimmed so the badge still reads as a label first and a number second —
+   the label is the claim, the number qualifies it. */
+.pv-basis-num {
+  margin-left: 5px;
+  opacity: 0.72;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+.pv-zoom-tile {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-2);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+.pv-zoom-tile:hover:not(:disabled) {
+  background: #f6f2ec;
+}
+/* Find bar. Sits between the header and the pages rather than floating over
+   them: a document search is a mode the whole viewer is in, and an overlay
+   would cover the very text being searched. */
+.pv-find {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 22px;
+  border-bottom: 1px solid #f1ece5;
+  background: var(--bg-2);
+  flex-shrink: 0;
+  animation: pv-find-in 140ms ease-out both;
+}
+@keyframes pv-find-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-find { animation: none; }
+}
+.pv-find-icon { color: var(--muted-2); flex: 0 0 auto; }
+.pv-find-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--panel);
+  padding: 5px 9px;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  color: var(--ink);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.pv-find-input:hover { border-color: var(--accent-100); }
+.pv-find-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+/* Pointing at the field that already has focus still has to move: the pointer
+   is over a live target, and identical pixels say it is not. */
+.pv-find-input:focus:hover {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 26%, transparent);
+}
+/* Fixed width so stepping between matches — "1 of 7" to "10 of 17" — cannot
+   shove the buttons sideways under the pointer. */
+.pv-find-count {
+  flex: 0 0 auto;
+  min-width: 132px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--muted);
+}
+.pv-find-step,
+.pv-find-close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition: color 0.15s ease-in-out, background 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
+}
+.pv-find-step:hover,
+.pv-find-close:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.pv-find-step:active,
+.pv-find-close:active {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.pv-find-step:focus-visible,
+.pv-find-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+/* Disabled means "there is nothing to step through", which the adjacent
+   "no matches" readout already explains. */
+.pv-find-step[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---- mode switch: Verbatim | By meaning -----------------------------------
+   A segmented control rather than a checkbox: the two modes are peers, and a
+   checkbox would name one of them and leave the other to be inferred. */
+.pv-find-modes {
+  flex: 0 0 auto;
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.pv-find-modes:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.pv-find-mode {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  padding: 3px 9px;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition: color 0.15s ease-in-out, background 0.15s ease-in-out,
+    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out,
+    font-weight 0.15s ease-in-out;
+}
+.pv-find-mode:hover:not([data-on]) {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.pv-find-mode:active:not([data-on]) {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+}
+/* The selected option carries WEIGHT and a filled ground, not only a hue, so
+   which mode is on survives a colourblind reader and a low-contrast panel. */
+.pv-find-mode[data-on] {
+  color: var(--panel);
+  font-weight: 650;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+/* Hovering the option that is already on must not look like the option that is
+   on: a pointer landing on dead-looking pixels reads as a broken control, even
+   though pressing it is correctly a no-op. */
+.pv-find-mode[data-on]:hover {
+  background: color-mix(in srgb, var(--accent) 84%, var(--ink));
+  border-color: color-mix(in srgb, var(--accent) 84%, var(--ink));
+}
+.pv-find-mode[data-on]:active {
+  background: color-mix(in srgb, var(--accent) 72%, var(--ink));
+  border-color: color-mix(in srgb, var(--accent) 72%, var(--ink));
+}
+.pv-find-mode:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The keys that apply in meaning mode, standing where the step buttons stand in
+   verbatim mode — the slot always says what the arrow-shaped affordance is. */
+.pv-find-keys {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--muted-2);
+  white-space: nowrap;
+  /* Faded in, because swapping two controls in the same slot is the one thing
+     in this bar that would otherwise snap. */
+  animation: pv-find-swap 150ms ease-in-out both;
+}
+@keyframes pv-find-swap {
+  from { opacity: 0; transform: translateX(4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-find-keys { animation: none; }
+}
+.pv-find-keys kbd {
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--muted);
+}
+
+/* In meaning mode the bar hands straight over to the panel below it, so its own
+   bottom rule would draw a line through the middle of one surface. */
+.pv-find[data-mode='meaning'] { border-bottom-color: transparent; }
+
+/* ---- by-meaning candidate list ------------------------------------------- */
+.pv-meaning-panel {
+  flex-shrink: 0;
+  /* Deliberately under a third of the height. The candidates point INTO the
+     document, so a panel that buries it leaves the reader choosing passages
+     they cannot see land — at 46vh the page was pushed almost entirely off
+     screen. The list scrolls; the document must not have to. */
+  max-height: 30vh;
+  overflow-y: auto;
+  padding: 8px 22px 10px;
+  border-bottom: 1px solid #f1ece5;
+  background: var(--bg-2);
+  animation: pv-meaning-in 250ms ease-in-out both;
+  /* A scroller with no edge cue looks like a list that simply ends. The
+     gradient pair is painted on the scrollport and pinned by `local`, so it
+     appears only on the side that actually has more to show. */
+  background-image:
+    linear-gradient(var(--bg-2) 30%, rgba(0, 0, 0, 0)),
+    linear-gradient(rgba(0, 0, 0, 0), var(--bg-2) 70%),
+    linear-gradient(rgba(0, 0, 0, 0.055), rgba(0, 0, 0, 0)),
+    linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.055));
+  background-position: 0 0, 0 100%, 0 0, 0 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 24px, 100% 24px, 100% 7px, 100% 7px;
+  background-attachment: local, local, scroll, scroll;
+}
+@keyframes pv-meaning-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-meaning-panel { animation: none; }
+}
+.pv-meaning-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--muted);
+  padding: 4px 0;
+}
+/* The busy state is a MOVING mark, not a static label: a forward pass takes
+   long enough that a still "comparing…" reads as a wedge. */
+.pv-meaning-spark {
+  width: 44px;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: pv-meaning-sweep 1.1s ease-in-out infinite;
+}
+@keyframes pv-meaning-sweep {
+  from { background-position: 200% 0; }
+  to { background-position: -100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-meaning-spark { animation: none; background-position: 50% 0; }
+}
+.pv-meaning-note {
+  margin: 4px 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  max-width: 70ch;
+}
+.pv-meaning-note-bad {
+  color: var(--ink);
+  border-left: 2px solid var(--danger, #b4472e);
+  padding-left: 8px;
+}
+.pv-meaning-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0 6px;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.pv-meaning-head-count { font-weight: 600; color: var(--muted); }
+.pv-meaning-head-hint {
+  font-style: italic;
+  border-bottom: 1px dotted var(--border);
+  cursor: help;
+  transition: color 0.15s ease-in-out, border-bottom-color 0.15s ease-in-out;
+}
+/* It carries `cursor: help` and a tooltip, so it IS an interactive element and
+   must acknowledge the pointer. Without this it was a target that looked dead
+   under the very pointer it was inviting. */
+.pv-meaning-head-hint:hover {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+.pv-meaning-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pv-meaning-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  align-items: start;
+  gap: 8px;
+  text-align: left;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-left-color: var(--border);
+  border-radius: 7px;
+  background: var(--panel);
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: background 0.15s ease-in-out, border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out, opacity 0.15s ease-in-out;
+}
+/* Keyboard/pointer cursor: where Enter would land. Distinct from a press and
+   from the chosen row, because all three can be true of different rows at once. */
+.pv-meaning-row[data-cursor] {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  border-left-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--panel));
+}
+/* Hover is styled SEPARATELY from the cursor even though pointing at a row also
+   moves the cursor there: the two are set by different inputs and can diverge
+   for a frame, and a pointer sitting on pixels that do not move reads as a dead
+   control. A hair deeper than the cursor tint, plus a wider rail. */
+.pv-meaning-row:hover:not([aria-disabled="true"]) {
+  border-color: color-mix(in srgb, var(--accent) 48%, transparent);
+  border-left-color: var(--accent);
+  border-left-width: 4px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+}
+.pv-meaning-row[data-cursor]:hover:not([aria-disabled="true"]) {
+  background: color-mix(in srgb, var(--accent) 13%, var(--panel));
+}
+.pv-meaning-row:active:not([aria-disabled="true"]) {
+  background: color-mix(in srgb, var(--accent) 22%, var(--panel));
+  border-left-color: var(--accent);
+  border-left-width: 4px;
+  transform: translateY(1px);
+}
+.pv-meaning-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+/* The chosen row — the passage the document is showing. A thick accent rule and
+   a ring, so it is not merely a shade away from the row under the pointer. */
+.pv-meaning-row[data-picked] {
+  border-color: var(--accent);
+  border-left-color: var(--accent);
+  border-left-width: 5px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.pv-meaning-row[data-picked][data-cursor] {
+  background: color-mix(in srgb, var(--accent) 19%, var(--panel));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 52%, transparent);
+}
+/* Hovering the row that is ALREADY shown must not look like that row at rest.
+   Pressing it re-shows the same passage — a legitimate no-op — but a control
+   whose pixels do not move under the pointer reads as broken, which is what the
+   state script caught here. */
+.pv-meaning-row[data-picked]:hover:not([aria-disabled="true"]) {
+  background: color-mix(in srgb, var(--accent) 24%, var(--panel));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 62%, transparent);
+}
+.pv-meaning-row[data-picked][data-cursor]:hover:not([aria-disabled="true"]) {
+  background: color-mix(in srgb, var(--accent) 30%, var(--panel));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 74%, transparent);
+}
+.pv-meaning-row[data-picked]:active:not([aria-disabled="true"]) {
+  background: color-mix(in srgb, var(--accent) 36%, var(--panel));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 86%, transparent);
+}
+/* Not locatable: visibly inert AND not pressable. A dashed edge rather than
+   only a fade, so it reads as "there is nothing behind this" instead of
+   "temporarily off". */
+.pv-meaning-row[data-reach='inert'] {
+  cursor: not-allowed;
+  opacity: 0.62;
+  border-style: dashed;
+  border-left-color: var(--muted-3);
+  background: var(--bg-2);
+}
+/* A refusal still ACKNOWLEDGES the pointer. It must not brighten toward
+   pressable — that would invite the press it cannot honour — so it darkens its
+   dashed rule instead, which reads as "yes, this one, and it is still not
+   available" while the tooltip says why. */
+.pv-meaning-row[data-reach='inert']:hover {
+  opacity: 0.78;
+  border-left-color: var(--muted-2);
+  background: color-mix(in srgb, var(--muted-3) 10%, var(--bg-2));
+}
+/* Still indexing: a WAIT, not a refusal, so it neither fades to inert nor
+   invites a press it cannot honour yet. */
+.pv-meaning-row[data-reach='checking'] {
+  cursor: progress;
+  opacity: 0.86;
+  border-left-color: color-mix(in srgb, var(--accent) 28%, transparent);
+  background: var(--panel);
+  /* A wait BREATHES. A still one is indistinguishable from a settled refusal,
+     which is the opposite claim: one resolves, the other never will. */
+  animation: pv-meaning-breathe 1.6s ease-in-out infinite;
+}
+@keyframes pv-meaning-breathe {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 0.94; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-meaning-row[data-reach='checking'] { animation: none; }
+}
+.pv-meaning-row[data-reach='checking']:hover {
+  border-left-color: color-mix(in srgb, var(--accent) 46%, transparent);
+  background: color-mix(in srgb, var(--accent) 5%, var(--panel));
+}
+.pv-meaning-rank {
+  font-size: 11px;
+  color: var(--muted-2);
+  padding-top: 2px;
+  text-align: right;
+}
+.pv-meaning-main { min-width: 0; display: block; }
+.pv-meaning-quote {
+  display: block;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.pv-meaning-row[data-reach='inert'] .pv-meaning-quote { color: var(--muted); }
+.pv-meaning-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.pv-meaning-section { text-transform: lowercase; }
+.pv-meaning-reach { font-style: italic; }
+.pv-meaning-reach-bad { color: var(--muted); font-style: normal; font-weight: 600; }
+.pv-meaning-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  padding-top: 1px;
+}
+.pv-meaning-score {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: help;
+}
+.pv-meaning-row[data-reach='inert'] .pv-meaning-score { color: var(--muted); }
+/* The score of a row whose place is not yet known is a real number about an
+   unresolved row. Held at normal weight so it does not read as settled, but not
+   dimmed to the refusal's grey either — the distance was measured, only the
+   destination is pending. */
+.pv-meaning-row[data-reach='checking'] .pv-meaning-score {
+  color: var(--muted-2);
+  font-weight: 500;
+}
+
+.pv-viewer-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  background: var(--panel);
+}
+/* Focused evidence. Each passage carries its own hue, so focus is readable
+   WITHOUT colour: an ink stroke plus a stronger tint. The stroke rides on the
+   merged PATH, following the passage's real outline — an `outline` on the host
+   div would draw its bounding BOX and so ring text the evidence never covered. */
+.pv-viewer .pdf-hl.is-focused > svg > path {
+  fill: color-mix(in srgb, var(--hl-color, var(--accent)) 55%, transparent);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+}
+/* The AMBIENT band — every evidence span that is not the focused one. This is
+   where a reader matches a claim's rail to a passage, so it is where two spans
+   must not be mistaken for each other, and the shared 32% tint was too weak for
+   that: under simulated deuteranopia the first two viridis samples came out
+   dE2000 2.9 apart, which is a colour difference nobody can be asked to see. At
+   42% they part by 3.9 for deuteranopia and 4.7 for protanopia, and black glyph
+   text still reads at 8.2:1 over the darkest swatch. Scoped to `.pv-viewer` so
+   the report viewer's severity tints are untouched — they encode a different
+   thing and have their own contrast budget. */
+.pv-viewer .pdf-hl > svg > path,
+/* Every band this viewer draws carries `data-sev="medium"`, whose own rule in
+   styles.css ties this one on specificity — so the severity form is matched
+   explicitly rather than left to source order to settle. */
+.pv-viewer .pdf-hl[data-sev] > svg > path {
+  fill: color-mix(in srgb, var(--hl-color, var(--accent)) 42%, transparent);
+}
+
+/* PdfDocView fills the body; its internal .pdf-col already handles scroll.
+   The shared .pdf-col rule (styles.css) hardcodes height:620px for the standalone
+   report context — here the viewer must fill to the BOTTOM of the viewport, so
+   override to 100% of the flex body and let .pdf-scroll own the overflow. Also
+   drop the standalone card chrome (border/radius/margin) since the pane edge is
+   already framed by .pv-viewer's border-right. */
+.pv-viewer-body .pdf-col {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  margin-top: 0;
+}
+/* Reserve the scrollbar gutter permanently. While the PDF loads `.pdf-scroll`
+   is `is-locked` (overflow:hidden); without a stable gutter the scrollbar
+   appears the moment it unlocks and reflows the canvas + text layer sideways,
+   both shifting the layout and misaligning the located highlight bands. */
+.pv-viewer-body .pdf-scroll,
+.pv-viewer-body .pdf-scroll.is-locked {
+  scrollbar-gutter: stable;
+}
+.pv-viewer-body .pdf-nofile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================ RIGHT: analysis column =================== */
+.pv-analysis {
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* NO `scrollbar-gutter` here. This column is a FIXED 456px grid track, so
+     nothing reflows when its scrollbar appears and the jitter the gutter exists
+     to prevent cannot happen — while reserving one insets the bar from the
+     window edge and leaves a strip of background beside it, which reads as the
+     panel failing to reach the side of the screen. */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* header block */
+.pv-head-block {
+  padding: 22px 22px 18px;
+  border-bottom: 1px solid #f1ece5;
+}
+.pv-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.pv-tag-fill {
+  font-size: 11.5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+}
+.pv-tag-outline {
+  font-size: 11.5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.pv-title {
+  margin: 0 0 8px;
+  font-size: 19px;
+  line-height: 1.32;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.pv-authors {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.pv-doi {
+  font-size: 11px;
+  color: var(--muted-2);
+}
+
+/* Actions on their own row under the paper's identity, separated from the
+   chips above: a chip states a fact, these change something. */
+.pv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* x/10 score bars */
+.pv-scores {
+  display: flex;
+  gap: 14px;
+  margin-top: 16px;
+}
+.pv-scorebar {
+  flex: 1;
+  min-width: 0;
+}
+.pv-scorebar-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted-2);
+  margin-bottom: 5px;
+  letter-spacing: 0.04em;
+}
+.pv-score-val {
+  color: var(--accent);
+}
+.pv-score-val-strong {
+  color: var(--accent-strong);
+}
+.pv-scorebar-track {
+  height: 6px;
+  border-radius: 4px;
+  background: #f1ece5;
+  overflow: hidden;
+}
+/* The SAME viridis ramp the Ranking screen's bars use (`styles/ranking.css`
+   .scorebar-fill.rel/.exp). One score means one colour wherever it is drawn:
+   an orange bar here and a viridis bar there made two renderings of the same
+   number look like two different measurements. */
+.pv-scorebar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 400ms ease-in-out;
+}
+.pv-scorebar-fill-rel {
+  background: linear-gradient(90deg, #440154, #2c8a8b);
+}
+.pv-scorebar-fill-exp {
+  background: linear-gradient(90deg, #3e4989, #2c8a8b);
+}
+
+/* generic right-column section */
+.pv-section {
+  padding: 18px 22px 8px;
+}
+.pv-section + .pv-section {
+  padding-top: 10px;
+}
+.pv-section-eyebrow {
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-bottom: 12px;
+}
+/* An eyebrow with a count on the same baseline. The count states the ONE thing
+   the heading cannot: how much of it there is, and what was left OUT of it, so
+   a row the list declines to render is never silently dropped. */
+.pv-sec-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.pv-sec-head > .pv-section-eyebrow {
+  margin-bottom: 0;
+}
+.pv-sec-count {
+  font-size: 11.5px;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+/* A real surface, not a floating sentence. Bare text at the top-left of an
+   otherwise blank section reads as a rendering failure rather than as an
+   answer; a dashed panel says "this is a place, and it is empty". */
+/* The analysis panel gives its children no padding of its own — each inset
+   itself (`.pv-section` and `.pv-pad` both use 22px). An empty state placed
+   DIRECTLY in the panel had none, so it sat flush against the sidebar edge
+   while every sibling stood clear of it. Scoped to a direct child, because the
+   same box is also used inside `.pv-section`, which is already inset. */
+.pv-analysis > .pv-empty {
+  margin: 12px 22px;
+}
+
+.pv-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border-2);
+  border-radius: 10px;
+  background: var(--bg-2);
+  color: var(--muted-2);
+  font-size: 12.5px;
+  text-align: center;
+}
+.pv-pad {
+  padding: 12px 22px;
+}
+
+/* ============================================ schema TAB SWITCHER (real tabs) */
+/* What makes this read as a TAB BAR rather than a chip row:
+     · one enclosing container with its own surface and border
+     · the selected tab shares the panel's fill and overlaps its border by 1px,
+       so tab and content are visibly ONE object
+     · unselected tabs sit on a recessed strip — "unselected" is a PLACE
+     · a sliding underline that eases between tabs; nothing snaps */
+.pv-tabwrap {
+  /* `.pv-analysis` is a flex COLUMN, so a child with `overflow: hidden` is a
+     shrinkable item: under any pressure it collapses to zero height and the tab
+     bar vanishes entirely while still being in the DOM. It sizes to its
+     content, always. */
+  flex: none;
+  margin: 16px 22px 0;
+  border: 1px solid var(--border-2);
+  border-radius: 10px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.pv-tabrow {
+  display: flex;
+  align-items: stretch;
+}
+/* ONE horizontal row, ALWAYS. Tabs are sized to their own names
+   (`flex: 0 0 auto`) rather than sharing the width equally: with three schemas
+   an equal split gave each 140px and truncated every name to "Protein Therm…",
+   which is the chip row's original failure in a new shape. Names that do not
+   fit scroll sideways — a tab strip may run off the edge, it may never wrap
+   onto a second line, because a wrapped strip stops reading as one switch. */
+.pv-tabstrip {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 2px;
+  padding: 8px 0 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.pv-tabstrip::-webkit-scrollbar {
+  height: 0;
+}
+/* The fade appears only at an edge that HAS strip behind it. A permanent pair
+   of fades, one of them always over nothing, teaches the reader to ignore both. */
+.pv-tabrow.has-left .pv-tabstrip {
+  mask-image: linear-gradient(90deg, transparent, #000 22px);
+}
+.pv-tabrow.has-right .pv-tabstrip {
+  mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent);
+}
+.pv-tabrow.has-left.has-right .pv-tabstrip {
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 22px,
+    #000 calc(100% - 22px),
+    transparent
+  );
+}
+.pv-tabscroll {
+  flex: none;
+  width: 26px;
+  border: none;
+  background: none;
+  color: var(--muted-2);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 8px 0 0;
+  transition:
+    color 150ms ease-in-out,
+    background 150ms ease-in-out;
+}
+.pv-tabscroll:hover {
+  color: var(--ink-2);
+  background: #f4efe8;
+}
+.pv-tabscroll:active {
+  background: var(--panel-2);
+}
+.pv-tabscroll:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent-100);
+}
+/* The total, printed once, so five tabs is knowable without scrolling to find
+   out that there are five. */
+.pv-tabcount {
+  flex: none;
+  align-self: center;
+  padding: 8px 10px 0 4px;
+  font-size: 11.5px;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+.pv-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  flex: 0 0 auto;
+  max-width: 260px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  padding: 10px 12px 11px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  transition:
+    background 150ms ease-in-out,
+    color 150ms ease-in-out,
+    border-color 150ms ease-in-out;
+}
+.pv-tab::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 250ms cubic-bezier(0.32, 0.72, 0.3, 1);
+}
+.pv-tab:hover {
+  background: #f6f1ea;
+  color: var(--ink-2);
+}
+.pv-tab:hover::after {
+  transform: scaleX(0.42);
+  background: var(--muted-2);
+}
+.pv-tab:active {
+  background: var(--panel-2);
+}
+.pv-tab:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent-100);
+}
+.pv-tab.is-active {
+  background: var(--bg-2);
+  color: var(--ink);
+  font-weight: 600;
+  border-color: var(--border-2);
+  margin-bottom: -1px;
+  padding-bottom: 12px;
+}
+.pv-tab.is-active::after {
+  transform: scaleX(1);
+}
+/* selected + hover must not resolve to selected: a hover that renders
+   identically tells the reader their pointer is dead. */
+.pv-tab.is-active:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+}
+.pv-tab.is-active:hover::after {
+  transform: scaleX(1);
+  background: var(--accent-strong);
+}
+/* The analysis_type is the SAME WORD on every tab, so it must never shrink or
+   ellipsis — an "extr…" spends width to say nothing. The SCHEMA NAME is the
+   part that distinguishes tabs, so it takes the width that is left. */
+.pv-tab-type {
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted-2);
+  transition: color 150ms ease-in-out;
+}
+.pv-tab:hover .pv-tab-type {
+  color: var(--muted);
+}
+.pv-tab.is-active .pv-tab-type,
+.pv-tab.is-active:hover .pv-tab-type {
+  color: var(--ink-2);
+}
+.pv-tab-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pv-tab.is-superseded {
+  text-decoration: line-through;
+  text-decoration-color: rgba(138, 128, 115, 0.5);
+  color: var(--muted-2);
+}
+/* Superseded is a caveat, not a version label. The glyph restates the
+   strike-through at a size that survives a glance, in --warn rather than the
+   body tone so it is not read as decoration. */
+.pv-tab-supers {
+  flex: 0 0 auto;
+  text-decoration: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1;
+  color: var(--warn);
+  transition: color 150ms ease-in-out;
+}
+.pv-tab:hover .pv-tab-supers,
+.pv-tab.is-active .pv-tab-supers {
+  color: var(--warn-strong);
+}
+/* The 1px of panel surface the selected tab overlaps, which is what makes tab
+   and content one object rather than two stacked strips. */
+.pv-tabpanel {
+  background: var(--bg-2);
+  border-top: 1px solid var(--border-2);
+  padding: 4px 0 6px;
+}
+.pv-tabpanel-empty {
+  padding: 8px 18px 10px;
+}
+
+/* ================================ EVIDENCE GROUPED BY EXTRACTION ROW */
+/* One CONTAINER per reading; inside it one LINE per field:
+       label      value      ●
+   The dot IS the evidence affordance — a square wearing the exact hue of this
+   span's band in the PDF. It needs no "evidence →" label beside it on every one
+   of twenty lines; the arrow surfaces on hover, where a label is actually read. */
+.pv-rows {
+  display: flex;
+  flex-direction: column;
+}
+/* A reading is a bounded OBJECT, not a run of loose text. Without the caption
+   bar and the hairline, the subject, its two nav buttons and its field lines
+   all float on the same white and consecutive readings run together — which is
+   what "the table is broken" meant. */
+.evrow {
+  border-top: 1px solid var(--border);
+}
+.pv-rows > .evrow:first-child {
+  border-top: none;
+}
+/* The reading's identifying value (its subject) is the caption; the remaining
+   fields list beneath. It is never ALSO printed as a field line.
+   SHADED, so the eye can find where one reading starts and the last ended
+   without counting hairlines. */
+.evrow-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  font-weight: 600;
+  min-height: 34px;
+}
+.evrow-spacer {
+  flex: 1;
+}
+/* WHERE THIS READING LIVES ELSEWHERE — TWO destinations, both always offered.
+   They answer different questions and are not alternatives: Extraction is "how
+   does this compare across the corpus", Review is "is this reading settled". So
+   both are present on every reading, and AN ELIGIBLE BUTTON IS ALWAYS FULLY
+   VISIBLE — never faded at rest, never revealed by hover: a destination the
+   reader can actually reach must be findable without discovering it. */
+.evrow-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.evrow-btn {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border-2);
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 150ms ease-in-out,
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    transform 90ms ease-out;
+}
+.evrow-btn:hover {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+}
+.evrow-btn:active {
+  transform: translateY(1px);
+}
+.evrow-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+/* The Review button CARRIES the reading's state, so the flag and the way to act
+   on it are one control rather than a badge beside a button repeating it. */
+.evrow-btn.review {
+  color: var(--warn-strong);
+  background: var(--warn-soft);
+  border-color: #edd9a8;
+}
+.evrow-btn.review:hover {
+  border-color: #e3c67f;
+  background: #f7e9c8;
+  color: var(--warn-strong);
+}
+.evrow-btn.conflict {
+  color: var(--danger-strong);
+  background: var(--danger-soft);
+  border-color: #eec6bf;
+}
+.evrow-btn.conflict:hover {
+  border-color: #e2b3aa;
+  background: #f4ded9;
+  color: var(--danger-strong);
+}
+/* Nothing flagged — the ONE ineligible case. Dimmed and dashed IN PLACE rather
+   than removed, so the pair never shifts position from row to row, and still
+   hoverable so its tip can say why there is nothing there. */
+.evrow-btn.is-clear {
+  border-style: dashed;
+  border-color: var(--border-2);
+  background: none;
+  color: var(--muted-2);
+  cursor: default;
+}
+.evrow-btn.is-clear:hover {
+  background: none;
+  border-color: var(--border-2);
+  color: var(--muted-2);
+}
+.evrow-btn.is-clear:active {
+  transform: none;
+}
+.evrow-fields {
+  padding: 4px 0 8px;
+}
+/* One field line. No borders between lines; the label column — the SAME width
+   on every reading — is the rhythm that makes the stack read as a table. */
+.evfield {
+  display: grid;
+  grid-template-columns: 124px 1fr 16px;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 18px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    background 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.evfield-label {
+  font-size: 12px;
+  color: var(--muted-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.evfield-value {
+  font-size: 13.5px;
+  color: var(--ink);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.evfield-value .u {
+  color: var(--muted-2);
+  font-size: 12px;
+}
+/* Fact kind: NOTHING for directly-reported — that is what a reader assumes an
+   extracted value is, and a pill on every line would take the one line that is
+   NOT ordinary down with it. Only a non-plain kind earns a mark, and it is a
+   shape plus a colour, never colour alone. */
+.k {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 7px;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+.k-inferred {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+.k-context {
+  color: var(--muted);
+  background: var(--panel-2);
+}
+.k-conflict {
+  color: var(--danger-strong);
+  background: var(--danger-soft);
+}
+/* NO "↑" ditto. In the matrix the dittoed cell sits a few pixels under its
+   source; in a stacked sidebar that row may be scrolled away, so a paper-level
+   value is RESTATED IN FULL and the fact that it was stated once is a quiet
+   mark rather than a withheld number. */
+.evfield.is-carried .evfield-value {
+  color: var(--muted);
+}
+.carried {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted-2);
+  margin-left: 7px;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+/* A field the paper never reported is NOT LISTED at all — no "—" rows. The
+   matrix needs the placeholder to keep its columns aligned across papers; this
+   list has no columns to hold open. */
+.evfield-ev {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.ev-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  flex: none;
+  background: var(--ev-color, var(--muted-2));
+  box-shadow: inset 0 0 0 1px rgba(33, 26, 18, 0.55);
+  transition:
+    transform 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.evfield:hover {
+  background: #fbf8f4;
+}
+.evfield:hover .ev-dot {
+  transform: scale(1.25) translateX(2px);
+}
+.evfield:active {
+  background: var(--panel-2);
+}
+.evfield:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent-100);
+}
+.evfield.is-showing {
+  background: var(--accent-soft);
+}
+.evfield.is-showing .ev-dot {
+  box-shadow:
+    0 0 0 2px var(--bg-2),
+    0 0 0 3px var(--accent);
+}
+.evfield.is-showing:hover {
+  background: #fce6d4;
+}
+.evfield.is-showing:hover .ev-dot {
+  transform: scale(1.25) translateX(2px);
+}
+/* A value whose quote could not be anchored stays VISIBLE and inert, and says
+   so — evidence that could not be located is never silently dead. */
+.evfield.is-unanchored {
+  cursor: default;
+}
+.evfield.is-unanchored:hover {
+  background: transparent;
+}
+.ev-none {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  flex: none;
+  border: 1px dashed var(--muted-3);
+  opacity: 0.7;
+}
+/* The quote, opened under the LINE that was clicked and tinted to that span's
+   hue — the same hue as its band in the document. */
+.evquote {
+  margin: 4px 18px 8px;
+  padding: 9px 11px;
+  border-left: 3px solid var(--muted-2);
+  background: var(--panel);
+  border-radius: 0 8px 8px 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.evquote-meta {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--muted-2);
+  letter-spacing: 0.04em;
+}
+
+/* ==================================================== UNRESOLVED REFERENCES */
+/* List ROWS, not cards: the printed bib line clamped to two lines (the whole of
+   it in the tooltip — these are bibliography strings, not prose) plus ONE
+   right-sized action. Thirty of them read as a list with thirty actions rather
+   than thirty stacked panels. */
+.ur-list {
+  display: flex;
+  flex-direction: column;
+}
+/* THREE COLUMNS, and the middle one is fixed-width even when empty. The score
+   column is `auto` only in the sense of its content, but the rows are sorted by
+   that score, so a ragged column would make a descending list of numbers look
+   randomly indented and the reader would lose the ordering the sort exists to
+   show. A `min-content` reserve keeps the numbers in one vertical run and the
+   unscored rows at the bottom visibly blank there rather than shifted. */
+.ur-row {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, auto) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+}
+/* The score, and it is deliberately QUIET. It orders the list; it is not the
+   thing the reader came to read, which is the reference itself. So it sits at
+   the muted weight of the raw text with only tabular figures to hold the column,
+   and gains emphasis only from the badge beside it when there is a shortfall. */
+.ur-rel {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  /* STACKED, number over badge. Side by side the badge doubled the width of a
+     column that is only ever three or four characters of number, pushing the
+     reference text — the thing actually being read — into a narrower box on
+     every row that happened to lack an abstract. Right-aligned so the digits
+     line up down the list whatever the badge does. */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  white-space: nowrap;
+}
+/* THE THREE BANDS. Never colour alone: each carries its own weight and a left
+   rule as well as its hue, so the ranking survives a colourblind reader and the
+   low-contrast panel these rows sit on. "High" is the only one that gains the
+   accent — a list where every row is emphasised has emphasised nothing. */
+.ur-rel-band {
+  cursor: help;
+  font-size: 11.5px;
+  padding-left: 6px;
+  border-left: 2px solid transparent;
+  border-bottom: 1px dotted transparent;
+  transition: color 150ms ease-in-out, border-color 150ms ease-in-out;
+}
+.ur-rel-band-high {
+  color: var(--accent-strong);
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+.ur-rel-band-medium {
+  color: var(--muted);
+  border-left-color: var(--border-2);
+  font-weight: 500;
+}
+.ur-rel-band-low {
+  color: var(--muted-3);
+  border-left-color: transparent;
+  font-weight: 400;
+}
+/* The label carries the score in its tip, so it says so on approach rather than
+   only once the tip has already appeared. */
+.ur-rel-band:hover,
+.ur-rel-band:focus-visible {
+  border-bottom-color: currentColor;
+}
+.ur-rel-band-high:hover { color: var(--accent); }
+.ur-rel-band-medium:hover { color: var(--ink-2); }
+.ur-rel-band-low:hover { color: var(--muted); }
+.ur-rel-band:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+/* `--ink`, not `--text`: there is no `--text` token, so this rule resolved to
+   nothing and the row hover changed no colour at all. The band labels set their
+   own hover hue, and this covers the container around them. */
+.ur-row:hover .ur-rel {
+  color: var(--ink);
+  transition: color 150ms ease-in-out;
+}
+.ur-list > .ur-row:first-child {
+  border-top: none;
+}
+.ur-raw {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* The row's actions, STACKED. Reading the abstract comes before deciding to
+   import, so it sits on top; side by side the pair doubled the width of the
+   action column on every row and squeezed the bibliography line — the thing
+   actually being read — into a narrower box down the whole list. Right-aligned
+   so both buttons share one edge whatever their labels say. */
+.ur-acts {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+/* The ACTION is a BUTTON and must look like one. A hairline border, a
+   page-coloured fill and a leading status dot is the vocabulary of a state
+   indicator: "Retry" beside a red dot reads as a report that something failed,
+   not as a thing to press. So a solid filled surface, a real press, and NO dot
+   — the VERB carries the state instead. */
+.ur-act {
+  flex: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 5px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 0 rgba(33, 26, 18, 0.12);
+  transition:
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out,
+    transform 90ms ease-out;
+}
+.ur-act:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+.ur-act:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+.ur-act:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+/* In flight: filled, but in the BUSY hue and inert. A spinner, not a dot — a
+   dot is a status light, a spinner is a thing that is working. */
+.ur-act.is-busy,
+.ur-act.is-busy:hover {
+  background: #eef4fa;
+  border-color: #c3d5e6;
+  color: var(--busy);
+  box-shadow: none;
+  cursor: default;
+  transform: none;
+}
+.ur-spinner {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  animation: urspin 0.7s linear infinite;
+}
+@keyframes urspin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Failed: still a filled, PRESSABLE button. The failure is in the hue and in
+   the tooltip, never in making the control look like a label. */
+.ur-act.is-failed {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+.ur-act.is-failed:hover {
+  background: var(--danger-strong);
+  border-color: var(--danger-strong);
+}
+
+/* --------------------------------------------------- provenance caveats --
+   The compact strip above the claims: the caveats that qualify them, and the
+   one control that opens the full card. It is the RESTING state — the card
+   expanded is taller than the panel and pushes every reading below the fold. */
+.pv-prov-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 14px 6px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.pv-prov-bar-spacer {
+  flex: 1;
+  min-width: 0;
+}
+.pv-prov-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition:
+    color 150ms ease-in-out,
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out;
+}
+.pv-prov-toggle:hover {
+  color: var(--ink-2);
+  background: var(--panel);
+  border-color: var(--border-2);
+}
+.pv-prov-toggle:active {
+  background: var(--panel-2);
+}
+.pv-prov-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-100);
+  border-color: var(--accent);
+}
+/* Open is a PLACE, not just a rotated caret: the control keeps the accent
+   while the card it governs is on screen, so the two read as one object. */
+.pv-prov-toggle.is-open {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+}
+.pv-prov-toggle.is-open:hover {
+  background: #fce6d4;
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+.pv-prov-toggle-caret {
+  display: inline-block;
+  font-size: 9px;
+  transition: transform 200ms ease-in-out;
+}
+.pv-prov-toggle.is-open .pv-prov-toggle-caret {
+  transform: rotate(90deg);
+}
+
+/* The card is always MOUNTED and revealed by growing its row from 0fr to 1fr,
+   rather than conditionally rendered. Conditional rendering snaps, and the card
+   holds a <details> of unknown height, so no max-height guess is honest. */
+.pv-prov-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  /* `visibility`, not `display:none`: it takes the shut card out of the tab
+     order and the accessibility tree — a card a screen reader can still walk
+     into while it reads as closed is a trap — but unlike `display` it animates,
+     so the 250ms grow is not cut short. Delayed on the way out only, hence the
+     separate value here and in `.is-open`. */
+  visibility: hidden;
+  transition:
+    grid-template-rows 250ms ease-in-out,
+    opacity 250ms ease-in-out,
+    visibility 0s linear 250ms;
+}
+.pv-prov-reveal > * {
+  min-height: 0;
+  overflow: hidden;
+}
+.pv-prov-reveal.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    grid-template-rows 250ms ease-in-out,
+    opacity 250ms ease-in-out,
+    visibility 0s linear;
+}
+
+/* Caveats restated when the provenance card is shut. Never a summary of the
+   provenance — only the things that qualify the claims below. */
+.pv-caveats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.pv-caveat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: help;
+  transition:
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.pv-caveat-glyph {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1;
+}
+.pv-caveat.is-superseded {
+  font-weight: 700;
+}
+.pv-caveat.is-basis {
+  font-weight: 600;
+  border-style: dashed;
+}
+/* The two VERIFICATION failures. Both are danger-toned, so they are separated
+   by edge and weight, not hue: a schema failure takes a solid doubled rim
+   (nothing about the response could be trusted to parse), a failed check takes
+   a solid single rim in italic (the response parsed; a claim inside it is
+   wrong). Their glyphs — ✕ against ⚠ — carry the same split in grayscale. */
+.pv-caveat.is-schema-fail {
+  border-width: 3px;
+  border-style: double;
+  font-weight: 700;
+}
+.pv-caveat.is-schema-fail:hover {
+  background: var(--danger);
+  border-color: var(--danger-strong);
+  color: #fff;
+}
+.pv-caveat.is-checks-failed {
+  border-style: solid;
+  border-color: var(--danger);
+  font-weight: 600;
+  font-style: italic;
+}
+.pv-caveat.is-checks-failed:hover {
+  background: var(--danger-soft);
+  border-color: var(--danger-strong);
+  box-shadow: 0 0 0 2px var(--danger-soft);
+}
+/* Same object on the card as in the strip, so a reader who opens provenance
+   does not have to re-learn what a failed check looks like. */
+.pv-prov-checks-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: help;
+  border-style: solid;
+  border-color: var(--danger);
+  font-weight: 600;
+  font-style: italic;
+  transition:
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.pv-prov-checks-badge:hover {
+  background: var(--danger-soft);
+  border-color: var(--danger-strong);
+  box-shadow: 0 0 0 2px var(--danger-soft);
+}
+.pv-prov-checks-badge:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
+
+/* The freshness verdicts keep the shapes they wear on the card, so the same
+   verdict is the same object whether provenance is open or shut. */
+.pv-caveat.is-fresh-stale {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+  font-weight: 700;
+}
+.pv-caveat.is-fresh-partially-stale {
+  background: var(--warn-soft);
+  border-color: var(--warn);
+  border-left-style: double;
+  border-left-width: 4px;
+  color: var(--warn-strong);
+  font-weight: 600;
+}
+.pv-caveat.is-fresh-unknown {
+  background: transparent;
+  border-color: var(--muted-2);
+  border-style: dashed;
+  color: var(--muted);
+  font-weight: 600;
+  font-style: italic;
+}
+.pv-caveat:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* Hover firms each caveat WITHOUT letting it adopt another's treatment. */
+.pv-caveat.is-superseded:hover {
+  background: var(--warn);
+  border-color: var(--warn);
+  color: #fff;
+}
+.pv-caveat.is-basis:hover {
+  box-shadow: 0 0 0 2px var(--panel-2);
+  border-color: var(--ink-2);
+}
+.pv-caveat.is-fresh-stale:hover {
+  background: var(--danger-strong);
+  box-shadow: 0 0 0 2px var(--danger-soft);
+}
+.pv-caveat.is-fresh-partially-stale:hover {
+  background: var(--bg-2);
+  box-shadow: 0 0 0 2px var(--warn-soft);
+}
+.pv-caveat.is-fresh-unknown:hover {
+  border-color: var(--ink-2);
+  color: var(--ink-2);
+  box-shadow: 0 0 0 2px var(--panel-2);
+}
+
+/* The states still DIFFER under reduced motion — only the tweening stops. The
+   caveats keep every rim, glyph and tone; the card still opens, instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .pv-caveat,
+  .pv-prov-reveal {
+    transition: none;
+  }
+}
+
+/* provenance card */
+.pv-prov {
+  border: 1px solid #f2d4b9;
+  background: #fffaf5;
+  border-radius: 14px;
+  padding: 15px 16px;
+  transition:
+    background 250ms ease-in-out,
+    border-color 250ms ease-in-out,
+    opacity 250ms ease-in-out;
+}
+.pv-prov-superseded {
+  border-color: var(--border);
+  background: var(--panel);
+  opacity: 0.86;
+}
+/* A global run belongs to no project. Its card is drawn on a cool neutral with
+   a dashed edge — a different SHAPE, not just a different hue — so the scope is
+   legible without reading the pill and without relying on colour. */
+.pv-prov-global {
+  border-style: dashed;
+  border-color: var(--border-2);
+  background: var(--panel);
+}
+/* A retired global run must not read like a live one at a glance: the border
+   goes faint and the surface flattens, so superseded is carried by the card
+   itself and not only by the reduced opacity. */
+.pv-prov-superseded.pv-prov-global {
+  border-style: dashed;
+  border-color: var(--border);
+  background: var(--bg);
+  opacity: 0.86;
+}
+.pv-prov-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  /* The verify phrase is long; let the head wrap rather than crush the pill. */
+  flex-wrap: wrap;
+}
+.pv-prov-icon {
+  flex-shrink: 0;
+}
+.pv-prov-superseded .pv-prov-icon {
+  stroke: var(--muted-2);
+}
+.pv-prov-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+.pv-prov-superseded .pv-prov-eyebrow {
+  color: var(--muted-2);
+}
+/* Scope pill. `global` and `project` differ in fill, border STYLE and letter
+   weight so the two never rely on hue alone to be told apart. */
+.pv-prov-scope {
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  /* The column is ~380px of usable width; the pill must stay one legible token
+     rather than breaking mid-phrase, and truncate if the project name is long. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 46%;
+  flex: 0 1 auto;
+  border: 1px solid var(--border-2);
+  cursor: help;
+  transition:
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    color 150ms ease-in-out;
+}
+.pv-prov-scope.is-global {
+  border-style: dashed;
+  border-color: var(--muted-3);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+}
+.pv-prov-scope.is-project {
+  border-style: solid;
+  border-color: var(--accent-100);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 500;
+}
+.pv-prov-scope.is-global:hover {
+  border-color: var(--ink-2);
+  color: var(--ink-2);
+}
+.pv-prov-scope.is-project:hover {
+  border-color: var(--accent);
+  background: var(--accent-100);
+}
+.pv-prov-superseded .pv-prov-scope {
+  color: var(--muted-2);
+  border-color: var(--border);
+  background: transparent;
+}
+/* A superseded pill must stay legibly superseded WHILE hovered: the live
+   rules above would otherwise restore the current-run treatment exactly, so
+   pointing at a retired run made it read as the current one. Hover here only
+   firms the edge; the muted fill and text are kept. */
+.pv-prov-superseded .pv-prov-scope.is-global:hover,
+.pv-prov-superseded .pv-prov-scope.is-project:hover {
+  border-color: var(--muted-2);
+  background: transparent;
+  color: var(--ink-2);
+}
+/* ------------------------------------------------------ input freshness
+   Whether the run's INPUTS still stand. Four verdicts, and each one must be
+   identifiable with the hue removed, so every verdict differs in GLYPH,
+   border style/width AND weight as well as colour:
+
+     current          ✓  hairline solid edge, quiet fill, normal weight
+     stale            !  heavy 2px solid edge, warn fill, bold
+     partially-stale  ≠  left-rule doubled edge, warn-soft fill, semibold
+     unknown          ?  dashed edge, neutral fill, semibold italic
+
+   `unknown` is deliberately NOT drawn as a softer `current`: it means the
+   comparison could not be made, which is a warning, not reassurance. */
+.pv-fresh {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-2);
+  background: var(--panel);
+  /* border-width/style are NOT transitioned: they cannot tween without
+     reflowing the box, and a verdict never changes under the reader's eyes —
+     it is fixed for the life of the run being displayed. */
+  transition:
+    background 250ms ease-in-out,
+    border-color 250ms ease-in-out,
+    box-shadow 250ms ease-in-out;
+}
+.pv-fresh.is-current {
+  border: 1px solid var(--border-2);
+  background: var(--ok-soft);
+}
+.pv-fresh.is-stale {
+  border: 2px solid var(--danger);
+  background: var(--danger-soft);
+}
+.pv-fresh.is-partially-stale {
+  border: 1px solid var(--warn);
+  border-left-style: double;
+  border-left-width: 4px;
+  background: var(--warn-soft);
+}
+.pv-fresh.is-unknown {
+  border: 1px dashed var(--muted-2);
+  background: var(--panel-2);
+}
+.pv-fresh-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-2);
+  cursor: help;
+  transition:
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.pv-fresh-glyph {
+  font-size: 11px;
+  line-height: 1;
+}
+.is-current > .pv-fresh-pill {
+  border-color: var(--ok);
+  background: var(--bg-2);
+  color: var(--ok);
+  font-weight: 500;
+}
+.is-stale > .pv-fresh-pill {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #fff;
+  font-weight: 700;
+}
+.is-partially-stale > .pv-fresh-pill {
+  border-color: var(--warn);
+  background: var(--bg-2);
+  color: var(--warn-strong);
+  font-weight: 600;
+}
+.is-unknown > .pv-fresh-pill {
+  border-style: dashed;
+  border-color: var(--muted-2);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  font-style: italic;
+}
+/* Hover firms the edge and adds a ring WITHOUT adopting another verdict's
+   treatment — a pointed-at `unknown` must never come to look like `current`. */
+.is-current > .pv-fresh-pill:hover {
+  background: var(--ok-soft);
+  box-shadow: 0 0 0 2px var(--ok-soft);
+}
+.is-stale > .pv-fresh-pill:hover {
+  background: var(--danger-strong);
+  box-shadow: 0 0 0 2px var(--danger-soft);
+}
+.is-partially-stale > .pv-fresh-pill:hover {
+  background: var(--warn-soft);
+  box-shadow: 0 0 0 2px var(--warn-soft);
+}
+.is-unknown > .pv-fresh-pill:hover {
+  border-color: var(--ink-2);
+  color: var(--ink-2);
+  box-shadow: 0 0 0 2px var(--panel-2);
+}
+.pv-fresh-pill:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* A retired run's freshness must not shout: it is already out of force, so the
+   verdict reads as a record rather than as a call to act. The verdicts stay
+   distinct from one another — only the emphasis drops. */
+.pv-prov-superseded .pv-fresh {
+  filter: saturate(0.55);
+  opacity: 0.9;
+}
+.pv-fresh-summary {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.pv-fresh-list {
+  list-style: none;
+  margin: 7px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.pv-fresh-item {
+  display: grid;
+  grid-template-columns: 12px 92px 1fr;
+  gap: 7px;
+  align-items: baseline;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.pv-fresh-item-glyph {
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.pv-fresh-item-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+/* Per-input rows repeat the same glyph/weight pairing as the pill, so a row can
+   be read on its own without matching it back to a legend. */
+/* Weight as well as hue: a row differing from the default only in colour is
+   invisible to a colourblind reader and to the collision check alike. */
+.pv-fresh-item.is-current > .pv-fresh-item-glyph {
+  color: var(--ok);
+  font-weight: 600;
+}
+.pv-fresh-item.is-current > .pv-fresh-item-label {
+  color: var(--ok);
+}
+.pv-fresh-item.is-stale > .pv-fresh-item-glyph {
+  color: var(--danger);
+  font-weight: 700;
+}
+.pv-fresh-item.is-stale > .pv-fresh-item-label {
+  color: var(--danger);
+  font-weight: 700;
+}
+.pv-fresh-item.is-unknown > .pv-fresh-item-glyph,
+.pv-fresh-item.is-unknown > .pv-fresh-item-label {
+  color: var(--muted);
+  font-style: italic;
+}
+.pv-fresh-item.is-not-applicable {
+  opacity: 0.65;
+}
+.pv-fresh-item.is-not-applicable > .pv-fresh-item-glyph {
+  color: var(--muted-2);
+}
+/* Raw digests behind the verdict, inside the disclosure. Selectable so a
+   disputed verdict can be pasted somewhere; wrapped so a 32-char digest never
+   widens the column. */
+.pv-fresh-hashes {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.pv-fresh-hash-row {
+  display: grid;
+  grid-template-columns: 66px 1fr 10px 1fr;
+  gap: 6px;
+  align-items: baseline;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.pv-fresh-hash-name {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-2);
+}
+.pv-fresh-hash-val {
+  overflow-wrap: anywhere;
+  user-select: text;
+  cursor: text;
+  color: var(--muted);
+}
+.pv-fresh-hash-arrow {
+  color: var(--muted-2);
+}
+.pv-fresh-hash-legend {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted-2);
+}
+
+/* Evidence basis on the run itself: an abstract-only run must never read as
+   full-text-backed. */
+.pv-prov-basis {
+  margin-top: 8px;
+}
+.pv-prov-basis-badge {
+  cursor: help;
+  transition:
+    box-shadow 150ms ease-in-out,
+    filter 150ms ease-in-out;
+}
+.pv-prov-basis-badge:hover {
+  filter: brightness(0.96);
+  box-shadow: 0 0 0 2px var(--border-2);
+}
+/* These carry their explanation in a tooltip, so they are focusable; the ring
+   is what tells a keyboard reader the tip is theirs to read. */
+.pv-prov-scope:focus-visible,
+.pv-prov-basis-badge:focus-visible,
+.pv-prov-verify:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+.pv-prov-verify {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--muted-2);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: help;
+  transition: color 250ms ease-in-out;
+}
+.pv-prov-verify:hover {
+  color: var(--ink-2);
+}
+.pv-prov-verify.is-pass {
+  color: var(--ok);
+}
+/* One-line provenance summary: when the run happened and whether it still
+   counts — the signals a scientist scans every session. Build detail lives
+   behind `.pv-prov-more`. */
+.pv-prov-summary {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.pv-prov-more {
+  margin-top: 6px;
+}
+.pv-prov-more > summary {
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  list-style: none;
+  transition:
+    color 150ms ease-in-out,
+    opacity 150ms ease-in-out;
+}
+.pv-prov-more > summary::-webkit-details-marker {
+  display: none;
+}
+.pv-prov-more > summary::before {
+  content: '▸ ';
+}
+.pv-prov-more[open] > summary::before {
+  content: '▾ ';
+}
+.pv-prov-more > summary:hover {
+  color: var(--ink-2);
+}
+/* Pressed: the disclosure dims briefly so the click registers even when the
+   open/closed flip is below the fold. */
+.pv-prov-more > summary:active {
+  color: var(--ink);
+  opacity: 0.7;
+}
+.pv-prov-more > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.pv-prov-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.pv-prov-cell-full {
+  grid-column: 1 / -1;
+}
+.pv-prov-key {
+  color: var(--muted-2);
+  font-size: 11px;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pv-prov-val {
+  color: var(--ink-2);
+  word-break: break-word;
+}
+
+/* citation context + unresolved cards */
+.pv-cite-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pv-cite-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 13px;
+  background: var(--bg-2);
+}
+.pv-cite-card-warn {
+  border-color: #f0e0bd;
+  background: #fdfaf2;
+}
+.pv-cite-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.pv-cite-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  min-width: 0;
+}
+.pv-cite-role {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--muted);
+}
+.pv-cite-role-warn {
+  background: #fbf1dd;
+  color: var(--warn);
+}
+.pv-cite-where {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.cite-raw {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* Expandable reference rows.
+   The card stacks two sibling controls: the whole entry is one big toggle, and
+   "Read" is a full-width strip fused to its bottom edge — part of the card's own
+   surface rather than a button dropped on top of it, while still being a
+   separate control so expanding an entry and navigating to the paper can never
+   be confused for one another. */
+.pv-ref-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  transition: border-color 0.15s ease-in-out, background 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+.pv-ref-card:hover { border-color: var(--border-2); }
+.pv-ref-card:has(.pv-ref-main:focus-visible) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(226, 96, 15, 0.14);
+}
+.pv-ref-card.is-open { background: var(--panel); border-color: var(--border-2); }
+.pv-ref-card.pv-cite-card-warn.is-open { background: #fefcf6; }
+
+.pv-ref-main {
+  min-width: 0;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  /* Own padding rather than the card's: the footer has to touch the card edges,
+     the entry text must not. */
+  padding: 12px 13px;
+  font: inherit;
+  color: inherit;
+}
+.pv-ref-main:focus-visible { outline: none; }
+.pv-ref-main:hover .cite-raw { color: var(--ink-2); }
+.pv-ref-main .cite-raw { transition: color 0.08s ease; }
+
+.pv-ref-chev {
+  margin-left: 4px;
+  font-size: 11px;
+  color: var(--muted-2);
+  transition: color 0.08s ease;
+}
+.pv-ref-main:hover .pv-ref-chev { color: var(--accent); }
+
+/* Full-width footer strip on the card's bottom edge.
+   No border of its own beyond the top hairline seam, and no radius: it inherits
+   the card's rounded corners via the card's `overflow: hidden`, so it reads as a
+   REGION of the card that happens to be pressable. Visible without hover on
+   purpose — a control that only appears on hover is invisible to anyone not
+   using a mouse.
+   Each state moves on two axes at once (fill AND letter-spacing/weight-ish
+   emphasis, plus a ring on focus) so none of them is signalled by colour alone
+   and no two resolve identically.
+   The fill is a flat `background-color`, never a gradient: Chromium refuses to
+   interpolate between gradients whose colour stops are written differently, so
+   a gradient hover stalled at the resting fill while the label turned white and
+   vanished into it. */
+.pv-ref-open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 13px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background-color: color-mix(in srgb, var(--accent) 7%, var(--bg-2));
+  color: var(--accent-strong);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out, letter-spacing 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+.pv-ref-open:hover {
+  background-color: var(--accent);
+  border-top-color: var(--accent-strong);
+  color: var(--bg-2);
+  letter-spacing: 0.1em;
+}
+.pv-ref-open:active {
+  background-color: var(--accent-strong);
+  border-top-color: var(--accent-strong);
+  color: var(--bg-2);
+  letter-spacing: 0.02em;
+  box-shadow: inset 0 2px 5px color-mix(in srgb, var(--ink) 28%, transparent);
+}
+/* Inset, because an outline-offset ring would be clipped by the card's
+   overflow: hidden and only half the focus indicator would survive. */
+.pv-ref-open:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  background-color: var(--accent-soft);
+  border-top-color: var(--accent);
+  color: var(--accent-strong);
+}
+.pv-ref-open:focus-visible:hover {
+  background-color: var(--accent);
+  color: var(--bg-2);
+  letter-spacing: 0.1em;
+}
+
+/* ---------------------------------------- Resolve & Import (unresolved refs)
+   A second footer strip sharing `.pv-ref-open`'s geometry so the two controls
+   read as the same kind of thing, then re-tinted per retrieval state.
+
+   Every state moves on at least TWO axes — fill, the leading dot's shape/fill,
+   letter-spacing, and the top seam's line style — so none is carried by colour
+   alone and no two resolve to the same pixels. The inert states keep the border
+   and dot distinctions rather than only dimming, because "already imported" and
+   "nothing to look up" are different facts and must not look alike. */
+.pv-ref-retrieve {
+  border-top-style: solid;
+}
+/* Second footer under the "Read" one: its own seam keeps them from fusing. */
+.pv-ref-open + .pv-ref-retrieve { border-top-color: var(--border-2); }
+
+/* Leading marker. Its SHAPE carries the state as much as its fill: a ring while
+   idle, a filled disc once acted on, a dash when there is nothing to act on. */
+.pv-ref-retrieve-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background: transparent;
+  transition: background 0.15s ease-in-out, border-radius 0.15s ease-in-out,
+    transform 0.15s ease-in-out, opacity 0.15s ease-in-out;
+}
+.pv-ref-retrieve:hover .pv-ref-retrieve-dot { background: currentColor; }
+.pv-ref-retrieve:active .pv-ref-retrieve-dot { transform: scale(0.8); }
+
+/* --- idle: ready to run. Inherits the accent treatment of `.pv-ref-open`. --- */
+
+/* --- in flight -------------------------------------------------------------
+   A moving barber-pole says "work is happening" without a spinner that would
+   have to be positioned, and the dot breathes: two independent motions, so the
+   state survives both a colourblind reader and a stopped animation. */
+.pv-ref-retrieve.is-busy {
+  background: repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent) 16%, transparent) 0 7px,
+      transparent 7px 14px
+    ),
+    var(--accent-soft);
+  background-size: 19.8px 19.8px, auto;
+  border-top-color: var(--accent-100);
+  color: var(--accent-strong);
+  letter-spacing: 0.06em;
+  cursor: progress;
+  animation: pv-ref-stripe 900ms linear infinite;
+}
+.pv-ref-retrieve.is-busy .pv-ref-retrieve-dot {
+  background: currentColor;
+  animation: pv-ref-pulse 1.1s ease-in-out infinite;
+}
+/* Hoverable on purpose (it is aria-disabled, not `disabled`, so the tooltip
+   still fires) — the deepened stripe tells the reader the pointer is alive
+   while the wording tells them pressing again would do nothing. */
+.pv-ref-retrieve.is-busy:hover {
+  background: repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent) 28%, transparent) 0 7px,
+      transparent 7px 14px
+    ),
+    var(--accent-100);
+  color: var(--accent-strong);
+  letter-spacing: 0.06em;
+}
+.pv-ref-retrieve.is-busy:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+@keyframes pv-ref-stripe {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 19.8px 0, 0 0; }
+}
+@keyframes pv-ref-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.72); }
+}
+
+/* --- failed: pressable again, and it says so ------------------------------ */
+.pv-ref-retrieve.is-failed {
+  background: color-mix(in srgb, var(--danger) 9%, var(--bg-2));
+  border-top-color: color-mix(in srgb, var(--danger) 38%, var(--border));
+  color: var(--danger);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.pv-ref-retrieve.is-failed .pv-ref-retrieve-dot {
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+.pv-ref-retrieve.is-failed:hover {
+  background: var(--danger);
+  border-top-color: var(--danger);
+  color: var(--bg-2);
+  letter-spacing: 0.1em;
+}
+.pv-ref-retrieve.is-failed:active {
+  background: color-mix(in srgb, var(--danger) 82%, var(--ink));
+  border-top-color: color-mix(in srgb, var(--danger) 82%, var(--ink));
+  color: var(--bg-2);
+  letter-spacing: 0.02em;
+  box-shadow: inset 0 2px 5px color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.pv-ref-retrieve.is-failed:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--danger) 16%, var(--bg-2));
+  color: var(--danger);
+}
+.pv-ref-retrieve.is-failed:focus-visible:hover {
+  background: var(--danger);
+  color: var(--bg-2);
+  letter-spacing: 0.1em;
+}
+
+/* --- done: a finished outcome, not a control ------------------------------ */
+.pv-ref-retrieve.is-done {
+  background: color-mix(in srgb, var(--ok) 10%, var(--bg-2));
+  border-top-color: color-mix(in srgb, var(--ok) 34%, var(--border));
+  color: color-mix(in srgb, var(--ok) 78%, var(--ink));
+  letter-spacing: 0.02em;
+  cursor: default;
+}
+.pv-ref-retrieve.is-done .pv-ref-retrieve-dot {
+  background: currentColor;
+  border-color: currentColor;
+}
+.pv-ref-retrieve.is-done:hover {
+  background: color-mix(in srgb, var(--ok) 17%, var(--bg-2));
+  border-top-color: color-mix(in srgb, var(--ok) 50%, var(--border));
+  color: color-mix(in srgb, var(--ok) 78%, var(--ink));
+  letter-spacing: 0.02em;
+}
+.pv-ref-retrieve.is-done:focus-visible {
+  outline: 2px solid var(--ok);
+  outline-offset: -2px;
+}
+
+/* --- nothing to look up: inert, and shaped like it -------------------------
+   A DASHED seam and a dash-shaped marker, so "there is no handle here" is
+   legible before any colour is read. */
+.pv-ref-retrieve.is-unretrievable {
+  background: var(--panel-2);
+  border-top-style: dashed;
+  border-top-color: var(--border-2);
+  color: var(--muted-2);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: not-allowed;
+}
+.pv-ref-retrieve.is-unretrievable .pv-ref-retrieve-dot {
+  width: 8px;
+  height: 1.5px;
+  border-radius: 0;
+  border: 0;
+  background: currentColor;
+  opacity: 0.7;
+}
+.pv-ref-retrieve.is-unretrievable:hover {
+  background: var(--panel);
+  border-top-color: var(--muted-3);
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.pv-ref-retrieve.is-unretrievable:focus-visible {
+  outline: 2px solid var(--muted-2);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-ref-retrieve.is-busy,
+  .pv-ref-retrieve.is-busy .pv-ref-retrieve-dot {
+    animation: none;
+  }
+}
+
+/* Outcome of the last press, stated rather than assumed: ids can be SKIPPED. */
+.pv-ref-notice {
+  margin-bottom: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--accent-100);
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 12px;
+}
+.pv-ref-notice.is-error {
+  border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
+  background: color-mix(in srgb, var(--danger) 8%, var(--bg-2));
+  color: var(--danger);
+}
+
+.pv-ref-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 1px dashed var(--border-2);
+  border-radius: 10px;
+  background: none;
+  color: var(--accent-strong);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.08s ease, border-color 0.08s ease;
+}
+.pv-ref-more:hover { background: var(--panel); border-color: var(--accent); }
+.pv-ref-more:active { background: var(--panel-2); }
+.pv-ref-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pv-ref-more-count { font-size: 11px; color: var(--muted-2); font-weight: 400; }
+
+
+/* A refused project-context write, said beside the control that tried it
+   rather than in a page-wide bar: the reader pressed one button and the answer
+   belongs where they are looking. Warn rather than danger — nothing broke, the
+   context is simply full — and it carries an icon-free left rule so the state
+   is not signalled by colour alone. */
+.pv-dossier-error {
+  display: block;
+  margin-top: 6px;
+  padding-left: 8px;
+  border-left: 3px solid var(--warn);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--warn-strong);
+}

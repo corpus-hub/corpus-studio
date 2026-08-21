@@ -1,0 +1,2937 @@
+/* ingest screen styles — owned by the ingest design agent.
+   Values mirror the design markup (Corpus.dc.html, "ADD PAPERS" region) 1:1,
+   using the global tokens from styles.css where they match the literals. */
+
+.ingest {
+  /* Full-bleed: no max-width cap / centering; the route area provides padding. */
+  width: 100%;
+  /* .route-area already pads 24px 26px; nudge to the design's feel. */
+  padding-top: 4px;
+  /* design markup L377: animation:screenIn .4s ease both */
+  animation: screenIn 0.4s ease both;
+}
+
+/* ---------------------------------------------------------------- source card */
+.ingest .ing-card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 26px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(33, 26, 18, 0.04);
+}
+
+/* segmented source tabs */
+.ingest .ing-segment {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--panel-2);
+  border-radius: 12px;
+  width: fit-content;
+  margin-bottom: 22px;
+}
+.ingest .ing-seg-btn {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 400;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition: color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+/* The screen-level switch sits above the card, so it carries the card's own
+   white surface rather than the inset-on-panel look of a control inside one. */
+.ingest .ing-segment-top {
+  background: var(--panel);
+  margin-bottom: 18px;
+}
+.ingest .ing-seg-btn:hover {
+  color: var(--ink);
+}
+.ingest .ing-seg-btn:active {
+  background: var(--panel-2);
+}
+.ingest .ing-seg-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+/* Divides the "where does a paper come from" tabs from the queue, which
+   answers a different question about papers that were already added. */
+.ingest .ing-seg-split {
+  flex-shrink: 0;
+  align-self: center;
+  width: 1px;
+  height: 18px;
+  margin: 0 6px;
+  background: var(--border-2);
+}
+.ingest .ing-tab-fail {
+  margin-left: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--danger);
+  font-weight: 500;
+}
+.ingest .ing-seg-btn.is-active {
+  font-weight: 600;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(33, 26, 18, 0.08);
+}
+
+/* input + primary button. No margin-bottom: this row is the card's LAST child
+   (the status line below carries its own margin-top), so an extra 16px made the
+   bottom inset 42px against the card's 26px on every other side. */
+.ingest .ing-input-row {
+  display: flex;
+  gap: 12px;
+}
+.ingest .ing-input {
+  flex: 1;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid #ddd6cc;
+  border-radius: 12px;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.ingest .ing-input::placeholder {
+  color: var(--muted-3);
+}
+/* A field with a leading glyph. The icon is positioned over the input rather
+   than sharing a flex row with it, so the input keeps its own border, height
+   and focus ring — the affordance stays on the control the user types into. */
+.ingest .ing-field {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+.ingest .ing-field-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-2);
+  pointer-events: none;
+}
+.ingest .ing-input-iconed {
+  padding-left: 38px;
+}
+/* The native search widget's clear affordance duplicates selecting-and-deleting
+   and renders as an unstyled OS glyph that ignores the theme. */
+.ingest .ing-input[type='search']::-webkit-search-decoration,
+.ingest .ing-input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.ingest .ing-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(226, 96, 15, 0.12);
+}
+.ingest .ing-submit {
+  height: 48px;
+  padding: 0 22px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(226, 96, 15, 0.24);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  transition: background 0.18s ease-in-out, box-shadow 0.18s ease-in-out;
+}
+.ingest .ing-submit:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+.ingest .ing-submit:active:not(:disabled) {
+  background: var(--accent-strong);
+  filter: brightness(0.94);
+  box-shadow: 0 3px 9px rgba(226, 96, 15, 0.2);
+}
+.ingest .ing-submit:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.ingest .ing-submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* The two ways of naming a paper the corpus does not have. An underline rather
+   than a pill track, and nested inside the card — so it never reads as a fourth
+   peer tab. */
+.ingest .ing-subsegment {
+  display: flex;
+  gap: 18px;
+  margin: 0 0 16px;
+  border-bottom: 1px solid var(--panel-2);
+}
+.ingest .ing-sub-btn {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 400;
+  padding: 0 0 8px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition: color 0.16s ease, border-color 0.16s ease;
+}
+.ingest .ing-sub-btn:hover {
+  color: var(--ink);
+}
+.ingest .ing-sub-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  color: var(--ink);
+}
+.ingest .ing-sub-btn:active {
+  color: var(--ink);
+  border-bottom-color: var(--muted-2);
+}
+.ingest .ing-sub-btn.is-active {
+  font-weight: 600;
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+
+/* Query narrowing. A single row under the search field: these are all one form,
+   so they read as one band rather than as scattered controls. A hairline above
+   ties it to the query it narrows instead of leaving it floating. */
+.ingest .ing-web-filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.ingest .ing-web-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.ingest .ing-web-filter-grow {
+  flex: 1;
+  min-width: 130px;
+}
+.ingest .ing-web-filter-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+}
+.ingest .ing-web-range {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.ingest .ing-web-dash {
+  color: var(--muted-3);
+  font-size: 11px;
+}
+.ingest .ing-web-num,
+.ingest .ing-web-text {
+  height: 30px;
+  padding: 0 9px;
+  border: 1px solid var(--border-2);
+  border-radius: 7px;
+  background: var(--bg-2);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 12.5px;
+  min-width: 0;
+  transition: border-color 0.08s ease, box-shadow 0.08s ease;
+}
+.ingest .ing-web-num { width: 68px; }
+.ingest .ing-web-text { width: 100%; }
+.ingest .ing-web-num:hover,
+.ingest .ing-web-text:hover {
+  border-color: var(--muted-3);
+}
+.ingest .ing-web-num:focus,
+.ingest .ing-web-text:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(226, 96, 15, 0.13);
+}
+.ingest .ing-web-num::placeholder,
+.ingest .ing-web-text::placeholder {
+  color: var(--muted-3);
+}
+.ingest .ing-web-sort { min-width: 132px; }
+.ingest .ing-web-clear {
+  align-self: flex-end;
+  margin-bottom: 7px;
+}
+
+/* Everything the search PRODUCES — results, skeleton, empty state, errors —
+   starts here. The filter row is a control surface and the output is an answer;
+   with only the filters' own 10px they read as one crowded block, so the gap is
+   set once on the container rather than separately on each possible outcome
+   (which is how they drifted apart before). */
+.ingest .ing-web-out {
+  margin-top: 26px;
+}
+/* A column, so the trailing "show more" can sit at the start of the line rather
+   than stretching the full width of the results. */
+.ingest .ing-web-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.ingest .ing-web-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+/* ---------------------------------------------------------- search loading */
+/* Names the upstreams so a multi-second wait is legible rather than suspicious:
+   four public indexes, each rate-limited, is WHY it is slow. */
+.ingest .ing-web-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.ingest .ing-web-progress-text {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.ingest .ing-web-progress-time {
+  color: var(--muted-3);
+}
+/* Indeterminate on purpose: the sources return in an order we do not control,
+   so a percentage would be a lie. A travelling band says "working" honestly. */
+.ingest .ing-web-progress-bar {
+  position: relative;
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--panel-2);
+  overflow: hidden;
+}
+.ingest .ing-web-progress-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 38%;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent) 35%,
+    var(--accent) 65%,
+    transparent
+  );
+  animation: ing-web-sweep 1.25s ease-in-out infinite;
+}
+@keyframes ing-web-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+
+.ingest .ing-web-skel-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--panel-2);
+  /* Staggered so the shimmer sweeps DOWN the list instead of the whole block
+     pulsing at once, which reads as a frozen screen. */
+  animation: ing-web-skel-in 240ms ease-out both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+@keyframes ing-web-skel-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ingest .ing-web-skel-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+/* Heights mirror the real row's type, so replacing the placeholder does not
+   shift anything the reader had already started scanning. */
+.ingest .ing-web-skel-title { height: 13px; }
+.ingest .ing-web-skel-authors { height: 11px; }
+.ingest .ing-web-skel-meta { height: 10px; width: 30%; }
+.ingest .ing-web-skel-abs { height: 11px; width: 100%; max-width: 90ch; }
+.ingest .ing-web-skel-btn {
+  flex: 0 0 auto;
+  width: 132px;
+  height: 32px;
+  border-radius: 8px;
+}
+/* The stagger is decorative; the shimmer alone carries "loading". */
+@media (prefers-reduced-motion: reduce) {
+  .ingest .ing-web-skel-row { animation: none; }
+  .ingest .ing-web-progress-bar::after { animation: none; width: 100%; opacity: 0.5; }
+}
+
+.ingest .ing-web-more-spin {
+  width: 12px;
+  height: 12px;
+  margin-right: 7px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+  animation: spin 0.7s linear infinite;
+}
+.ingest .ing-web-page-step.is-busy {
+  /* Disabled, but working — distinct from an ordinarily disabled control, which
+     is inert and explains why. */
+  opacity: 0.85;
+  cursor: progress;
+}
+.ingest .ing-web-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--panel-2);
+}
+.ingest .ing-web-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+/* The toggle is an INVISIBLE sheet over the whole row, so clicking anywhere in
+   the paper opens its abstract. It carries no visuals of its own — the row
+   below it paints the hover/open feedback — and sits at the bottom of the
+   stack so the text stays selectable-looking and the Import button stays
+   reachable. */
+.ingest .ing-web-open {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: 0;
+  padding: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ingest .ing-web-open:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+/* The row is the positioning context for that sheet, and the surface that
+   actually shows the feedback. */
+.ingest .ing-web-main {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  transition: background-color 150ms ease-in-out;
+}
+/* Content rides ABOVE the sheet so the pointer still reports real text, but the
+   sheet is what receives the click — text nodes do not swallow it. */
+.ingest .ing-web-main > *:not(.ing-web-open) {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+.ingest .ing-web-row:has(.ing-web-open:hover) .ing-web-main {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+.ingest .ing-web-row:has(.ing-web-open:hover) .ing-web-title {
+  color: var(--accent);
+}
+.ingest .ing-web-row:has(.ing-web-open:active) .ing-web-main {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+/* Opened rows keep a standing tint so the expanded one is identifiable after
+   the pointer has moved away — hover alone would leave no trace of which row
+   the open abstract belongs to. */
+.ingest .ing-web-row.is-open .ing-web-main {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.ingest .ing-web-row.is-open:has(.ing-web-open:hover) .ing-web-main {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.ingest .ing-web-title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  transition: color 150ms ease-in-out;
+}
+.ingest .ing-web-chev {
+  flex: 0 0 auto;
+  color: var(--muted-3);
+  transition:
+    transform 150ms ease-in-out,
+    color 150ms ease-in-out;
+}
+.ingest .ing-web-row:has(.ing-web-open:hover) .ing-web-chev {
+  color: var(--accent);
+}
+.ingest .ing-web-row.is-open .ing-web-chev {
+  transform: rotate(180deg);
+}
+.ingest .ing-web-authors {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ingest .ing-web-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 10.5px;
+  color: var(--muted-3);
+  margin-top: 4px;
+}
+.ingest .ing-web-doi {
+  font-size: 9.5px;
+  color: var(--muted-3);
+}
+/* The document kind, when it is NOT an ordinary article.
+   No pill, no fill, no border: it sits in the meta line as a word, distinguished from its
+   neighbours by WEIGHT and small caps rather than by colour, so it survives a colourblind
+   reader and does not add a second visual layer to a row that already has enough. */
+.ingest .ing-web-kind {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  color: var(--muted-2);
+}
+/* Which indexes hold the paper — leading the meta line, immediately before the venue.
+   It sits at the START rather than the far end because it answers the same question the
+   venue does, and because the row's fields must read as one group: pushed right it was
+   separated from them by however much slack the row had, which made it look like it
+   belonged to something else. Slightly heavier than its neighbours so it is still findable
+   at the head of the line without a colour of its own. */
+.ingest .ing-web-sources {
+  font-weight: 550;
+  font-size: 9.5px;
+  letter-spacing: 0.03em;
+  color: var(--muted-3);
+  white-space: nowrap;
+  transition: color 150ms ease-in-out;
+}
+/* Hovering the row is what reveals it as something with more to say (its tooltip names
+   every index), so it lifts with the row rather than announcing itself at rest. */
+.ingest .ing-web-row:hover .ing-web-sources {
+  color: var(--muted-2);
+}
+/* Two lines: enough to judge relevance, not so much that the row becomes the
+   paper. The full abstract is on the paper once imported. */
+.ingest .ing-web-abstract {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-2);
+  margin-top: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  /* Only PROSE needs a reading-length limit — past ~90 characters the eye loses
+     the start of the next line. The cap used to sit on the whole row, which also
+     stopped the title, the metadata and the separator short of the pane and left
+     a dead band down the right-hand side. */
+  max-width: 90ch;
+}
+/* Expanded: the clamp is what hides the rest, so lifting it IS the expansion.
+   `line-clamp` cannot be transitioned, so the change is instant by nature; the
+   surrounding colour cues carry the animation instead. */
+.ingest .ing-web-abstract.is-open {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+/* An absent abstract is stated, not left blank: an empty gap looks like a
+   loading failure, and the reader cannot tell it from a row still fetching. */
+.ingest .ing-web-abstract.is-absent {
+  font-style: italic;
+  color: var(--muted-3);
+}
+/* ------------------------------------------------------------------ pager */
+.ingest .ing-web-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 16px 0 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-2);
+}
+.ingest .ing-web-page-step {
+  flex: 0 0 auto;
+  transition:
+    border-color 150ms ease-in-out,
+    color 150ms ease-in-out,
+    background-color 150ms ease-in-out,
+    opacity 150ms ease-in-out;
+}
+.ingest .ing-web-page-step:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+/* The last fetch FAILED, and the forward step is the retry. Signalled by border
+   and weight as well as colour, so it survives without hue. */
+.ingest .ing-web-page-step.is-failed {
+  border-color: var(--danger);
+  color: var(--danger);
+  font-weight: 600;
+}
+.ingest .ing-web-page-step.is-failed:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+.ingest .ing-web-page-step.is-failed:active {
+  background: color-mix(in srgb, var(--danger) 20%, transparent);
+}
+.ingest .ing-web-page-step.is-failed:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
+
+.ingest .ing-web-page-nums {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.ingest .ing-web-page-num {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    background-color 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    color 150ms ease-in-out;
+}
+.ingest .ing-web-page-num:hover {
+  background: var(--panel-2);
+  color: var(--ink);
+}
+.ingest .ing-web-page-num:active {
+  background: color-mix(in srgb, var(--ink) 14%, var(--panel-2));
+}
+.ingest .ing-web-page-num:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+/* WHERE THE READER IS. Ring + weight as well as fill, so the one number that
+   matters is not carried by colour alone. */
+.ingest .ing-web-page-num.is-current {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--ink);
+  font-weight: 700;
+}
+.ingest .ing-web-page-num.is-current:hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: var(--accent);
+}
+/* A page the indexes are expected to have but that has NOT been fetched.
+   Pressing it works and fetches; it is drawn lighter, with a dashed edge on
+   hover, so the boundary between "held" and "expected" is visible without being
+   a wall. Never by colour alone — the dash carries it too. */
+.ingest .ing-web-page-num.is-unfetched {
+  color: var(--muted-3);
+}
+.ingest .ing-web-page-num.is-unfetched:hover {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--ink);
+}
+.ingest .ing-web-page-num.is-unfetched:active {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.ingest .ing-web-page-num:disabled {
+  opacity: 0.45;
+  cursor: progress;
+}
+/* Sized and centred like a page NUMBER, not like text between numbers: an
+   ellipsis sits on the baseline while the digits beside it are centred in a
+   30px box, so left to itself it reads as an underscore dropped below the row
+   rather than as "and more". */
+.ingest .ing-web-page-gap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 30px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1;
+  color: var(--muted-3);
+  user-select: none;
+}
+/* THE OPEN END: more pages exist than have been fetched. Weight and colour
+   rather than the interior gap's grey, because this one carries a fact the
+   reader is looking for while an interior gap only stands in for numbers they
+   can already reach. Tipped, so hovering it answers "is there a page 4?". */
+.ingest .ing-web-page-gap.is-open-end {
+  color: var(--muted);
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ingest .ing-web-page-num,
+  .ingest .ing-web-page-step { transition: none; }
+}
+
+/* A search that could not be run, stated as such. Muted caption text made
+   "the server is not reachable" read as an aside next to the results. */
+.ingest .ing-web-fail {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.ingest .ing-web-fail svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--danger);
+}
+.ingest .ing-web-end {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted-3);
+  margin: 14px 0 4px;
+}
+/* `flex: 0 0 178px` rather than `flex: 0 0 auto` + `min-width`: as an auto-basis
+   item this slot still SHRANK under the row's flex pressure, so the progress
+   label and its spinner wrapped onto two lines and the row grew a second line
+   the moment an import started. A fixed basis cannot be squeezed. */
+.ingest .ing-web-side {
+  flex: 0 0 178px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  /* Import button, progress and the Added mark occupy the SAME box, so moving
+     between them never reflows the row. Sized for the longest of them
+     ("Summarising…" beside its spinner) on ONE line. */
+  min-height: 32px;
+}
+.ingest .ing-web-import {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--accent);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+.ingest .ing-web-import:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.ingest .ing-web-import:active {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #fff;
+}
+.ingest .ing-web-import:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+/* A FAILED import, offering the retry. Danger-coloured because the paper is NOT
+   in the project — wearing the ordinary Add button's clothes would say the
+   opposite of what happened. */
+.ingest .ing-web-import.is-failed {
+  border-color: var(--danger);
+  color: var(--danger-strong);
+}
+.ingest .ing-web-import.is-failed:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+.ingest .ing-web-import.is-failed:active {
+  background: var(--danger-strong);
+  border-color: var(--danger-strong);
+  color: #fff;
+}
+.ingest .ing-web-import.is-failed:focus-visible {
+  box-shadow: 0 0 0 3px var(--danger-100);
+}
+
+/* The stage name beside the spinner. A spinner alone says "wait", which cannot
+   be told from a hang; this says which stage the paper is actually on. */
+/* NOT `ing-web-progress`: that name was already taken, 400 lines up, by the
+   SEARCH progress panel — a flex COLUMN. Reusing it silently inherited that
+   direction, so the stage label and its spinner stacked and the row grew a
+   second line the moment an import started. */
+.ingest .ing-web-doing {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+}
+.ingest .ing-web-doing-label {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+
+/* ARRIVED, and deliberately not a button: the paper is in the project, so a
+   control here could only ever invite a duplicate. Ticked as well as coloured,
+   so the state survives a colourblind reader. */
+.ingest .ing-web-added {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--ok);
+  border-radius: 9px;
+  background: var(--ok-soft);
+  color: var(--ok);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ingest .ing-web-added-tick {
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* The in-flight control: a spinning ring with the cancel X centred in it. The
+   ring spins, the X does not (it is a target, not an indicator). */
+.ingest .ing-web-spin {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.16s ease;
+}
+.ingest .ing-web-spin:hover:not(:disabled) {
+  color: var(--danger);
+}
+.ingest .ing-web-spin:disabled {
+  cursor: default;
+}
+.ingest .ing-web-spin-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid #f1d9c2;
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+.ingest .ing-web-spin-x {
+  position: relative;
+}
+
+/* status / error line under the input */
+.ingest .ing-msg {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 10px 0 0;
+}
+
+/* A result the user needs to READ — "deleted X and everything derived from it"
+   reports an irreversible act, and as bare muted text it was indistinguishable
+   from a caption. It gets its own surface, an icon, and a dismiss control so it
+   can be acknowledged rather than lingering until the next action replaces it. */
+.ingest .ing-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 12px 0 4px;
+  padding: 9px 11px;
+  border: 1px solid var(--border-2);
+  border-left: 3px solid var(--muted-3);
+  border-radius: 9px;
+  background: var(--panel);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  animation: ing-notice-in 160ms ease-out both;
+}
+@keyframes ing-notice-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ingest .ing-notice { animation: none; }
+}
+/* The left rule and the glyph both change with the kind, so the tone survives
+   without relying on the colour being perceived. */
+.ingest .ing-notice-ok { border-left-color: var(--ok); }
+.ingest .ing-notice-ok .ing-notice-icon { color: var(--ok); }
+.ingest .ing-notice-bad { border-left-color: var(--danger); }
+.ingest .ing-notice-bad .ing-notice-icon { color: var(--danger); }
+.ingest .ing-notice-icon {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--muted-2);
+}
+.ingest .ing-notice-text {
+  flex: 1;
+  min-width: 0;
+}
+.ingest .ing-notice-close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted-3);
+  cursor: pointer;
+  transition:
+    color 0.15s ease-in-out,
+    background 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
+}
+.ingest .ing-notice-close:hover {
+  color: var(--ink);
+  background: var(--panel-2);
+  border-color: var(--border-2);
+}
+.ingest .ing-notice-close:active {
+  background: var(--border-2);
+}
+.ingest .ing-notice-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* -------------------------------------------------- "Import from file" drop zone */
+/* ONE surface for the whole job: the region is the drop target and it holds
+   both browse buttons. The region itself is NOT clickable — nested buttons
+   inside a clickable div make every click ambiguous. */
+.ingest .ing-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 40px 20px;
+  border: 1px dashed #ddd6cc;
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--muted);
+  text-align: center;
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+/* drag-over: border style + background + the label TEXT change (not colour alone) */
+.ingest .ing-drop.is-over {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+/* The icon and the label are decoration inside the target. Neither may take the
+   drag itself: a pointer over them is a pointer over the zone, and a child that
+   swallows the events makes the MIDDLE of the zone the one place a drop fails. */
+.ingest .ing-drop-icon,
+.ingest .ing-drop-title {
+  pointer-events: none;
+}
+.ingest .ing-drop-icon {
+  color: currentColor;
+}
+.ingest .ing-drop-title {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: inherit;
+}
+.ingest .ing-drop-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* ------------------------------------------------------------- processing queue */
+.ingest .ing-queue-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 28px 0 14px;
+}
+.ingest .ing-queue-title {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+  margin: 0;
+}
+
+/* ------------------------------------------------- papers list + search ---- */
+/* Papers is the screen's leading section: the project's papers, the search over
+   them, and the facet rail. Import and the processing queue follow below. */
+.ingest .pap { margin-bottom: 8px; }
+/* Search box and its narrowing are ONE control surface, stacked in one panel.
+   Side by side they read as two unrelated widgets that happened to land on the
+   same row, and the filter bar floated with nothing tying it to the query. */
+/* The same surface `.ing-card` gives the other tabs — radius, padding, shadow —
+   so switching tabs does not change what a "panel" looks like. */
+.ingest .pap-head {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 0 18px;
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(33, 26, 18, 0.04);
+}
+/* Nested inside the panel, so it loses the outer box it had when it stood alone. */
+.ingest .pap-head .ing-web-filters {
+  margin-top: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.ingest .pap-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.ingest .pap-count { font-size: 12.5px; color: var(--muted-2); }
+.ingest .pap-active {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-100);
+  color: var(--accent-strong);
+}
+.ingest .pap-capped { font-family: var(--mono); font-size: 10.5px; color: var(--muted-3); }
+.ingest .pap-clear { font-size: 12px; }
+.ingest .pap-save { margin-left: auto; height: 28px; padding: 0 12px; font-size: 12px; }
+.ingest .ing-failed-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fbeae7;
+  border: 1px solid #eec4bc;
+  color: #c1584a;
+}
+.ingest .ing-failed-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c1584a;
+}
+/* A paper with no PDF has NOT failed, so this must not read as the red pill it
+   sits beside. Amber, and its dot is a RING rather than a disc: the two differ
+   by shape as well as hue, which is what keeps them tellable apart for a
+   colourblind reader and in a screenshot. */
+.ingest .ing-refused-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fdf3e3;
+  border: 1px solid #e8d3a9;
+  color: #9a6b1f;
+}
+.ingest .ing-refused-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1.5px solid #9a6b1f;
+}
+.ingest .ing-queue-rule {
+  height: 1px;
+  flex: 1;
+  background: var(--panel-2);
+}
+
+/* ------------------------------------------------- queue title/DOI filter ---
+   Same field idiom as the papers search — magnifier inside a bordered box — but
+   sized to the queue header's row rather than the 48px search bars, so it sits
+   with the status tabs instead of towering over them. */
+.ingest .ing-qsearch {
+  flex: 0 1 260px;
+  min-width: 150px;
+}
+.ingest .ing-qsearch .ing-field-icon {
+  left: 11px;
+  transition: color 0.15s ease;
+}
+.ingest .ing-qsearch-input {
+  height: 32px;
+  padding-left: 31px;
+  padding-right: 12px;
+  font-size: 12.5px;
+  border-radius: 9px;
+  background: var(--panel);
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease,
+    color 0.15s ease;
+}
+/* Room for the clear button. Keyed to `is-clearable` (ANY text) rather than
+   `is-filled` (text that survives trimming), because a field holding only
+   spaces still shows the ✕ and the caret must not run underneath it. */
+.ingest .ing-qsearch.is-clearable .ing-qsearch-input {
+  padding-right: 30px;
+}
+/* hover: the surface lifts to the same white the field takes when focused,
+   while the border stays neutral — so hover is distinct from focus, which adds
+   the accent border AND the ring. */
+.ingest .ing-qsearch-input:hover {
+  background: #fff;
+  border-color: #cfc5b7;
+}
+.ingest .ing-qsearch-input:focus,
+.ingest .ing-qsearch-input:focus-visible {
+  background: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(226, 96, 15, 0.12);
+}
+/* Focus absorbs every property hover sets, so without this the pointer reads as
+   dead over the field the user is typing in. The ring widens rather than
+   changing hue, keeping the two states distinct without a second colour. */
+.ingest .ing-qsearch-input:focus:hover {
+  box-shadow: 0 0 0 5px rgba(226, 96, 15, 0.2);
+}
+/* FILLED is a state of its own: the filter is doing something to the list even
+   when the field is not focused and the pointer is elsewhere. Signalled by the
+   accent-tinted surface and a heavier value — never by colour alone. */
+.ingest .ing-qsearch.is-filled .ing-qsearch-input {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  color: var(--ink);
+  font-weight: 500;
+}
+.ingest .ing-qsearch.is-filled .ing-qsearch-input:hover {
+  background: #fff;
+  border-color: var(--accent);
+}
+.ingest .ing-qsearch.is-filled .ing-qsearch-input:focus,
+.ingest .ing-qsearch.is-filled .ing-qsearch-input:focus-visible {
+  background: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(226, 96, 15, 0.18);
+}
+.ingest .ing-qsearch.is-filled .ing-qsearch-input:focus:hover {
+  box-shadow: 0 0 0 5px rgba(226, 96, 15, 0.28);
+}
+/* The glyph follows the field, so the whole control reads as one thing. The
+   filled tone is kept DARKER than the pointer/focus tone rather than being
+   overridden by it, so the glyph never stops carrying "a filter is applied". */
+.ingest .ing-qsearch:hover .ing-field-icon,
+.ingest .ing-qsearch:focus-within .ing-field-icon {
+  color: var(--accent);
+}
+.ingest .ing-qsearch.is-filled .ing-field-icon,
+.ingest .ing-qsearch.is-filled:hover .ing-field-icon,
+.ingest .ing-qsearch.is-filled:focus-within .ing-field-icon {
+  color: var(--accent-strong);
+}
+
+/* clear (✕) — its own full state set, since it is a separate target. */
+.ingest .ing-qsearch-clear {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+    transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ingest .ing-qsearch-clear:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  color: var(--accent-strong);
+}
+.ingest .ing-qsearch-clear:active {
+  background: var(--accent-100);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  transform: translateY(-50%) scale(0.88);
+}
+.ingest .ing-qsearch-clear:focus-visible {
+  outline: none;
+  background: #fff;
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  box-shadow: 0 0 0 2px rgba(226, 96, 15, 0.28);
+}
+/* Keyboard focus already paints border, background and glyph, so hover on top
+   of it needs its own change or the pointer looks unresponsive. */
+.ingest .ing-qsearch-clear:focus-visible:hover {
+  background: var(--accent-soft);
+  transform: translateY(-50%) scale(1.08);
+}
+
+/* "3 of 24". Ambient, so it eases at the slower rate; it turns to the failure
+   tone AND gains a border when nothing matched, so the zero is legible without
+   relying on the colour. */
+.ingest .ing-qsearch-count {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: var(--panel);
+  color: var(--muted-2);
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.ingest .ing-qsearch-count.is-none {
+  background: #fbeae7;
+  border-color: #eec4bc;
+  color: #c1584a;
+  font-weight: 600;
+}
+
+/* queue filter tabs */
+.ingest .ing-filters {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--panel-2);
+  border-radius: 11px;
+}
+.ingest .ing-filter {
+  border: none;
+  font-family: var(--sans);
+  font-size: 12px;
+  padding: 6px 11px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+.ingest .ing-filter:hover {
+  color: var(--ink);
+}
+.ingest .ing-filter.is-danger {
+  color: #c1584a;
+}
+.ingest .ing-filter.is-active {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(33, 26, 18, 0.08);
+}
+.ingest .ing-filter.is-active.is-danger {
+  color: #c1584a;
+}
+
+/* ====================================================== pipeline rows
+   One row per PAPER. Its stages are the jobs that ran for it, drawn as a
+   mini-graph of status circles — the same shape GitLab uses for a pipeline,
+   because the thing being shown is the same thing: several steps, each with
+   its own verdict, that together decide the row's. */
+.ingest .ing-pipes {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.ingest .ing-pipe {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: #fff;
+  /* The left edge carries the verdict as a bar, so the row's outcome is legible
+     from the margin without reading the pill. */
+  border-left: 3px solid var(--border-2);
+  transition:
+    box-shadow 0.16s ease-in-out,
+    border-color 0.16s ease-in-out,
+    border-left-width 0.16s ease-in-out,
+    background 0.16s ease-in-out,
+    opacity 0.16s ease-in-out;
+}
+/* The left edge is a MARGIN cue, so it must survive greyscale: hue carries the
+   state's identity and WIDTH carries its urgency (5px demands action, 3px is
+   in progress, 2px is settled). Hue alone made five states one grey bar for a
+   colourblind reader — and the pill beside it, which does carry a glyph and a
+   word, is the authority either way. */
+.ingest .ing-pipe.is-failed {
+  border-left-color: var(--danger);
+  border-left-width: 5px;
+}
+.ingest .ing-pipe.is-empty,
+.ingest .ing-pipe.is-refused {
+  border-left-width: 5px;
+}
+.ingest .ing-pipe.is-running {
+  border-left-color: var(--busy);
+}
+.ingest .ing-pipe.is-succeeded,
+.ingest .ing-pipe.is-skipped {
+  border-left-width: 2px;
+}
+/* Queued rows take the accent edge: a paper waiting to be reprocessed is not
+   idle, and a grey edge said it was. */
+.ingest .ing-pipe.is-queued {
+  border-left-color: var(--accent);
+}
+.ingest .ing-pipe.is-blocked {
+  border-left-color: var(--accent);
+  border-left-style: dotted;
+}
+.ingest .ing-pipe.is-pending {
+  border-left-color: var(--border-2);
+  border-left-style: dashed;
+}
+.ingest .ing-pipe.is-stalled {
+  border-left-color: var(--muted-3);
+  border-left-style: dashed;
+  border-left-width: 4px;
+}
+.ingest .ing-pipe.is-empty {
+  border-left-color: var(--warn);
+}
+.ingest .ing-pipe.is-succeeded {
+  border-left-color: var(--ok);
+}
+.ingest .ing-pipe.is-skipped {
+  border-left-color: var(--muted-2);
+}
+.ingest .ing-pipe.is-refused {
+  border-left-color: var(--ink);
+}
+.ingest .ing-pipe.is-superseded {
+  border-left-color: color-mix(in srgb, var(--ok) 45%, var(--muted-3));
+  border-left-style: double;
+  border-left-width: 4px;
+}
+.ingest .ing-pipe.is-legacy {
+  border-left-color: var(--border-2);
+  border-left-style: dotted;
+}
+.ingest .ing-pipe.is-cancelled {
+  border-left-color: var(--muted-3);
+  border-left-style: dashed;
+}
+.ingest .ing-pipe:hover {
+  box-shadow: 0 4px 14px rgba(33, 26, 18, 0.06);
+  background: #fffdfb;
+}
+/* Dismissed rows fade back — the failure is still true, it just no longer
+   raises its hand. */
+.ingest .ing-pipe.is-dismissed {
+  opacity: 0.55;
+}
+.ingest .ing-pipe.is-dismissed:hover {
+  opacity: 0.78;
+}
+@keyframes ing-job-arrive {
+  0% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent);
+    background: color-mix(in srgb, var(--accent) 13%, #fff);
+  }
+  60% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 34%, transparent);
+    background: color-mix(in srgb, var(--accent) 8%, #fff);
+  }
+  100% {
+    box-shadow: 0 0 0 3px transparent;
+    background: #fff;
+  }
+}
+.ingest .ing-pipe.is-new {
+  animation: ing-job-arrive 2400ms ease-in-out forwards;
+}
+/* Failure outranks novelty: a row that arrived AND failed must read as failed,
+   so the arrival flash gives way rather than tinting an error green. */
+.ingest .ing-pipe.is-new.is-failed {
+  animation: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 30%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Still marked, just not animated — the emphasis is information, so it is
+     held statically for the same window instead of being dropped. */
+  .ingest .ing-pipe.is-new {
+    animation: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 40%, transparent);
+    background: color-mix(in srgb, var(--accent) 8%, #fff);
+  }
+}
+
+/* status | identity | stages | actions. The identity column is the only one
+   that grows, so the timers, the mini-graph and the buttons stay aligned down
+   the whole list and can be compared row to row. */
+.ingest .ing-pipe-grid {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+}
+
+/* -------------------------------------------------------- status + timers */
+.ingest .ing-pipe-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+.ingest .ing-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 4px 9px 4px 7px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  /* A row's verdict changes under the user as the queue advances (running →
+     succeeded, running → failed). Without this the pill's colour, fill and
+     border snap between two unrelated palettes mid-glance. ~250ms: this is
+     ambient emphasis, not pointer feedback. */
+  transition:
+    color 0.25s ease-in-out,
+    background 0.25s ease-in-out,
+    border-color 0.25s ease-in-out,
+    text-decoration-color 0.25s ease-in-out;
+}
+.ingest .ing-verdict-glyph {
+  font-size: 11px;
+  line-height: 1;
+
+  /* Holds an <svg> now, not a character: flex centres the drawn icon
+     exactly, where line-height only ever centred a glyph's baseline. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* One pill per rollup state, and the rollup uses the SAME state union as the
+   stage dots — so a row whose headline says "Nothing found" is saying exactly
+   what its amber dot says, in words. */
+.ingest .ing-verdict.is-succeeded {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, #fff);
+  border-color: color-mix(in srgb, var(--ok) 34%, transparent);
+}
+.ingest .ing-verdict.is-failed {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, #fff);
+  border-color: color-mix(in srgb, var(--danger) 38%, transparent);
+}
+.ingest .ing-verdict.is-running {
+  color: var(--busy);
+  background: color-mix(in srgb, var(--busy) 12%, #fff);
+  border-color: color-mix(in srgb, var(--busy) 36%, transparent);
+}
+.ingest .ing-verdict.is-queued {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+}
+/* Waiting on a dependency, not on a worker: dotted, matching the blocked dot,
+   so the pill and the mini-graph cannot be read as disagreeing. */
+.ingest .ing-verdict.is-blocked {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  border-style: dotted;
+}
+.ingest .ing-verdict.is-pending {
+  color: var(--muted-3);
+  background: var(--bg);
+  border-color: var(--border-2);
+  border-style: dashed;
+}
+/* Ran part of the way and stopped. Louder than `pending` and quieter than
+   `failed`: nothing broke, but nothing is going to move either. */
+.ingest .ing-verdict.is-stalled {
+  color: var(--muted);
+  background: var(--panel-2);
+  border-color: var(--muted-3);
+  border-style: dashed;
+  border-width: 2px;
+}
+/* A legitimate zero-output result. Amber, never red — this row is a claim about
+   the paper somebody may want to read, not a crash. */
+.ingest .ing-verdict.is-empty {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 14%, #fff);
+  border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+}
+.ingest .ing-verdict.is-skipped {
+  color: var(--muted-2);
+  background: var(--panel);
+  border-color: var(--border-2);
+}
+.ingest .ing-verdict.is-refused {
+  color: var(--ink);
+  background: var(--panel-2);
+  border-color: var(--ink);
+}
+/* Output that an upstream re-run invalidated. Struck through as well as faded:
+   this row's result is no longer current, and "faded" alone reads as disabled. */
+.ingest .ing-verdict.is-superseded {
+  color: var(--muted-2);
+  background: color-mix(in srgb, var(--ok) 6%, #fff);
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--muted-3));
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--muted-2) 60%, transparent);
+}
+.ingest .ing-verdict.is-legacy {
+  color: var(--muted-3);
+  background: var(--bg);
+  border-color: var(--border-2);
+  border-style: dotted;
+}
+/* Cancelled is a DELIBERATE stop, not a pending one: dashed, so it cannot be
+   mistaken for the queued pill it shares a hue with. */
+.ingest .ing-verdict.is-cancelled {
+  color: var(--muted-3);
+  background: var(--panel-2);
+  border-color: var(--muted-3);
+  border-style: dashed;
+}
+.ingest .ing-pipe-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted-3);
+  white-space: nowrap;
+  transition: color 0.16s ease-in-out;
+}
+.ingest .ing-pipe-meta svg {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+/* A duration that is still counting is not the same fact as a finished one. */
+.ingest .ing-pipe-meta.is-live {
+  color: var(--accent);
+  font-weight: 600;
+}
+.ingest .ing-pipe:hover .ing-pipe-meta {
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------- thumbnail + title */
+.ingest .ing-pipe-id {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.ingest .ing-pipe-text {
+  min-width: 0;
+}
+.ingest .ing-pipe-title {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ingest .ing-pipe-sub {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted-3);
+}
+.ingest .ing-pipe-ref {
+  color: var(--muted);
+}
+/* The text-source qualifier on a queue row. Present only when it IS a
+   qualification (OCR, or a source no run claims), so it reads as an exception
+   rather than as one more constant column. Sized down to sit inside the mono
+   sub-line without changing that line's height. */
+.ingest .ing-pipe-textsrc {
+  font-family: var(--sans);
+  font-size: 9.5px;
+  letter-spacing: 0;
+  padding: 0 6px;
+  line-height: 15px;
+}
+.ingest .ing-pipe-textsrc-num {
+  margin-left: 4px;
+  opacity: 0.72;
+}
+/* A job that never resolved to a paper stands alone. Saying so is the point —
+   it is why the row has no thumbnail and cannot be deleted. */
+.ingest .ing-pipe-orphan {
+  color: var(--warn);
+  font-weight: 600;
+}
+.ingest .ing-pipe-dot {
+  opacity: 0.5;
+}
+/* Corpus-scoped work: standing maintenance over the whole corpus, not a paper.
+   Read as INFORMATION rather than as the warning `--warn` gives an unattached
+   job — nothing here needs attention, it is simply not per-paper. The dotted
+   underline marks it as the row's one explained term without spending a colour
+   that already means something else in this list. */
+.ingest .ing-pipe-corpus {
+  color: var(--muted);
+  font-weight: 600;
+  text-decoration: underline dotted color-mix(in srgb, var(--muted) 45%, transparent);
+  text-underline-offset: 3px;
+  cursor: help;
+  transition:
+    color 0.15s ease-in-out,
+    text-decoration-color 0.15s ease-in-out;
+}
+.ingest .ing-pipe-corpus:hover {
+  color: var(--ink);
+  text-decoration-color: var(--ink);
+}
+/* A past failure of a repeating sweep. `--warn`, not `--danger`: the latest run
+   is fine and the row's own pill says so, so this is something to know rather
+   than something to act on. */
+.ingest .ing-pipe-corpus-failed {
+  color: var(--warn);
+  font-weight: 600;
+  cursor: help;
+  transition: color 0.15s ease-in-out;
+}
+.ingest .ing-pipe-corpus-failed:hover {
+  color: color-mix(in srgb, var(--warn) 72%, var(--ink));
+}
+/* Stands in the thumbnail's slot at the thumbnail's size, so the identity
+   column keeps its rhythm whether or not a row has a PDF. A globe rather than a
+   blank page: this row has no document and never will. */
+.ingest .ing-corpus-mark {
+  width: 34px;
+  height: 44px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px dashed var(--border-2);
+  background: var(--panel);
+  color: var(--muted-2);
+  transition:
+    color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
+}
+.ingest .ing-pipe:hover .ing-corpus-mark {
+  color: var(--muted);
+  border-color: var(--muted-3);
+}
+
+/* --------------------------------------------------------- stage mini-graph */
+.ingest .ing-stages {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+}
+/* The connector fills in behind the pipeline as it advances, so how far a paper
+   has got is legible from the LINE as well as from the dots — a row scanned at
+   a glance reads its progress without decoding twelve glyphs. */
+.ingest .ing-stage-link {
+  width: 11px;
+  height: 2px;
+  background: var(--border-2);
+  flex-shrink: 0;
+  transition: background 0.25s ease-in-out;
+}
+.ingest .ing-stage-link.is-passed {
+  background: var(--muted-3);
+}
+.ingest .ing-stage {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  /* A dot is a <button> that opens its phase's steps, so it must not inherit
+     the browser's button metrics or the row's dots would stop being round. */
+  padding: 0;
+  appearance: none;
+  cursor: pointer;
+  border: 1.5px solid var(--border-2);
+  background: #fff;
+  color: var(--muted-3);
+  transition:
+    transform 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out,
+    border-color 0.15s ease-in-out,
+    background 0.15s ease-in-out,
+    color 0.15s ease-in-out,
+    /* Two states carry their meaning in opacity (`pending`, `superseded`) and
+       hover/focus restore it, so without these the dot pops rather than eases
+       and the pointer feedback reads as a glitch. */ opacity 0.15s ease-in-out,
+    outline-offset 0.15s ease-in-out;
+}
+.ingest .ing-stage-glyph {
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 700;
+
+  /* Holds an <svg> now, not a character: flex centres the drawn icon
+     exactly, where line-height only ever centred a glyph's baseline. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Every state the backend can be in gets a HUE, a GLYPH and a BORDER TREATMENT,
+   so no two render alike and none of them depends on colour alone. The three
+   zero-output states are the reason this list is long: `empty`, `skipped` and
+   `refused` are correct results, and if any of them read as red the user goes
+   hunting for a bug that is not there.
+   `scripts/check-stage-states.mjs` resolves all of them (and their hover /
+   focus / focus+hover combinations) and fails on any two that match. */
+
+/* Not planned yet: hollow and dashed, the quietest thing on the row, because
+   nothing has happened here at all.
+
+   QUIET IS NOT INVISIBLE. The recessive reading comes from the dashed stroke
+   and the muted ink, not from bleaching the element — a ring below about 1.4
+   contrast against the row does not read as faint, it reads as absent, and
+   leaves the glyph floating with no container. It must still sit BELOW
+   `queued`, whose ring is the full `--muted-3` at full opacity, so "not
+   scheduled" and "will run" stay a legible PAIR of two visible steps. */
+.ingest .ing-stage.is-pending {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--muted-3) 70%, #fff);
+  color: var(--muted-2);
+  background: #fff;
+  opacity: 0.82;
+}
+/* WAITING ITS TURN — orange, and solid.
+   It used to be a grey dashed ring, indistinguishable at a glance from
+   "not scheduled". But a queued stage is REAL WORK that is going to happen,
+   which is the single most useful thing a row can tell someone who has just
+   invalidated their corpus: this paper is not finished, it is pending. Orange
+   is the app's "attention here" hue, and the ⏸ glyph carries the same meaning
+   without colour. */
+.ingest .ing-stage.is-queued {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+/* Waiting for the step before it — IN-PROGRESS work, not a fault.
+   Orange like `queued`, because both mean "this paper is moving and nothing is
+   required of you"; grey said "stopped". Dotted rather than solid keeps it
+   distinct from queued at a glance: an interrupted ring for a dependency not
+   yet satisfied, and the tooltip names which step it waits on. */
+.ingest .ing-stage.is-blocked {
+  border-style: dotted;
+  border-width: 2px;
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+/* RUNNING NOW — blue.
+   Orange was wrong twice over: it is the app's selection colour, so a busy row
+   looked picked; and beside the red of a failure it read as a warning about a
+   stage that is simply working. Blue means neither. It also separates the two
+   in-progress states from each other — queued is orange and still, running is
+   blue and breathing — so a row mid-reprocess shows its front moving along. */
+.ingest .ing-stage.is-running {
+  border-color: var(--busy);
+  color: var(--busy);
+  background: color-mix(in srgb, var(--busy) 12%, #fff);
+  /* A ring that breathes: the stage is doing something right now, and a static
+     circle says only that it is blue. */
+  animation: ing-stage-live 1.5s ease-in-out infinite;
+}
+@keyframes ing-stage-live {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--busy) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--busy) 0%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ingest .ing-stage.is-running {
+    animation: none;
+    box-shadow: 0 0 0 2.5px color-mix(in srgb, var(--busy) 26%, transparent);
+  }
+}
+.ingest .ing-stage.is-succeeded {
+  border-color: var(--ok);
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 10%, #fff);
+}
+/* Ran, and there was legitimately nothing. Amber and SOLID — an answer, not a
+   fault — with the ∅ glyph. It is emphatically not the red of a failure. */
+.ingest .ing-stage.is-empty {
+  border-color: var(--warn);
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 15%, #fff);
+}
+/* Its precondition was absent, so it never ran. Neutral and quiet: nothing here
+   is wrong, there was simply nothing to work on. */
+.ingest .ing-stage.is-skipped {
+  border-color: var(--border-2);
+  color: var(--muted-2);
+  background: var(--panel);
+}
+/* A deliberate refusal that stops the pipeline. Ink — a decision, weighty, and
+   still not an error. */
+.ingest .ing-stage.is-refused {
+  border-color: var(--ink);
+  color: var(--ink);
+  background: var(--panel-2);
+}
+.ingest .ing-stage.is-cancelled {
+  border-color: var(--panel-2);
+  color: var(--muted);
+  background: var(--panel-2);
+}
+.ingest .ing-stage.is-failed {
+  border-color: var(--danger);
+  color: #fff;
+  background: var(--danger);
+}
+/* Succeeded once, then an upstream re-run invalidated it. Drawn as a ghost of a
+   success — the ok hue at low opacity with the ↺ glyph — because it is neither
+   current output nor a failure, and reading it as either is a wrong action. */
+.ingest .ing-stage.is-superseded {
+  border-color: color-mix(in srgb, var(--ok) 50%, var(--muted-3));
+  color: var(--muted-2);
+  background: color-mix(in srgb, var(--ok) 5%, #fff);
+  opacity: 0.8;
+}
+/* `stalled` is a ROLLUP verdict, never a single stage — but it is in the same
+   union, so it is styled rather than left to fall through to the bare dot, and
+   the collision script measures it alongside the rest. */
+.ingest .ing-stage.is-stalled {
+  border-style: dashed;
+  border-width: 2px;
+  border-color: var(--muted-3);
+  color: var(--muted);
+  background: var(--panel-2);
+}
+
+/* Pointer feedback keeps the state's own surface and adds emphasis on top: a
+   hover that flattened every state to one look would tell the user their
+   pointer worked and nothing else. */
+.ingest .ing-stage:hover {
+  transform: scale(1.18);
+  box-shadow: 0 2px 8px rgba(33, 26, 18, 0.16);
+  border-color: var(--ink);
+  opacity: 1;
+}
+.ingest .ing-stage:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  transform: scale(1.18);
+  opacity: 1;
+}
+/* Focused AND hovered is its own state: without this it resolves identically to
+   focus alone, and the pointer appears dead over a dot the keyboard has. */
+.ingest .ing-stage:focus-visible:hover {
+  outline-offset: 3px;
+  box-shadow: 0 3px 11px rgba(33, 26, 18, 0.22);
+}
+/* Pressed. The dot is a tooltip target rather than a button, but it IS
+   focusable and it does take a press, and a press that looks exactly like a
+   hover tells the user nothing landed. Settling INWARD (below the hover's
+   scale) is the physical read of a push. */
+.ingest .ing-stage:active {
+  transform: scale(1.04);
+  box-shadow: inset 0 1px 3px rgba(33, 26, 18, 0.22);
+  border-color: var(--ink);
+  opacity: 1;
+}
+
+/* A dot whose steps are OPEN. It sits below the row's plane — pressed in —
+   which is the one treatment no state and no pointer feedback above uses, so
+   "these are the steps you are looking at" survives every combination. */
+.ingest .ing-stage.is-open {
+  box-shadow: inset 0 1px 3px rgba(33, 26, 18, 0.28);
+  border-color: var(--ink);
+  opacity: 1;
+  transform: scale(1.1);
+}
+.ingest .ing-stage.is-open:hover {
+  transform: scale(1.24);
+  box-shadow:
+    inset 0 1px 3px rgba(33, 26, 18, 0.28),
+    0 2px 8px rgba(33, 26, 18, 0.16);
+}
+.ingest .ing-stage.is-open:focus-visible {
+  outline-offset: 3px;
+  transform: scale(1.24);
+}
+.ingest .ing-stage.is-open:focus-visible:hover {
+  outline-offset: 4px;
+}
+.ingest .ing-stage.is-open:active {
+  transform: scale(1.02);
+}
+
+/* --------------------------------------------------- a phase's own steps */
+.ingest .ing-phase-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  background: var(--panel);
+  animation: ing-phase-open 0.18s ease-in-out;
+}
+@keyframes ing-phase-open {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ingest .ing-phase-steps {
+    animation: none;
+  }
+}
+.ingest .ing-step {
+  display: grid;
+  /* The last column is `1fr` so the state sits directly beside the step's name
+     rather than being flung to the far edge of a full-width panel, where the
+     eye has to travel to pair them up. */
+  grid-template-columns: 16px 170px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11.5px;
+  border-radius: 5px;
+  padding: 2px 4px;
+  color: var(--muted);
+  transition:
+    background 0.15s ease-in-out,
+    outline-offset 0.15s ease-in-out;
+}
+.ingest .ing-step .ing-stage-glyph {
+  grid-row: 1;
+  align-self: center;
+}
+.ingest .ing-step-label {
+  font-weight: 600;
+  color: var(--ink);
+}
+.ingest .ing-step-state {
+  color: currentColor;
+}
+/* The stage's own note wraps under its name, spanning the two text columns —
+   it is a sentence, and truncating it removes the line that diagnoses things. */
+.ingest .ing-step-note {
+  grid-column: 2 / -1;
+  color: var(--muted-2);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.ingest .ing-step:hover {
+  background: var(--panel-2);
+}
+.ingest .ing-step:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.ingest .ing-step:focus-visible:hover {
+  outline-offset: 3px;
+}
+.ingest .ing-step.is-succeeded {
+  color: var(--ok);
+}
+.ingest .ing-step.is-running {
+  color: var(--busy);
+}
+.ingest .ing-step.is-queued,
+.ingest .ing-step.is-blocked {
+  color: var(--accent-strong);
+}
+.ingest .ing-step.is-empty {
+  color: var(--warn);
+}
+.ingest .ing-step.is-refused {
+  color: var(--ink);
+}
+.ingest .ing-step.is-failed {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 7%, transparent);
+}
+.ingest .ing-step.is-failed:hover {
+  background: color-mix(in srgb, var(--danger) 13%, transparent);
+}
+.ingest .ing-step.is-pending,
+.ingest .ing-step.is-superseded,
+.ingest .ing-step.is-cancelled {
+  color: var(--muted-2);
+  opacity: 0.85;
+}
+
+/* ---------------------------------------------------------- pdf thumbnails */
+.pdf-thumb {
+  width: 34px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--muted-3);
+  transition:
+    border-color 0.16s ease-in-out,
+    box-shadow 0.16s ease-in-out,
+    color 0.16s ease-in-out;
+}
+.pdf-thumb-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.pdf-thumb.is-ready {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(33, 26, 18, 0.12);
+}
+/* Rendering vs genuinely absent are different answers to "where is the cover?",
+   so they do not share an appearance: one shimmers, one is a dashed placeholder. */
+@keyframes pdf-thumb-wait {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.pdf-thumb.is-loading {
+  animation: pdf-thumb-wait 1.2s ease-in-out infinite;
+}
+.pdf-thumb.is-absent {
+  border-style: dashed;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--panel),
+    var(--panel) 4px,
+    var(--panel-2) 4px,
+    var(--panel-2) 8px
+  );
+}
+/* A cover that could not be had because something on this computer went wrong.
+   Solid rather than dashed, tinted rather than neutral, and carrying a warning
+   glyph rather than a page glyph — three signals, so it is never colour alone,
+   and never mistaken for the dashed "this paper has no PDF" tile beside it. */
+.pdf-thumb.is-broken {
+  border-style: solid;
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger-strong);
+}
+.ingest .ing-pipe:hover .pdf-thumb {
+  border-color: var(--muted-3);
+  color: var(--muted);
+}
+.ingest .ing-pipe:hover .pdf-thumb.is-broken {
+  border-color: var(--danger-strong);
+  background: var(--danger-100);
+  color: var(--danger-strong);
+}
+.ingest .ing-thumb-open:hover .pdf-thumb.is-broken {
+  border-color: var(--danger-strong);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--danger) 28%, transparent);
+}
+.ingest .ing-thumb-open:active .pdf-thumb.is-broken {
+  border-color: var(--danger-strong);
+  background: var(--danger-200);
+  box-shadow: none;
+}
+
+/* The cover as a way INTO the paper.
+   A bare wrapper — no padding, border or background of its own — so the button
+   is exactly the thumbnail and the row's layout is unchanged by making it
+   clickable. Every state is carried by the thumb inside it. */
+.ingest .ing-thumb-open {
+  padding: 0;
+  border: 0;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+  /* The lift is what separates "this picture is clickable" from the row hover
+     that already tints every cover. */
+  transition: transform 0.15s ease-in-out;
+}
+.ingest .ing-thumb-open:hover .pdf-thumb {
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgb(33 26 18 / 16%);
+}
+.ingest .ing-thumb-open:hover {
+  transform: translateY(-1px);
+}
+/* Pressed SINKS past its resting position, so hover and active can never render
+   alike at the moment the pointer is down. */
+.ingest .ing-thumb-open:active {
+  transform: translateY(1px);
+}
+.ingest .ing-thumb-open:active .pdf-thumb {
+  border-color: var(--accent-strong);
+  box-shadow: none;
+}
+.ingest .ing-thumb-open:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ingest .ing-thumb-open,
+  .ingest .ing-thumb-open:hover,
+  .ingest .ing-thumb-open:active {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pdf-thumb.is-loading {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+.ingest .ing-job-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+/* Holds the width of a Retry whether or not one is offered, so the buttons
+   beside it keep their place as a job changes state. Sized from the button's own
+   metrics — 11px mono "Retry" plus its padding and border — rather than a magic
+   number, so it tracks any change to `.ing-act`. */
+.ingest .ing-act-slot {
+  display: inline-flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  /* The button's own font, so `ch` measures the glyphs actually drawn in it
+     rather than the row's sans. Five characters of "Retry", plus the 9px
+     horizontal padding and 1px border on each side. */
+  font-family: var(--mono);
+  font-size: 11px;
+  min-width: calc(5ch + 20px);
+}
+.ingest .ing-act {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease,
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+.ingest .ing-act:hover:not([disabled]) {
+  border-color: #ddd6cc;
+  background: var(--panel);
+}
+.ingest .ing-act:active:not([disabled]) {
+  background: var(--panel-2);
+  border-color: var(--muted-3);
+  transform: translateY(1px);
+}
+.ingest .ing-act:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.ingest .ing-act[disabled] {
+  opacity: 0.45;
+  cursor: default;
+  background: var(--panel);
+  border-style: dashed;
+}
+.ingest .ing-act-ghost {
+  color: var(--muted);
+}
+.ingest .ing-act-ghost:hover:not([disabled]) {
+  color: var(--danger);
+  border-color: #eec4bc;
+  background: #fbeae7;
+}
+
+/* -------------------------------------------------------- delete this paper */
+/* The same two-step as the papers list, in the row's own button vocabulary:
+   quiet dashed outline until the row is hovered, then a worded confirmation.
+   The WORD changes with the state ("Delete" → "Sure?") so the escalation does
+   not rest on the red alone. */
+.ingest .ing-act-del {
+  color: var(--muted-3);
+  border-style: dashed;
+}
+.ingest .ing-pipe:hover .ing-act-del:not([disabled]):not(.is-armed) {
+  color: var(--muted);
+  border-color: #ddd6cc;
+}
+.ingest .ing-act-del:hover:not([disabled]) {
+  color: var(--danger);
+  border-style: solid;
+  border-color: #eec4bc;
+  background: #fbeae7;
+}
+.ingest .ing-act-del:active:not([disabled]) {
+  background: color-mix(in srgb, var(--danger) 18%, transparent);
+  border-color: var(--danger);
+}
+.ingest .ing-act-del:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
+.ingest .ing-act-del.is-armed {
+  color: #fff;
+  font-weight: 600;
+  background: var(--danger);
+  border-style: solid;
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 22%, transparent);
+}
+.ingest .ing-act-del.is-armed:hover {
+  background: color-mix(in srgb, var(--danger) 82%, #000);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 34%, transparent);
+}
+.ingest .ing-act-del.is-armed:active {
+  background: color-mix(in srgb, var(--danger) 66%, #000);
+  transform: translateY(1px);
+}
+/* In flight it is neither armed nor merely unavailable: it keeps the danger
+   hue, dims, and shows a progress cursor. */
+.ingest .ing-act-del.is-busy[disabled] {
+  opacity: 0.7;
+  border-style: solid;
+  border-color: var(--danger);
+  color: var(--danger);
+  background: #fbeae7;
+  cursor: progress;
+}
+
+/* --------------------------------------- redo papers whose inputs changed */
+/* Same pill idiom as the pause control so the two read as one cluster, but it
+   only takes on colour when there is actually something to redo. */
+.ingest .ing-queue-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+.ingest .ing-queue-refresh-glyph {
+  display: inline-flex;
+  color: var(--muted-2);
+  transition: color 0.15s ease, transform 0.4s ease;
+}
+/* Nothing to redo: dashed and dimmed, so "inert" is legible without colour and
+   is plainly a different thing from the amber offer beside it. */
+.ingest .ing-queue-refresh[disabled]:not(.is-busy) {
+  opacity: 0.5;
+  cursor: default;
+  border-style: dashed;
+  background: var(--panel);
+}
+.ingest .ing-queue-refresh.has-stale {
+  color: #8a5c0c;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--warn) 14%, #fff);
+  border-color: color-mix(in srgb, var(--warn) 45%, #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 22%, transparent);
+}
+.ingest .ing-queue-refresh.has-stale .ing-queue-refresh-glyph {
+  color: #8a5c0c;
+}
+.ingest .ing-queue-refresh.has-stale:hover:not([disabled]) {
+  background: color-mix(in srgb, var(--warn) 26%, #fff);
+  border-color: var(--warn);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 42%, transparent);
+}
+/* The arrow leans into the turn on hover — the motion says "again" before the
+   label is read, and it settles rather than spinning forever. */
+.ingest .ing-queue-refresh.has-stale:hover:not([disabled]) .ing-queue-refresh-glyph {
+  transform: rotate(180deg);
+}
+.ingest .ing-queue-refresh.has-stale:active:not([disabled]) {
+  background: color-mix(in srgb, var(--warn) 34%, #fff);
+  transform: translateY(1px);
+}
+/* Retry-all: the same pill in the DANGER hue rather than the warning one.
+   A stale paper is a result that has drifted; a failed one is a step that never
+   happened. The two buttons sit side by side, so they must not be told apart by
+   their labels alone — the colour, and the arrow turning the other way, do it at
+   a glance. */
+.ingest .ing-queue-refresh.has-failed {
+  color: var(--danger);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--danger) 10%, #fff);
+  border-color: color-mix(in srgb, var(--danger) 42%, #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 20%, transparent);
+}
+.ingest .ing-queue-refresh.has-failed .ing-queue-refresh-glyph {
+  color: var(--danger);
+}
+.ingest .ing-queue-refresh.has-failed:hover:not([disabled]) {
+  background: color-mix(in srgb, var(--danger) 20%, #fff);
+  border-color: var(--danger);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 38%, transparent);
+}
+/* Anticlockwise, mirroring the stale button's clockwise turn, so the two
+   motions read as different actions before either label is. */
+.ingest .ing-queue-refresh.has-failed:hover:not([disabled]) .ing-queue-refresh-glyph {
+  transform: rotate(-180deg);
+}
+.ingest .ing-queue-refresh.has-failed:active:not([disabled]) {
+  background: color-mix(in srgb, var(--danger) 28%, #fff);
+  transform: translateY(1px);
+}
+.ingest .ing-queue-refresh:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* In flight: keeps the warm hue so the row it belongs to is still identifiable,
+   but dims and shows a progress cursor rather than an offer to press again. */
+.ingest .ing-queue-refresh.is-busy[disabled] {
+  opacity: 0.7;
+  cursor: progress;
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--warn) 55%, #fff);
+  background: color-mix(in srgb, var(--warn) 10%, #fff);
+  color: #8a5c0c;
+  box-shadow: none;
+}
+.ingest .ing-queue-refresh.is-busy[disabled] .ing-queue-refresh-glyph {
+  color: #8a5c0c;
+  animation: ing-refresh-spin 1.1s linear infinite;
+}
+@keyframes ing-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* A retry IN FLIGHT keeps its own hue and spins the other way. Sharing the
+   warm busy state would make "invalidating 20 papers" and "retrying 20 papers"
+   render identically — two long operations with opposite meanings, told apart
+   only by a label the user is watching a spinner instead of reading. */
+.ingest .ing-queue-refresh.has-failed.is-busy[disabled] {
+  border-color: color-mix(in srgb, var(--danger) 55%, #fff);
+  background: color-mix(in srgb, var(--danger) 8%, #fff);
+  color: var(--danger);
+}
+.ingest .ing-queue-refresh.has-failed.is-busy[disabled] .ing-queue-refresh-glyph {
+  color: var(--danger);
+  animation: ing-refresh-spin-back 1.1s linear infinite;
+}
+@keyframes ing-refresh-spin-back {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+/* The row's own label. Slightly heavier than the neighbouring meta so it is
+   found while scanning a long queue, without becoming a second verdict pill. */
+.ingest .ing-pipe-stale {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* ------------------------------------------------- pause / resume the queue */
+.ingest .ing-queue-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease,
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+.ingest .ing-queue-toggle-glyph {
+  display: inline-flex;
+  color: var(--muted-2);
+  transition: color 0.16s ease;
+}
+.ingest .ing-queue-toggle-state {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted-2);
+  padding-left: 7px;
+  border-left: 1px solid var(--border);
+  transition: color 0.16s ease, border-color 0.16s ease;
+}
+.ingest .ing-queue-toggle:hover:not([disabled]) {
+  border-color: var(--muted-3);
+  background: var(--panel);
+}
+.ingest .ing-queue-toggle:hover:not([disabled]) .ing-queue-toggle-glyph {
+  color: var(--ink);
+}
+.ingest .ing-queue-toggle:active:not([disabled]) {
+  background: var(--panel-2);
+  transform: translateY(1px);
+}
+.ingest .ing-queue-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* Paused reads as a HELD state rather than a pressed button: warm fill, an
+   inset ring and a heavier label, so it survives without the colour. */
+.ingest .ing-queue-toggle.is-paused {
+  color: #8a5c0c;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--warn) 14%, #fff);
+  border-color: color-mix(in srgb, var(--warn) 45%, #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 22%, transparent);
+}
+.ingest .ing-queue-toggle.is-paused .ing-queue-toggle-glyph,
+.ingest .ing-queue-toggle.is-paused .ing-queue-toggle-state {
+  color: #8a5c0c;
+}
+.ingest .ing-queue-toggle.is-paused .ing-queue-toggle-state {
+  border-left-color: color-mix(in srgb, var(--warn) 35%, transparent);
+}
+.ingest .ing-queue-toggle.is-paused:hover:not([disabled]) {
+  background: color-mix(in srgb, var(--warn) 26%, #fff);
+  border-color: var(--warn);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 42%, transparent);
+}
+.ingest .ing-queue-toggle.is-paused:active:not([disabled]) {
+  background: color-mix(in srgb, var(--warn) 34%, #fff);
+  transform: translateY(1px);
+}
+/* Mid-flip: the answer from main decides the label, so the control stops
+   responding and says it is working instead of showing a state it is leaving. */
+.ingest .ing-queue-toggle.is-busy[disabled] {
+  opacity: 0.65;
+  cursor: progress;
+  border-style: solid;
+  border-color: var(--muted-3);
+  box-shadow: none;
+}
+/* Not yet known: nothing to report and nothing to toggle. */
+.ingest .ing-queue-toggle[disabled]:not(.is-busy) {
+  opacity: 0.5;
+  cursor: default;
+  border-style: dashed;
+  background: var(--panel);
+  box-shadow: none;
+}
+/* Could not be FOUND OUT — the opposite of "not asked yet", so at full opacity
+   and enabled: it is the way to ask again. Danger rather than warn, because
+   paused is already the warm state and the two must not be confused; a solid
+   border and the heavier label keep them apart with no colour at all. */
+.ingest .ing-queue-toggle.is-unknown {
+  opacity: 1;
+  cursor: pointer;
+  font-weight: 600;
+  border-style: solid;
+  color: var(--danger-strong);
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  box-shadow: inset 0 0 0 1px var(--danger-100);
+}
+.ingest .ing-queue-toggle.is-unknown .ing-queue-toggle-glyph,
+.ingest .ing-queue-toggle.is-unknown .ing-queue-toggle-state {
+  color: var(--danger-strong);
+}
+.ingest .ing-queue-toggle.is-unknown .ing-queue-toggle-state {
+  border-left-color: var(--danger-100);
+}
+.ingest .ing-queue-toggle.is-unknown:hover:not([disabled]) {
+  background: var(--danger-100);
+  border-color: var(--danger-strong);
+  box-shadow: inset 0 0 0 1px var(--danger-200);
+}
+.ingest .ing-queue-toggle.is-unknown:hover:not([disabled]) .ing-queue-toggle-glyph {
+  color: var(--danger-strong);
+}
+.ingest .ing-queue-toggle.is-unknown:active:not([disabled]) {
+  background: var(--danger-200);
+  transform: translateY(1px);
+}
+.ingest .ing-queue-toggle.is-unknown:focus-visible {
+  outline-color: var(--danger);
+}
+
+/* --------------------------------- non-failure outcome strip (empty/blocked) */
+/* Deliberately NOT the red failure panel it sits beside: these are correct
+   results and legitimate waits, and painting them like a crash sends the user
+   hunting for a bug that is not there. Left rule + hue per state, plus the same
+   glyph the matching stage dot carries, so the strip and the mini-graph are
+   visibly one statement. */
+.ingest .ing-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 11px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  background: var(--panel);
+  font-family: var(--sans);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  transition:
+    border-color 0.16s ease-in-out,
+    background 0.16s ease-in-out,
+    box-shadow 0.16s ease-in-out;
+}
+.ingest .ing-note-glyph {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 700;
+
+  /* Holds an <svg> now, not a character: flex centres the drawn icon
+     exactly, where line-height only ever centred a glyph's baseline. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.ingest .ing-note-stage {
+  color: var(--ink);
+  font-weight: 600;
+}
+.ingest .ing-note.is-empty {
+  border-color: color-mix(in srgb, var(--warn) 32%, var(--border));
+  border-left-color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 7%, #fff);
+}
+.ingest .ing-note.is-empty .ing-note-glyph {
+  color: var(--warn);
+}
+.ingest .ing-note.is-refused {
+  border-color: color-mix(in srgb, var(--ink) 22%, var(--border));
+  border-left-color: var(--ink);
+  background: var(--panel-2);
+}
+.ingest .ing-note.is-refused .ing-note-glyph {
+  color: var(--ink);
+}
+.ingest .ing-note.is-blocked {
+  border-left-color: var(--muted-2);
+  border-left-style: dotted;
+  border-left-width: 4px;
+  background: var(--panel-2);
+}
+.ingest .ing-note.is-blocked .ing-note-glyph {
+  color: var(--muted-2);
+}
+.ingest .ing-note.is-skipped {
+  border-left-color: var(--muted-3);
+  background: var(--panel);
+}
+.ingest .ing-note.is-skipped .ing-note-glyph {
+  color: var(--muted-3);
+}
+.ingest .ing-note.is-superseded {
+  border-color: color-mix(in srgb, var(--ok) 26%, var(--border));
+  border-left-color: color-mix(in srgb, var(--ok) 55%, var(--muted-3));
+  border-left-style: double;
+  border-left-width: 4px;
+  background: color-mix(in srgb, var(--ok) 5%, #fff);
+}
+.ingest .ing-note.is-superseded .ing-note-glyph {
+  color: color-mix(in srgb, var(--ok) 70%, var(--muted-2));
+}
+/* Row hover LIFTS the strip rather than repainting it. A flat `background:#fff`
+   here outranked every `.ing-note.is-*` tint on specificity and source order,
+   so hovering a row collapsed all five outcome states to the same white box —
+   the one moment the user is looking hardest at it. */
+.ingest .ing-pipe:hover .ing-note {
+  box-shadow: 0 1px 4px rgba(33, 26, 18, 0.06);
+}
+/* ---------------------------------------- the QUEUE ITEM as a PDF drop target */
+/* The WHOLE row accepts the file, so the whole row acknowledges it. Kept SUBTLE
+   here — a wash, no ring — because the attach zone inside it carries the loud
+   half of the feedback, and two competing highlights on one row read as two
+   targets. Background only, so nothing resizes and the rows below cannot shuffle
+   under a pointer mid-drag. */
+.ingest .ing-pipe.is-drop {
+  background: rgba(226, 96, 15, 0.04);
+}
+
+/* "Add or drop the PDF manually" — the per-paper twin of the "Import from file"
+   drop zone (`.ing-drop` above), and deliberately the same object: a dashed
+   region that states what it takes, holds its own button, and answers a drag by
+   changing border, background AND wording. The differences are only the ones the
+   context forces — it spans the row, and it is shorter, because it sits beneath
+   an error rather than filling an empty tab. */
+.ingest .ing-attach {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px dashed #ddd6cc;
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--muted);
+  transition: border-color 0.16s ease-in-out, background 0.16s ease-in-out,
+    color 0.16s ease-in-out;
+}
+.ingest .ing-attach-icon {
+  flex-shrink: 0;
+  color: currentColor;
+}
+.ingest .ing-attach-title {
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: inherit;
+  /* Takes the slack, so the button sits at the trailing edge where the row's
+     other actions already are. */
+  margin-right: auto;
+}
+/* Hovering the region: a quieter version of the drag state, so the zone reads as
+   live before a file is over it. */
+.ingest .ing-attach:hover:not(.is-over):not(.is-busy) {
+  border-color: #cfc6b8;
+  background: #faf7f2;
+}
+/* A file is over the ROW. Border STYLE changes as well as colour, and the title
+   text changes too, so this never rests on hue alone. */
+.ingest .ing-attach.is-over {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+/* Saving. Reads as unavailable AND as working; the title says which. */
+.ingest .ing-attach.is-busy {
+  opacity: 0.7;
+  cursor: progress;
+}
+.ingest .ing-attach-btn {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 13px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(226, 96, 15, 0.22);
+  transition: background 0.16s ease-in-out, box-shadow 0.16s ease-in-out,
+    transform 0.12s ease-in-out, opacity 0.16s ease-in-out;
+}
+.ingest .ing-attach-btn:hover {
+  background: var(--accent-strong);
+}
+.ingest .ing-attach-btn:active {
+  background: var(--accent-strong);
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(226, 96, 15, 0.26);
+}
+/* Focus lands on the hidden INPUT, so the ring is drawn on the label beside it —
+   without this the control had no visible focus state at all. */
+.ingest .ing-attach-file:focus-visible + .ing-attach-btn {
+  outline: none;
+  box-shadow: 0 4px 12px rgba(226, 96, 15, 0.22), 0 0 0 3px rgba(226, 96, 15, 0.34);
+}
+.ingest .ing-attach.is-busy .ing-attach-btn {
+  opacity: 0.7;
+  cursor: progress;
+  transform: none;
+  box-shadow: none;
+}
+.ingest .ing-attach-file {
+  /* NOT `display:none` — that removes the input from the focus order and leaves
+     the label with no keyboard route to it. Invisible, still focusable. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ingest .ing-attach-btn:active {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------ H3: failed "Try source" recovery */
+/* design markup L473-491 */
+.ingest .ing-fail {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f4efe8;
+}
+.ingest .ing-fail-reason {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--danger);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.ingest .ing-fail-reason svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.ingest .ing-fail-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.ingest .ing-fail-lead {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+}
+/* the three "Try source" pills — no token for the #f2d4b9 border, local hex. */
+.ingest .ing-fail-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 9px;
+  border: 1px solid #f2d4b9;
+  background: var(--accent-soft);
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--accent-strong);
+  text-decoration: none;
+  transition: background 0.16s ease;
+}
+.ingest .ing-fail-pill:hover {
+  background: #fbe2cf;
+}
+.ingest .ing-fail-pill:active {
+  background: var(--accent-100);
+  transform: translateY(1px);
+}
+.ingest .ing-fail-pill:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* "Open in web" — a disclosure, so it is a button among links and must say
+   which state it is in. Open inverts to the accent fill: a toggle whose two
+   states differ only by a caret is a toggle people press twice. */
+.ingest .ing-fail-open {
+  cursor: pointer;
+  transition:
+    background 0.15s ease-in-out,
+    border-color 0.15s ease-in-out,
+    color 0.15s ease-in-out;
+}
+.ingest .ing-fail-open.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.ingest .ing-fail-open.is-on:hover {
+  background: var(--accent-strong);
+}
+
+/* The expanded list, on its OWN row beneath the actions rather than inline with
+   them — eight sources would otherwise push Upload and Dismiss off the end. */
+.ingest .ing-fail-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.ingest .ing-fail-sources .ing-fail-lead {
+  /* Wraps as a sentence rather than sitting as an eyebrow: it explains the
+     list, and is far too long to read in uppercase mono. */
+  flex: 1 1 100%;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+}
+/* secondary "Dismiss" button */
+.ingest .ing-fail-dismiss {
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+.ingest .ing-fail-dismiss:hover {
+  background: #f6f2ec;
+  color: var(--ink);
+}
+
+/* --------------------------------------------- state 7: dismissed / restore */
+/* design markup L494-497 */
+.ingest .ing-dismissed {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f4efe8;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ingest .ing-dismissed-note {
+  font-size: 12px;
+  color: var(--muted-3);
+}
+.ingest .ing-restore {
+  margin-left: auto;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--accent-strong);
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+.ingest .ing-restore:hover {
+  background: var(--accent-soft);
+}

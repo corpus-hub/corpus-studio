@@ -1,0 +1,670 @@
+/* Schemas screen — the extraction-schema definition surface.
+   Tokens only: reuses the same cream/border/mono language as the other
+   redesigned screens (dashboard/ranking/extraction). No new colour literals
+   beyond the one zebra tint already used by the extraction table. */
+
+/* ---------------------------------------------------------------- layout */
+/* Master (schema list) / detail (definition + fields). Collapses to one column
+   on narrow windows so nothing is clipped. */
+.sch-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+@media (max-width: 1000px) {
+  .sch-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------------------------------------------------------------- list */
+.card.sch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: sticky;
+  top: 0;
+}
+.sch-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  /* Room on the left for the selected marker, so nothing shifts when a
+     different schema is picked. */
+  padding: 10px 12px 10px 15px;
+  border: 1px solid var(--border-2);
+  border-radius: 12px;
+  background: var(--bg-2);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition:
+    border-color 0.15s ease-in-out,
+    background 0.15s ease-in-out;
+}
+/* The selected marker: a bar, not just a tint. Colour alone would be the only
+   signal that a schema is selected, which a colourblind reader loses entirely
+   and a low-contrast panel washes out. It animates from zero width so the
+   selection slides in rather than snapping. */
+.sch-item::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.15s ease-in-out;
+}
+.sch-item:hover:not(.active) {
+  border-color: var(--muted-3);
+  background: var(--panel-2);
+}
+.sch-item:active:not(.active) {
+  background: var(--accent-100);
+}
+.sch-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.sch-item.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.sch-item.active::before {
+  width: 3px;
+}
+/* Selected AND hovered must differ from selected alone, or the pointer looks
+   dead over the row the user is already on. */
+.sch-item.active:hover {
+  background: var(--accent-100);
+}
+.sch-item.active .sch-item-name {
+  color: var(--accent-strong);
+}
+.sch-item-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.sch-item-sub {
+  font-size: 11px;
+  color: var(--muted-2);
+}
+
+/* ---------------------------------------------------------------- detail */
+.card.sch-detail {
+  padding: 16px 18px;
+}
+.sch-detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.sch-detail-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.sch-detail-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.sch-detail-sub {
+  font-size: 11.5px;
+  color: var(--muted-2);
+}
+.sch-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.sch-detail-actions .btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* ---------------------------------------------------------------- forms */
+.sch-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.sch-label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sch-label > span {
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+}
+.sch-label-wide {
+  margin-bottom: 10px;
+}
+.sch-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sch-form-buttons {
+  display: flex;
+  gap: 8px;
+}
+.sch-hint {
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.sch-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.sch-check input {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* The create card is a temporary surface over the screen, so it carries the
+   accent edge AND sits one step lighter than the panels beneath it. Two signals
+   for one state, because the panel below it is also a card and the tint alone
+   was not enough to say which one the user is acting in. */
+.card.sch-create {
+  border-color: var(--accent-100);
+  background: var(--bg-2);
+}
+/* Separated from the name box above it rather than merely stacked: they are
+   two different answers to "how do I start", and a shared edge made them read
+   as one long form. */
+.sch-presets-block {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-2);
+}
+.card.sch-error {
+  border-color: var(--danger);
+  color: var(--danger);
+  padding: 10px 14px;
+}
+.card.sch-error .mono {
+  font-size: 12px;
+}
+
+/* ---------------------------------------------------------------- fields */
+.sch-fields {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.sch-fields-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.sch-field-form {
+  border: 1px solid var(--accent-100);
+  border-radius: 12px;
+  background: var(--bg-2);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+/* Field table. Column template is shared by the header and every row so the
+   grid stays aligned; the last column holds the edit/delete tools. */
+/* `--border-2`, not `--border`: a table sitting on `--panel` outlined in
+   `--border` is a one-percent step and disappears, which is what made the
+   fields read as loose text rather than a table. The rows inside keep the
+   lighter `--border` so the OUTER edge stays the strongest line — a border
+   progression, not one weight used everywhere. */
+.sch-field-table {
+  border: 1px solid var(--border-2);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-2);
+}
+.sch-field-head,
+.sch-field-row {
+  display: grid;
+  grid-template-columns:
+    82px minmax(120px, 1.6fr) 84px 76px 52px minmax(140px, 2fr) 92px;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 12px;
+}
+.sch-field-head {
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--border-2);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+.sch-field-row {
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+  /* `box-shadow` and `opacity` join the transition because they are what the
+     drag, drop-target and just-moved states are drawn with — without them those
+     three snap on and off while the hover beside them eases. */
+  transition:
+    background 0.14s ease-in-out,
+    box-shadow 0.15s ease-in-out,
+    opacity 0.15s ease-in-out;
+  /* The row is a drop target; the inset drop line is drawn against this. */
+  position: relative;
+}
+.sch-field-row:last-child {
+  border-bottom: none;
+}
+.sch-field-row:nth-child(even) {
+  background: #fdfbf8;
+}
+.sch-field-row:hover {
+  background: var(--accent-soft);
+}
+
+/* -------------------------------------------------------- field reordering
+   Five row states share this table and every one of them must read differently
+   from the other four AND from plain hover:
+     dragging      — the row the pointer is carrying: faded and lifted
+     drop target   — where it would land: a solid accent line in the gap
+     just moved    — the row a KEYBOARD move displaced, briefly ringed
+     hover         — the existing tint, unchanged
+     resting       — banding only
+   The dragged row keeps its own emphasis when hovered (it is under the pointer
+   the whole time), which is why the fade is stated again at higher specificity
+   rather than left to lose to `:hover`. */
+.sch-field-row[draggable='true'] {
+  cursor: grab;
+}
+.sch-field-row[draggable='true']:active {
+  cursor: grabbing;
+}
+.sch-field-row[data-dragging],
+.sch-field-row[data-dragging]:hover {
+  opacity: 0.45;
+  background: var(--panel-2);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 12%);
+}
+/* The gap, not the row: a line ON the row would claim the row is the target
+   when what is being chosen is a position between two of them. */
+.sch-field-row[data-dropbefore]::before,
+.sch-field-row[data-droplast]::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: var(--accent-strong);
+  border-radius: 2px;
+}
+.sch-field-row[data-dropbefore]::before {
+  top: -1px;
+}
+.sch-field-row[data-droplast]::after {
+  bottom: -1px;
+}
+.sch-field-row[data-justmoved] {
+  background: var(--accent-soft);
+  box-shadow: inset 2px 0 0 var(--accent-strong);
+}
+/* Distinct from just-moved alone, so a pointer resting on the row it just moved
+   with the keyboard still reads as hovered. */
+.sch-field-row[data-justmoved]:hover {
+  box-shadow: inset 3px 0 0 var(--accent-strong);
+}
+
+.sch-field-head-order {
+  text-align: left;
+}
+.sch-field-order {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.sch-drag-handle {
+  color: var(--muted-3);
+  font-size: 13px;
+  line-height: 1;
+  padding-right: 2px;
+  transition: color 0.15s ease-in-out;
+}
+.sch-field-row:hover .sch-drag-handle {
+  color: var(--muted);
+}
+.sch-field-row[data-dragging] .sch-drag-handle {
+  color: var(--accent-strong);
+}
+
+.sch-move {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  transition:
+    background 0.15s ease-in-out,
+    color 0.15s ease-in-out,
+    transform 0.15s ease-in-out;
+}
+.sch-move:hover:not([aria-disabled='true']) {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+.sch-move:active:not([aria-disabled='true']) {
+  background: var(--accent-strong);
+  color: var(--bg-2);
+  transform: scale(0.9);
+}
+.sch-move:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+/* Disabled is the END of the list, not a failure, so it recedes rather than
+   greys out aggressively — and it stays hoverable so its data-tip, which says
+   WHICH end, can actually open. */
+.sch-move[aria-disabled='true'] {
+  color: var(--muted-3);
+  cursor: default;
+  opacity: 0.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sch-field-row,
+  .sch-drag-handle,
+  .sch-move {
+    transition: none;
+  }
+  .sch-move:active:not(:disabled) {
+    transform: none;
+  }
+}
+.sch-field-label {
+  color: var(--ink);
+  font-weight: 500;
+}
+.sch-field-unit,
+.sch-field-req {
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.sch-field-desc {
+  color: var(--muted);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sch-field-tools {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.sch-danger {
+  color: var(--danger);
+}
+
+/* ---------------------------------------------------- global-scope disclosure */
+/* Schemas moved to the APP level (they are shared by every project), so the
+   screen states that plainly. Tokens only — the accent-soft/accent-strong pair
+   already used by .chip-active and the active sidebar item. */
+.card.sch-global-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  padding: 11px 14px;
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+}
+.sch-global-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--accent-strong);
+}
+.sch-global-text {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  flex: 1 1 320px;
+}
+
+/* Two-step delete. A global delete affects every project that attached the
+   schema, so the confirmation quotes the REAL counts before it can be run. */
+.sch-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 11px 13px;
+  border: 1px solid var(--danger);
+  border-radius: 12px;
+  background: var(--bg-2);
+}
+.sch-confirm-text {
+  flex: 1 1 320px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+/* Same reasoning as extraction.css: .btn-secondary has no shared :disabled rule,
+   so the two-step delete's controls declare their own disabled affordance. */
+.sch-confirm .btn:disabled,
+.sch-detail-actions .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* -------------------------------------------------------------- inputs
+   The global `.input` sits on `--bg-2` behind `--border-2`, which is a ~3%
+   step off `--panel` — on a card it reads as a faint rectangle rather than a
+   place to type, and a screen that is mostly fields then reads as flat. These
+   rules give a field an edge you can find and a focus state you cannot miss.
+
+   Depth strategy for this screen is BORDERS, so the emphasis is carried by
+   border weight and a focus ring, never by a shadow: mixing the two is what
+   makes an interface look assembled rather than designed. */
+.screen[data-testid='screen-schemas'] .input {
+  border-color: var(--border-2);
+  /* Inset, so a field reads as something that RECEIVES rather than something
+     stacked on top. Two percent of tint is enough to separate it from the
+     panel without turning the card into stripes. */
+  background: var(--bg-2);
+  box-shadow: inset 0 1px 2px rgb(33 26 18 / 4%);
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+.screen[data-testid='screen-schemas'] .input:hover:not(:focus):not(:read-only) {
+  border-color: var(--muted-3);
+}
+/* The ring is what was missing: a border-colour change alone is invisible at a
+   glance on a warm palette, and this is the state a typist most needs to see. */
+.screen[data-testid='screen-schemas'] .input:focus {
+  border-color: var(--accent);
+  box-shadow:
+    inset 0 1px 2px rgb(33 26 18 / 4%),
+    0 0 0 3px var(--accent-100);
+}
+
+/* ------------------------------------------------------- premade schemas */
+/* A picker of shapes, not a menu of names. Each tile leads with the DISCIPLINE
+   because that is what a scientist scans for — they know whether they do
+   pharmacology before they know whether "Binding Affinity" is the shape they
+   want — then the name, then what it is for, then how big it is. */
+.sch-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+  margin: 10px 0 4px;
+}
+.sch-preset-hint {
+  margin: 4px 0 2px;
+}
+.sch-preset {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  padding: 11px 13px;
+  border: 1px solid var(--border-2);
+  border-radius: 12px;
+  /* One step DOWN from the card it sits on, not up. The create card is already
+     `--bg-2`, so a white tile on white would have no edge at all. */
+  background: var(--panel);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease-in-out,
+    background 0.15s ease-in-out,
+    transform 0.15s ease-in-out;
+}
+.sch-preset:hover:not(:disabled) {
+  border-color: var(--accent-100);
+  background: var(--accent-soft);
+}
+/* Pressed sinks rather than lifts, so hover and active can never render alike
+   at the moment the pointer is down. */
+.sch-preset:active:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-100);
+  transform: translateY(1px);
+}
+.sch-preset:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* Busy, not broken: a tile is only disabled while another import is in flight,
+   so it says "not now" with opacity rather than a refusal tint. */
+.sch-preset:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+.sch-preset-disc {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+}
+.sch-preset-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.sch-preset-desc {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.sch-preset-count {
+  font-size: 10.5px;
+  color: var(--muted-2);
+}
+/* The blank-schema path sits BELOW the catalogue, separated rather than
+   competing with it: naming an empty schema is the rarer choice, and a reader
+   who wants it is looking for it. */
+.sch-create-blank {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------------------------------------------------------- share / import */
+/* Share is a panel on the screen; Import is a modal. They are NOT symmetric,
+   and that is deliberate: sharing hands you something to look at and copy from
+   while the schema it describes stays visible beside it, whereas importing is
+   an interruption that ends in a new schema — it takes over, then leaves. The
+   inner markup is shared so the two still read as one family. */
+.card.sch-transfer {
+  border-color: var(--accent-100);
+  background: var(--bg-2);
+  margin-bottom: 12px;
+}
+.sch-transfer-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.sch-transfer-note {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+/* A denied clipboard is not a failure — the text is still right there — so it
+   warns rather than alarms, and the refusal red is kept for a real refusal. */
+.sch-transfer-warn {
+  color: var(--warn-strong);
+}
+.sch-transfer-bad {
+  color: var(--danger);
+}
+/* Declared on the class rather than inherited from the screen-scoped `.input`
+   rules above, because the import modal is PORTALLED to document.body and so
+   is never a descendant of the schemas screen. A field that loses its focus
+   ring by being moved in the DOM is the kind of thing that ships. */
+.sch-transfer-box {
+  width: 100%;
+  min-height: 132px;
+  max-height: 260px;
+  resize: vertical;
+  font-size: 11.5px;
+  line-height: 1.5;
+  white-space: pre;
+  overflow: auto;
+  border-color: var(--border-2);
+  box-shadow: inset 0 1px 2px rgb(33 26 18 / 4%);
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+.sch-transfer-box:hover:not(:focus):not(:read-only) {
+  border-color: var(--muted-3);
+}
+.sch-transfer-box:focus {
+  border-color: var(--accent);
+  box-shadow:
+    inset 0 1px 2px rgb(33 26 18 / 4%),
+    0 0 0 3px var(--accent-100);
+}
+.sch-transfer-box:read-only {
+  /* Inset and unmistakably not-for-typing, since the shared text is output. */
+  background: var(--panel-2);
+  color: var(--muted);
+}
+.sch-transfer-actions {
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.sch-transfer .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sch-empty-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}

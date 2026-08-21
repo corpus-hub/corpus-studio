@@ -1,0 +1,547 @@
+/* ============================================================== TAB STRIP ====
+   The row of open pages — and the window's TITLE BAR. It carries the tabs, the
+   window's min/max/close, and between them a bare rectangle that is the
+   window's grab handle.
+
+   Placement: the drag region is a SIBLING of the scrolling tab list, never its
+   ancestor. The region is a union of rectangles computed at paint from the
+   `app-region` of every element, with no notion of z-order or of the gaps
+   between siblings — so a `drag` ancestor with each tab opted out leaves the
+   gaps between the tabs draggable (a comb the user cannot reliably grab or
+   click) and swallows the wheel the strip needs to scroll horizontally. As a
+   sibling it is one solid rectangle, and nothing inside the scroller has to opt
+   out of anything.
+
+   Every state below is DISTINCT from every other on more than colour: each
+   pairs its hue with a weight, a rail, a shape or an opacity, so the strip still
+   reads for a colourblind user, on a low-contrast panel and with motion turned
+   off. The combinations (selected+hover, dragging+detaching, failed+selected,
+   close-hover on a selected tab) are enumerated explicitly rather than left to
+   cascade order, and `scripts/verify-tab-states.ts` resolves all of them and
+   asserts no two are equal. Two states that render identically are a bug: a
+   hovered selected tab that looks exactly like a selected tab tells the user
+   their pointer is dead. */
+
+.tabstrip {
+  position: relative;
+  flex-shrink: 0;
+  /* One row: tabs, then the grab handle, then the window controls. */
+  display: flex;
+  align-items: stretch;
+  /* 4px of top padding keeps the first row of a tab's pixels clear of the 3px
+     `.win-resize-n` grip, which is otherwise the same pixels. */
+  padding: 4px 0 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.tabstrip-scroller {
+  /* Takes exactly the width of its tabs, and no more: it may SHRINK (and then
+     scroll internally) but it must never GROW, or the row's slack is split with
+     the grab handle and the scroller ends up padded with empty space that is
+     inside the scroller and therefore NOT draggable — a wide dead zone in the
+     middle of the title bar where a grab does nothing. All slack belongs to the
+     handle.
+
+     `min-width: 0` because a flex item's default `min-width: auto` is its
+     CONTENT width — without it a strip of forty tabs would push the window
+     controls off the right edge of the window instead of scrolling. */
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* The 10px scrollbar would eat a quarter of a 38px row. The overflow
+     affordance is the edge fade below instead, which costs no height. */
+  scrollbar-width: none;
+}
+.tabstrip-scroller::-webkit-scrollbar { display: none; }
+
+/* The overflow affordance: content fades out at whichever end has more. Applied
+   as a mask so it works over any tab colour, and only on the side that actually
+   overflows — a permanent fade would say "there is more" when there is not. */
+.tabstrip.is-overflow-l .tabstrip-scroller { mask-image: linear-gradient(90deg, transparent 0, #000 28px); }
+.tabstrip.is-overflow-r .tabstrip-scroller { mask-image: linear-gradient(270deg, transparent 0, #000 28px); }
+.tabstrip.is-overflow-l.is-overflow-r .tabstrip-scroller {
+  mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+}
+
+.tabstrip-list {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  margin: 0;
+  padding: 0 8px;
+  list-style: none;
+  /* The row's own height. Tabs fill it, so a tab's bottom rail sits on the
+     strip's border rather than floating above it. */
+  height: 34px;
+}
+.tabstrip-item { display: flex; position: relative; }
+
+/* -------------------------------------------------------------- the tab ---- */
+.tabstrip-tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 6px 0 11px;
+  min-width: 92px;
+  max-width: 220px;
+  border: 1px solid transparent;
+  border-radius: 9px 9px 0 0;
+  /* The bottom rail is always present and transparent by default, so gaining it
+     on selection changes a colour rather than the box model — a border that
+     appears would shift every label in the row by 2px. */
+  border-bottom: 2px solid transparent;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  /* 180ms: pointer-tracking feedback, fast enough to feel attached to the
+     cursor and slow enough not to snap. Matches `.side-nav-item`. */
+  transition:
+    background 0.18s ease-in-out,
+    color 0.18s ease-in-out,
+    border-color 0.18s ease-in-out,
+    opacity 0.18s ease-in-out,
+    box-shadow 0.18s ease-in-out;
+}
+
+.tabstrip-tab:hover { background: var(--panel-hover); color: var(--ink-2); }
+/* Pressed: a step DARKER than hover, so press is distinguishable from hover on
+   the way in and on the way out. */
+.tabstrip-tab:active { background: var(--panel-2); }
+
+.tabstrip-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* SELECTED: tint, weight, colour AND a rail. Four signals, because this is the
+   one state the whole strip exists to communicate. */
+.tabstrip-tab.is-selected {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+/* selected+hover must not equal selected — a hovered selected tab that looks
+   exactly like a selected tab reads as a dead pointer. */
+.tabstrip-tab.is-selected:hover { background: var(--accent-100); }
+.tabstrip-tab.is-selected:active { background: var(--accent-100); border-bottom-color: var(--accent-strong); }
+.tabstrip-tab.is-selected:focus-visible { border-color: var(--accent); }
+
+/* DRAGGING: lifted and translucent. Distinguished from `disabled` (which is
+   also reduced) by the shadow and the cursor — opacity alone would make the two
+   the same picture. */
+.tabstrip-tab.is-dragging {
+  opacity: 0.6;
+  box-shadow: 0 6px 18px -8px rgba(33, 26, 18, 0.55);
+  cursor: grabbing;
+}
+/* Past the detach threshold: the tab is about to become its own window, so it
+   says so with a dashed edge rather than by merely being more transparent. */
+.tabstrip-tab.is-detaching {
+  opacity: 0.45;
+  border-color: var(--accent);
+  border-style: dashed;
+}
+
+/* LEAVING — promised to a window that is still opening.
+   Held here so the move can be reverted, so it must read as on its way out
+   without reading as gone: dimmed and desaturated, with a moving dashed edge
+   that says the handover is in progress rather than finished. Distinct from
+   `is-dragging`, which is the user's own pointer holding it. */
+.tabstrip-tab.is-leaving {
+  opacity: 0.55;
+  filter: grayscale(0.6);
+  border: 1px dashed var(--muted-3);
+  cursor: progress;
+}
+.tabstrip-tab.is-leaving:hover { opacity: 0.7; }
+
+/* The drop target is an insertion CARET in the gap, never a tint on a tab: a
+   tinted drop target and a selected tab would be indistinguishable. */
+.tabstrip-item.is-caret-before::before,
+.tabstrip-tab.is-caret-before::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: 3px;
+  bottom: 3px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  /* Grown from the middle rather than appearing at full height: the caret moves
+     between gaps continuously during a drag, and a hard cut at each gap reads as
+     flicker rather than as one mark tracking the pointer. */
+  animation: tabCaretIn 0.12s ease-out both;
+}
+@keyframes tabCaretIn {
+  from { opacity: 0; transform: scaleY(0.3); }
+  to { opacity: 1; transform: none; }
+}
+
+/* STALE — the tab's paper or project was deleted from under it. Marked, never
+   auto-closed.
+
+   Distinct from FAILED, which is the other red state: a failure is work that can
+   be retried, a stale target is a page that no longer exists. Stale is struck
+   through and carries a DASHED rail — the thing it points at is gone — where
+   failed is solid with a wavy underline. */
+.tabstrip-tab.is-stale {
+  color: var(--danger);
+  text-decoration: line-through;
+  border-bottom-style: dashed;
+}
+.tabstrip-tab.is-stale:hover { background: var(--danger-soft); color: var(--danger-strong); }
+.tabstrip-tab.is-stale.is-selected {
+  background: var(--danger-soft);
+  color: var(--danger-strong);
+  border-bottom-color: var(--danger);
+}
+.tabstrip-tab.is-stale.is-selected:hover { background: var(--danger-100); }
+.tabstrip-tab.is-stale.is-selected:active { background: var(--danger-200); border-bottom-color: var(--danger-strong); }
+
+/* FAILED beats BUSY in the markup, so these never both apply.
+
+   The wavy underline is what keeps this from being a colour-only signal: an
+   unselected tab has no tint and no rail to carry one. */
+.tabstrip-tab.is-failed {
+  color: var(--danger-strong);
+  text-decoration: underline wavy var(--danger);
+  text-underline-offset: 3px;
+}
+.tabstrip-tab.is-failed:hover { background: var(--danger-soft); }
+.tabstrip-tab.is-failed.is-selected { background: var(--danger-soft); border-bottom-color: var(--danger); }
+/* A selected FAILED tab still has to answer the pointer — it is the tab the
+   user is most likely to be reaching for. */
+.tabstrip-tab.is-failed.is-selected:hover { background: var(--danger-100); }
+.tabstrip-tab.is-failed.is-selected:active { background: var(--danger-200); border-bottom-color: var(--danger-strong); }
+
+/* --------------------------------------------------------------- marks ----- */
+/* The EXCEPTIONS only (hard rule 0.6). There is no mark for a tab that is
+   merely open and fine — a dot on every tab is a dot on none. */
+.tabstrip-mark {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+/* Busy is a RING, failed is a solid disc with a notch. The shapes differ before
+   the colours do, because motion cannot be the distinguishing partner: the
+   reduced-motion branch below stops the breathing, and a user who has both
+   reduced motion and colour-blindness would otherwise be shown one identical
+   dot for "working" and for "failed". */
+.tabstrip-mark.is-busy {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--busy);
+  /* ~250ms is pointer feedback; this is AMBIENT — it says "still working" to
+     someone who is not looking at it, so it breathes slowly and symmetrically
+     rather than pulsing for attention. */
+  animation: tabMarkBreathe 1.8s ease-in-out infinite;
+}
+.tabstrip-mark.is-failed {
+  background: var(--danger);
+  /* Square-ish, so it is a different silhouette from both round marks. */
+  border-radius: 2px;
+}
+@keyframes tabMarkBreathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.tabstrip-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------- close button --- */
+.tabstrip-close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  /* Invisible until the tab is hovered or selected — but PRESENT, so the row
+     does not reflow when it appears. */
+  opacity: 0;
+  transition:
+    opacity 0.15s ease-in-out,
+    background 0.15s ease-in-out,
+    color 0.15s ease-in-out;
+}
+.tabstrip-tab:hover .tabstrip-close,
+.tabstrip-tab.is-selected .tabstrip-close { opacity: 0.75; }
+/* The close button is not in the tab order — putting it there would make Tab
+   alternate tab, close, tab, close across the whole strip. Keyboard closing is
+   Delete on the focused tab, and Ctrl+W for the active one. The focus style is
+   kept because the button can still be focused programmatically and by a click,
+   and a focused control with no ring is a control the user cannot locate. */
+.tabstrip-close:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.tabstrip-close:hover:not(:disabled) { opacity: 1; background: var(--panel-2); color: var(--ink); }
+/* Close-hover ON A SELECTED tab must differ from close-hover on a default one:
+   the selected tab's own background IS `--panel-2`-adjacent, so reusing it
+   would make the button disappear into the tab exactly when it is being aimed
+   at. */
+.tabstrip-tab.is-selected .tabstrip-close:hover:not(:disabled) { background: var(--accent-100); color: var(--accent-strong); }
+.tabstrip-close:active:not(:disabled) { background: var(--border); }
+.tabstrip-tab.is-selected .tabstrip-close:active:not(:disabled) { background: var(--accent); color: var(--bg-2); }
+
+/* The last tab cannot be closed — a window always shows something. Disabled
+   LOOKS disabled and explains itself through its `data-tip`, rather than simply
+   failing to respond.
+
+   The selector is deliberately over-qualified to out-specify the reveal rules
+   above: `.tabstrip-close:disabled` alone is (0,2,0) and loses to
+   `.tabstrip-tab.is-selected .tabstrip-close` (0,2,1) — and the last tab, which
+   is the only one that is ever disabled, is very often the selected one. */
+.tabstrip-tab .tabstrip-close:disabled,
+.tabstrip-tab.is-selected .tabstrip-close:disabled,
+.tabstrip-tab:hover .tabstrip-close:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+  background: transparent;
+  color: inherit;
+}
+
+/* Holds the row's height when nothing is open, so the layout below does not
+   jump. Deliberately blank: the pane behind it carries the explanation. */
+.tabstrip-spacer { width: 4px; }
+
+/* ------------------------------------------------------------- new tab ----- */
+.tabstrip-new {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition:
+    background 0.15s ease-in-out,
+    color 0.15s ease-in-out,
+    opacity 0.15s ease-in-out;
+}
+.tabstrip-new:hover:not(:disabled) { background: var(--panel-2); color: var(--ink); }
+.tabstrip-new:active:not(:disabled) { background: var(--border-2); color: var(--ink); }
+.tabstrip-new:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* Reduced AND cursor-marked AND without the hover response, so it is legible as
+   unavailable rather than as merely faint — and it explains itself in a tip. */
+.tabstrip-new:disabled { opacity: 0.3; cursor: not-allowed; color: var(--muted-3); }
+
+/* The pre-commit hint for a detach, pinned under the strip so it is between the
+   tab and the cursor that dragged it away — the one place the user is certainly
+   looking. Inert: it reports, it is not a control. */
+.tabstrip-detach-hint {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  margin-top: 8px;
+  padding: 7px 12px;
+  border-radius: 9px;
+  background: var(--ink);
+  color: var(--bg-2);
+  font-size: 12.5px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 8px 24px -10px rgba(33, 26, 18, 0.5);
+  animation: tabHintIn 0.15s ease both;
+}
+@keyframes tabHintIn {
+  from { opacity: 0; transform: translate(-50%, -4px); }
+  to { opacity: 1; transform: translateX(-50%); }
+}
+
+/* ------------------------------------------------ the window's grab handle -- */
+/* The empty space behind the tabs, and the only reason this row can move the
+   window. Deliberately featureless: it is title-bar surface, so it must read as
+   part of the row's background rather than as a control the user could press.
+
+   `flex-shrink: 0` with a real minimum, so it survives a full strip. A handle
+   that vanishes once enough tabs are open takes the window's grab surface away
+   at exactly the moment the user has the most open — and with `frame: false`
+   there is no OS title bar to fall back to. 84px is a comfortable target and
+   costs the tabs less than half of one tab's width.
+
+   `cursor: default` (not `grab`): the pointer over a title bar is an arrow on
+   every desktop, and a grab cursor here would promise a direct-manipulation
+   handle that also responds to a press, which this does not. */
+.tabstrip-drag {
+  flex: 1 0 84px;
+  min-width: 84px;
+  align-self: stretch;
+  cursor: default;
+  -webkit-app-region: drag;
+}
+
+/* ------------------------------------------------------- window controls ---- */
+/* ONE `no-drag` island around the whole group. Per-button opt-outs would leave
+   the 2px gaps between them inside the drag region, and a pointer crossing that
+   sliver on its way from minimize to close fires a leave on the button it just
+   left — the row flickers under a pointer that never left it.
+
+   The rule is on the container AND inherited by everything in it, because a
+   descendant that re-declares `drag` (none does today, but a future child
+   might) would punch a hole back through the island. */
+.tabstrip-trailing,
+.tabstrip-trailing * {
+  -webkit-app-region: no-drag;
+}
+.tabstrip-trailing {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  /* No top offset: the trailing box stretches to the same 34px line box as the
+     tab row, so `align-items: center` already puts the 32px buttons on the tab
+     labels' centre line. Pulling them up by the strip's 4px padding would sit
+     them 2px HIGH and push their top edge into the 3px `.win-resize-n` grip,
+     where a press would resize the window instead of pressing the button. */
+  padding: 0 6px 0 4px;
+}
+
+/* The min / maximize-restore / close group.
+
+   Tokens only, and the same radius family and 0.18s easing as the tabs beside
+   them, so they read as this app's chrome rather than as pasted-in OS buttons.
+   Order is minimize, maximize, close — left to right, close outermost — which
+   is what every mainstream Linux desktop other than a deliberately
+   macOS-flavoured one puts on the right of a title bar.
+
+   No separator rule before them: the drag handle's own emptiness is already the
+   gap, and a border there would divide a row that is one surface. */
+.win-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.win-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  transition:
+    background 0.18s ease-in-out,
+    color 0.18s ease-in-out,
+    border-color 0.18s ease-in-out,
+    opacity 0.18s ease-in-out;
+}
+/* There is no disabled state here, and there must not be one: minimize, restore
+   and close are the user's way OUT of a window, so they answer unconditionally.
+   A close that needs to ask about unfinished work still accepts the press and
+   then asks (the close guard in main), rather than refusing it. */
+.win-btn:hover { background: var(--panel-hover); color: var(--ink); }
+/* Pressed is a step DARKER than hover AND gains an edge, so press is legible on
+   the way in and on the way out, and is not a colour-only difference. */
+.win-btn:active { background: var(--panel-2); color: var(--ink); border-color: var(--border-2); }
+.win-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* Close is conventionally the destructive one, and says so on hover with the
+   app's own danger token — paired with an inverted glyph, so the state is not
+   carried by hue alone. */
+.win-btn-close:hover { background: var(--danger); color: var(--bg-2); border-color: var(--danger); }
+.win-btn-close:active { background: var(--danger-strong); color: var(--bg-2); border-color: var(--danger-strong); }
+
+/* The polite live region announcing tab switches. Visually hidden, because
+   `aria-current` changing is silent and a keyboard user otherwise gets no
+   confirmation that Ctrl+Tab did anything. */
+.tabstrip-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- panes ---- */
+/* Hidden panes are `visibility: hidden` + `position: absolute`, NEVER
+   `display: none`. A canvas screen's ResizeObserver reports 0x0 under
+   `display:none` and tears its scaffold down, so returning to a Connectome tab
+   would rebuild its whole layout instead of showing what the user left. */
+/* The gutter moves INTO the pane (see `.tab-pane-scroll`), so the route area
+   must not pad it a second time — every screen would then sit 52px from the
+   right edge and 48px from the top. `:has` scopes this to a window that is
+   actually showing tabs: the tab-less empty state is a direct child and keeps
+   the padding it has always had. */
+.route-area { position: relative; }
+.route-area:has(> .tab-pane) { padding: 0; }
+.tab-pane {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+/* The scroll container is INSIDE the pane, not the pane itself, so that the
+   position it records belongs to the tab rather than to the slot the tab
+   happens to be occupying.
+
+   It must present the SAME box a screen used to get from `.route-area`:
+   several screens are `height: 100%` against their parent and lay themselves
+   out as bounded flex columns from it (`.screen-ranking` is the clearest case,
+   and its frontier map rendered as an empty rectangle when this box was
+   auto-height — a percentage against an indefinite parent collapses). So the
+   pane is the definite box and this fills it exactly. */
+.tab-pane-scroll {
+  height: 100%;
+  overflow: auto;
+  /* THE SCREEN'S GUTTER, which moved here with the pane.
+     `.route-area` still declares `padding: 24px 26px`, but an absolutely
+     positioned child with `inset: 0` resolves against the PADDING BOX — so the
+     pane covered that gutter instead of sitting inside it, and every screen ran
+     flush to the window edge. The pane must stay `inset: 0` (it is the definite
+     box `height: 100%` screens resolve against), so the inset belongs to the
+     scroll container within it: content is padded, while the scrollbar stays at
+     the window edge where a scrollbar belongs. */
+  padding: 24px 26px;
+}
+/* The visible pane stays ABSOLUTE like the hidden ones, and only its visibility
+   changes. Switching it to `position: relative` gave it an auto height with
+   nothing to resolve against, so `.screen-ranking { height: 100% }` collapsed
+   and its frontier map drew into an empty rectangle. Every pane occupies the
+   same definite box; which one you can see is the only difference. */
+.tab-pane.is-visible { visibility: visible; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tabstrip-tab,
+  .tabstrip-close,
+  .tabstrip-new,
+  .win-btn { transition: none; }
+  /* The ring shape survives, so "working" is still distinguishable from
+     "failed" and from a healthy tab without any motion at all. */
+  .tabstrip-mark.is-busy { animation: none; opacity: 1; }
+  .tabstrip-item.is-caret-before::before { animation: none; }
+  .tabstrip-detach-hint { animation: none; }
+}

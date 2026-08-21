@@ -1,0 +1,31 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.web.json" }
+  ],
+  /*
+   * `paths` HERE, even though this project compiles nothing, because tsx reads
+   * THIS file and nothing else unless told otherwise.
+   *
+   * Every `electron --import tsx scripts/*.ts` invocation — seed, seed:fresh,
+   * every verify, the e2e fixtures that seed through the same path — resolves
+   * imports through tsx. A TYPE-ONLY `@shared/*` import is erased before it can
+   * fail, so the alias appeared to work for as long as main only imported types
+   * from the contract; the first VALUE import through it (`DOSSIER_PAPER_LIMIT`,
+   * v1.1.2) threw `Cannot find module '@shared/contract'` and took seeding, and
+   * therefore the whole e2e suite, with it. `npm run build` stayed green
+   * throughout, because vite resolves the alias from its own config.
+   *
+   * The alternative is `TSX_TSCONFIG_PATH=tsconfig.node.json` on every script
+   * that runs main-process code — one place per script to forget, and forgetting
+   * it fails only at runtime and only for value imports. One entry here covers
+   * every current and future one.
+   */
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"]
+    }
+  }
+}

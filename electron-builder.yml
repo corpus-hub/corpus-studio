@@ -1,0 +1,407 @@
+# The AppImage runtime.
+#
+# electron-builder's LEGACY runtime is a 2019 binary linked against libfuse2,
+# which current Debian/Ubuntu no longer ship -- they carry libfuse3. So the
+# AppImage refused to start on an ordinary modern desktop with
+# `dlopen(): error loading libfuse.so.2`, and, worse, an update installed
+# correctly and then never came back: electron-updater relaunches by EXECUTING
+# the new AppImage, which hit the same wall.
+#
+# `1.0.3` is the static runtime (squashfuse built in, no libfuse on the host at
+# all). It becomes the default in electron-builder 27; naming it here is what
+# makes 26.x use it.
+toolsets:
+  appimage: "1.0.3"
+
+appId: com.corpusstudio.app
+productName: Corpus Studio
+copyright: Copyright © 2026 Jaskier
+
+directories:
+  output: release
+  buildResources: build
+
+# ALLOWLIST, not a blocklist. A blocklist ships whatever it forgot to name, and
+# this working tree holds a dev database (data/corpus.sqlite), design notes,
+# Playwright traces and any local .env. Only the built bundle, the manifest and
+# runtime node_modules are app files.
+files:
+  - out/**
+  - package.json
+  - '!**/node_modules/**/{test,tests,__tests__,example,examples,doc,docs,.github}/**'
+  - '!**/node_modules/**/*.{md,markdown,map,ts,flow,patch,tsbuildinfo}'
+  - '!**/*.{env,env.*,p12,pfx,pem,key,crt,cer,mobileprovision}'
+
+  # --- onnxruntime-node: keep the CPU provider for THIS target only ---
+  #
+  # Left alone this single package adds ~540 MB, and almost all of it is dead
+  # weight in this app. Measured on linux-x64:
+  #   libonnxruntime_providers_cuda.so       343 MB
+  #   libonnxruntime_providers_tensorrt.so   781 KB
+  # The app runs CPU-only — the CUDA/TensorRT execution providers are never
+  # selected, and `.npmrc` already skips the postinstall that would fetch the
+  # rest of the CUDA package from nuget.org. Dropping them costs nothing.
+  #
+  # The foreign-ARCH directories are dropped for the same reason the payload
+  # tree is filtered per target: dead weight in every installer, and on macOS
+  # more binaries for the notarizer to trip over.
+  #
+  # There is deliberately NO per-PLATFORM rule here. `${platform}` expands to
+  # the HOST (see the extraResources note below), so it is wrong the moment a
+  # build cross-compiles, and a per-platform `files:` block cannot be used to
+  # fix it: `getFileMatchers` merges root and platform `files` into ONE matcher,
+  # and a platform block containing only exclusions makes the merged matcher
+  # `containsOnlyIgnore()`, which drops `out/**` and `package.json` and packs
+  # the entire working tree instead. Foreign-platform ORT dirs are ~35 MB of
+  # dead weight; packing the whole tree is a broken build.
+  - '!**/node_modules/onnxruntime-node/bin/napi-v3/**/libonnxruntime_providers_cuda.*'
+  - '!**/node_modules/onnxruntime-node/bin/napi-v3/**/libonnxruntime_providers_tensorrt.*'
+  - '!**/node_modules/onnxruntime-node/bin/napi-v3/**/*.{pdb,lib,exp}'
+  - '!**/node_modules/onnxruntime-node/bin/napi-v3/*/!(${arch})/**'
+
+  # --- image codecs ---
+  #
+  # sharp itself MUST SHIP, even though this is a text-only pipeline.
+  # @huggingface/transformers' Node entry point (`dist/transformers.node.mjs`)
+  # imports it at the TOP LEVEL, not lazily, so the module fails to load at all
+  # without it — verified by moving sharp aside and watching the first embed die
+  # with ERR_MODULE_NOT_FOUND. Excluding it would have shipped an installer that
+  # crashes the moment a user runs a search.
+  #
+  # What IS safe to drop:
+  #  - @napi-rs/canvas (61 MB) is not a dependency of transformers at all here.
+  #  - the musl libvips build, on a glibc target: sharp loads exactly one
+  #    platform binary and the other is dead weight.
+  - '!**/node_modules/@napi-rs/**'
+  - '!**/node_modules/@img/sharp-libvips-linuxmusl-*/**'
+  - '!**/node_modules/@img/sharp-linuxmusl-*/**'
+
+  # --- tesseract.js-core: keep only the variant the Node worker loads ---
+  #
+  # worker-script/node/getCore.js picks `tesseract-core-simd-lstm` when the host
+  # supports SIMD (every x64/arm64 target does) and OEM is DEFAULT/LSTM_ONLY,
+  # which is what the ocr stage uses. The non-SIMD and non-LSTM variants are
+  # ~17 MB of wasm that is never require()d. The plain `tesseract-core-lstm`
+  # pair is KEPT as the no-SIMD fallback the same file falls back to.
+  - '!**/node_modules/tesseract.js-core/tesseract-core.wasm*'
+  - '!**/node_modules/tesseract.js-core/tesseract-core.js'
+  - '!**/node_modules/tesseract.js-core/tesseract-core-simd.wasm*'
+  - '!**/node_modules/tesseract.js-core/tesseract-core-simd.js'
+
+  # --- developer scratch that the app-dir scan would otherwise walk ---
+  #
+  # `out/**` above is an ALLOW pattern, but it does not stop electron-builder
+  # from WALKING the rest of the project dir, and the asar packer refuses any
+  # symlink whose target is outside the package ("denied access to system or
+  # unsafe path"). Both of these hold venvs and second checkouts full of
+  # `python -> /usr/bin/python3.12`, so an unrelated spike left in a scratch
+  # directory fails the release build with an error naming a file no one thinks
+  # of as part of it.
+  #
+  # `.worktrees/` is a whole second checkout of this repo; `tmp/` is scratch
+  # (build notes, spikes, probe scripts). Neither is ever app source.
+  - '!.worktrees{,/**/*}'
+  - '!tmp{,/**/*}'
+
+# Non-JS payloads live OUTSIDE the asar, in <resources>/app-resources/. Anything
+# that is spawn()'d, dlopen()'d or streamed by a wasm loader cannot be read from
+# inside an asar archive, and these are all of those. src/main/resources.ts is
+# the only thing that may compute paths into this tree.
+#
+# The KE07 corpus JSON is referenced in place rather than duplicated into a
+# resources/ dir: scripts/citation-parse-report.ts and
+# scripts/citation-reference-report.ts hardcode scripts/data/, so moving the
+# canonical copy breaks `npm run report:citations` / `report:references`.
+#
+# Payload binaries are per-platform-and-ARCH (`bin/<platform>-<arch>/`,
+# `lib/<platform>-<arch>/`), and the filters below ship ONLY the target's own.
+# Without that exclusion a Linux AppImage would carry Windows DLLs and macOS
+# dylibs: dead weight in every installer, and on macOS a pile of foreign
+# binaries for the notarizer to trip over.
+#
+# Those `bin/`+`lib/` rules live in the PER-PLATFORM `linux:`/`win:`/`mac:`
+# blocks below, spelling the platform out, and the root block excludes them all.
+# The obvious one-rule version -- `bin/${platform}-${arch}/**` here -- is WRONG
+# whenever the host and the target differ: `${platform}` expands to
+# `process.platform`, the HOST (app-builder-lib/out/util/macroExpander.js), so a
+# Windows installer cross-built on Linux carried `bin/linux-x64/qpdf` and no
+# `qpdf.exe`, and the app reported the optimize stage permanently skipped. Only
+# `${arch}` is resolved per target, which is why it is still a macro below.
+#
+# A platform block's `extraResources` is ADDITIVE rather than a replacement
+# (`getFileMatchers` in fileMatcher.js applies the root patterns and then the
+# platform's), so everything platform-independent stays declared once here.
+#
+# `payloads.json` / `payloads.lock.json` are BUILD-TIME provenance records. They
+# are excluded deliberately: they contain the upstream URLs every payload came
+# from, and shipping them would put CDN URLs inside the artifact that
+# `verify:offline` greps — turning a provenance file into an offline-rule
+# violation. The app never reads them.
+#
+# `scripts/data/*.json` (the KE07 corpus and its recorded analyses) are NOT
+# shipped. An install starts with an empty library; those datasets exist to seed
+# a developer's machine and the e2e fixtures, and putting another lab's papers
+# into a scientist's install would be presenting someone else's project as
+# theirs.
+extraResources:
+  # The plugins that ship with the app, OUTSIDE the asar for the same reason the
+  # payloads are: the host `readdir`s the directory to discover what is there and
+  # `require`s an entry by absolute path, and an asar serves neither. Shipping
+  # them here rather than compiling them into `out/main` is what makes a bundled
+  # plugin travel the IDENTICAL discovery path as one the user drops in — which
+  # is the only way that path is ever actually exercised.
+  #
+  # `src/` and `tests/` are not shipped: `dist/index.cjs` is the whole of what
+  # runs. `server/` is a separately deployed relay and has no business inside a
+  # desktop installer.
+  - from: plugins/
+    to: app-resources/plugins/
+    filter:
+      - '**/plugin.json'
+      - '**/dist/**'
+      # A PLUGIN'S OWN PAYLOAD. A plugin may ship a browser
+      # extension and a native host beside its code, and `resources/` is where
+      # they live now that they belong to the plugin rather than to the app.
+      # Without this line they ship on no platform at all, and the failure is
+      # silent in the worst way: the extension-id key would be absent, so Chrome
+      # would derive a different id than the native host allows and the bridge
+      # would never connect — which reads downstream as "the browser is closed".
+      - '**/resources/**'
+      - '!**/src/**'
+      - '!**/tests/**'
+      - '!**/server/**'
+      - '!**/node_modules/**'
+      - '!**/*.md'
+
+  - from: resources/
+    to: app-resources/
+    filter:
+      - '**/*'
+      - '!**/.gitkeep'
+      - '!payloads.json'
+      - '!payloads.lock.json'
+      - '!**/README.md'
+      - '!bin/**'
+      - '!lib/**'
+      # `licences/index.json` + `licences/texts/` ship — Apache-2.0 §4 requires
+      # attribution and five bundled payloads are Apache-2.0, so this is not
+      # optional. `licences/payload-texts/` is the GENERATOR'S INPUT (the
+      # verbatim upstream files it content-addresses into texts/); shipping it
+      # too would put a second, unrendered copy in every installer.
+      - '!licences/payload-texts/**'
+
+asar: true
+# Native .node addons and the pdfjs worker are loaded by paths that the asar
+# layer cannot serve: dlopen needs a real file, and Electron's ESM loader does
+# not reliably import a specifier resolving inside app.asar. Unpacking both is
+# cheap and removes a whole class of works-in-dev-fails-in-installer bugs.
+asarUnpack:
+  - '**/node_modules/better-sqlite3/**'
+  - '**/node_modules/pdfjs-dist/**'
+  - '**/*.node'
+  # onnxruntime-node dlopens libonnxruntime.so/.dylib/.dll from bin/napi-v*/,
+  # which are plain shared libraries, not .node addons, so the rule above does
+  # not cover them and dlopen cannot read them out of an asar.
+  - '**/node_modules/onnxruntime-node/bin/**'
+  # tesseract.js-core's wasm is `require`d from disk by the NODE worker
+  # (worker-script/node/getCore.js). Only the browser build takes a `corePath`,
+  # so the wasm must be a real file rather than a resources/ payload.
+  - '**/node_modules/tesseract.js-core/**'
+  # tesseract.js spawns worker-script/node/index.js as a child process; a script
+  # inside an asar cannot be a child process's entry point.
+  - '**/node_modules/tesseract.js/**'
+  # sharp is a hard, top-level import of @huggingface/transformers' Node entry,
+  # so it loads on the first embed even though nothing here processes images.
+  # Its libvips lives in @img as plain .so/.dylib/.dll files that are dlopen'd —
+  # `**/*.node` does not match them and an asar cannot be dlopen'd.
+  - '**/node_modules/sharp/**'
+  - '**/node_modules/@img/**'
+
+# Stages the TARGET's prebuilt `better_sqlite3.node` when cross-building, and
+# does nothing on a native build. Required because `buildDependenciesFromSource`
+# below makes electron-builder skip the rebuild entirely for a foreign platform,
+# which would otherwise pack the HOST's addon into a Windows or macOS app.
+beforePack: scripts/stage-native.cjs
+
+# Drops the foreign-PLATFORM onnxruntime-node binaries from the PACKED app.
+# It cannot be done in `files` — see the header of the script.
+afterPack: scripts/prune-packed.cjs
+
+npmRebuild: true
+# better-sqlite3 must be compiled against Electron's ABI, not the host Node's.
+# prebuild-install would otherwise happily drop in a Node-ABI prebuild and the
+# app would die on `require` in the packaged build only.
+buildDependenciesFromSource: true
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Science
+  synopsis: Local-first scientific-literature exploration
+  description: >-
+    Corpus Studio is a local-first desktop application for exploring scientific
+    literature: an evidence and citation graph with provenance-tracked,
+    versioned AI analyses. It runs entirely offline.
+  icon: build/icons
+  executableName: corpus-studio
+  desktop:
+    entry:
+      StartupWMClass: corpus-studio
+  extraResources:
+    - from: resources/
+      to: app-resources/
+      filter:
+        - 'bin/linux-${arch}/**'
+        - 'lib/linux-${arch}/**'
+
+appImage:
+  # `${name}` (corpus-studio), NOT `${productName}` (Corpus Studio): an artifact
+  # name is a URL path segment on the update server, and a space there has to
+  # survive encoding through every proxy between the app and the file. The
+  # INSTALLED app is still called Corpus Studio -- this is only what the
+  # download is called.
+  artifactName: ${name}-${version}-${arch}.${ext}
+
+deb:
+  artifactName: ${name}_${version}_${arch}.${ext}
+  # REQUIRED by fpm, which refuses to build a .deb without one. Stated here even
+  # though package.json's `author` now carries an address fpm could derive from,
+  # because when it cannot the whole linux target fails after the AppImage has
+  # already been produced -- so the build looks half-successful and no update
+  # manifest is written at all.
+  maintainer: Jaskier <varingait@gmail.com>
+  # The OTHER field fpm demands is `homepage`, and it is NOT settable here --
+  # electron-builder rejects it under `deb:` and reads it from package.json.
+  # It fails at the same point as a missing maintainer: minutes in, with the
+  # AppImage already written and no update manifest.
+  # better-sqlite3 and any bundled static binary need only libc/libstdc++;
+  # Electron itself needs the usual GTK/NSS stack.
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libuuid1
+    - libsecret-1-0
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: build/icons/icon.ico
+  # qpdf.exe needs its three mingw runtime DLLs and qpdf30.dll BESIDE it, which
+  # is why the whole directory ships rather than the executable alone.
+  extraResources:
+    - from: resources/
+      to: app-resources/
+      filter:
+        - 'bin/win32-${arch}/**'
+        - 'lib/win32-${arch}/**'
+  # Signing is CONFIGURED, never attempted here. Set WIN_CSC_LINK (path or
+  # base64 of a .pfx) and WIN_CSC_KEY_PASSWORD in the environment of a Windows
+  # build host; with them unset electron-builder produces an unsigned installer.
+  signtoolOptions:
+    signingHashAlgorithms: [sha256]
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Corpus Studio
+  artifactName: ${name}-Setup-${version}.${ext}
+
+mac:
+  # SEPARATE per-arch artifacts, not a universal build: a universal app requires
+  # lipo-merging better_sqlite3.node, which regularly fails for native addons.
+  #
+  # `zip` alongside `dmg` because a DMG can only be built ON macOS — dmg-builder
+  # drives `hdiutil`, which does not exist elsewhere — while a zip of the .app
+  # is a plain archive any host can produce. So a Linux or Windows machine can
+  # still emit an installable macOS artifact (unzip, drag to /Applications), and
+  # a macOS host emits both. electron-builder skips the dmg on a non-macOS host
+  # rather than failing the run.
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
+  category: public.app-category.education
+  icon: build/icons/icon.icns
+  # `bin/darwin-*` is empty (no macOS build host provisions qpdf), so this ships
+  # only vec0.dylib today. The pattern is written anyway so that provisioning a
+  # darwin qpdf is a payloads change and not also a packaging change.
+  extraResources:
+    - from: resources/
+      to: app-resources/
+      filter:
+        - 'bin/darwin-${arch}/**'
+        - 'lib/darwin-${arch}/**'
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlementsInherit: build/entitlements.mac.plist
+  # Bare helper executables shipped as extraResources are not found reliably by
+  # the signer, and a missed binary fails notarization late and confusingly.
+  # List every spawned binary here as it is added.
+  #
+  # qpdf is absent: no macOS build host exists, so no darwin qpdf is provisioned
+  # and the optimize stage reports `skipped` there. Add both arch paths here in
+  # the same commit that first provisions it.
+  #
+  # vec0.dylib is NOT listed — `binaries` is for executables. It is dlopen'd by
+  # better-sqlite3, and under the hardened runtime library validation would
+  # refuse an unsigned one; build/entitlements.mac.plist already grants
+  # com.apple.security.cs.disable-library-validation for exactly that. Signing
+  # it with the same Developer ID is still preferable and happens automatically
+  # for dylibs inside the bundle.
+  binaries: []
+  extendInfo:
+    # Electron derives app.getName() from the packaged package.json
+    # (productName ?? name). CFBundleName is forced back to the lowercase id so
+    # macOS cannot repoint userData at "~/Library/Application Support/Corpus
+    # Studio" and orphan an existing corpus.sqlite.
+    CFBundleName: corpus-studio
+
+dmg:
+  artifactName: ${name}-${version}-${arch}.${ext}
+
+# Notarization is CONFIGURED, never attempted here. It activates only when
+# APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID are all present, so an
+# unsigned local build still succeeds. See docs/packaging.md.
+afterSign: scripts/notarize.cjs
+
+# The update feed is NOT configured here. It is passed on the command line by
+# `scripts/run-builder.mjs`, and ONLY when $CORPUS_UPDATE_URL is set.
+#
+# It used to live here as `url: ${env.CORPUS_UPDATE_URL}`, directly under a
+# comment promising that leaving the variable unset was harmless. It was not:
+# `expandMacro` THROWS on an undefined env var, so every build without a feed
+# failed with `cannot expand pattern "${env.CORPUS_UPDATE_URL}"` — which is to
+# say every developer build and every unpublished distributable.
+#
+# Setting the variables to empty strings is not the fix either, and is worse
+# than the crash because it is silent: electron-builder then writes an
+# `app-update.yml` containing `url: ''`, and `readPackagedFeed` reports a
+# present-but-urlless file as `unreadable` — the state that means "something is
+# broken", not "this build ships no updater". A build with no feed must ship NO
+# `app-update.yml` at all, which is what omitting `publish` does.
+#
+# `url` is baked into the artifact, so it is a property of the build. A release
+# must be given an `https://` one: src/main/updater.ts refuses a plain-http feed
+# once packaged, because an installer fetched over a link anyone on the path can
+# rewrite is not an update.
+#
+# `publish: null` is REQUIRED here and is not the same as omitting the key. With
+# no provider configured at all, electron-builder falls back to the git remote
+# and bakes `provider: github, owner: Zothie, repo: …` into app-update.yml
+# ("default publish config is github", PublishManager.js), so the app would poll
+# a source repo that publishes no releases while reporting a healthy updater.
+# An explicit null is the only value that means "this build has no feed"
+# (`getPublishConfigs` returns early on it). `-c.publish=null` on the CLI does
+# NOT work — argv is strings, so it arrives as the provider NAME "null".
+publish: null

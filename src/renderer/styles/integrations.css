@@ -1,0 +1,547 @@
+/* integrations.css — owned by the Integrations screen.
+   Tokens only (see :root in styles.css). All overrides of shared classes are
+   scoped under an .int-* ancestor so no other screen can drift. */
+
+/* styles.css defines no global focus ring, so each screen supplies its own
+   (cf. dossier.css / ranking.css). Scoped to this screen only. */
+.int-screen .btn:focus-visible,
+.int-screen .btn-link:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------- screen intro */
+.int-intro { width: 100%; margin: 0 0 16px; }
+
+.int-intro .eyebrow { display: block; margin-bottom: 6px; }
+
+/* -------------------------------------------------------------- integrations */
+/* Two-column Zotero / Obsidian card grid (matches Corpus design). */
+/* Masonry-ish: the two outlet cards are genuinely different heights (one may
+   list collections, the other a note preview), and stretching the shorter one
+   to match would leave a large empty panel that reads as missing content.
+   `align-items: start` lets each be its own height; the export card below spans
+   the full width, so the ragged bottom edge is bounded rather than trailing off. */
+.int-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  width: 100%;
+  margin: 0 0 14px;
+  align-items: start;
+}
+
+/* Export spans both columns: it is about the project, not about one outlet. */
+.int-export-card { width: 100%; border-radius: 18px; padding: 22px 24px; }
+
+.int-card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 24px;
+  background: var(--bg-2);
+  box-shadow: 0 1px 2px rgba(33, 26, 18, 0.04);
+}
+
+.int-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+
+/* The transition lives HERE, on the base, not on the state classes below.
+   On a state class it animates only the way IN: the class is removed when
+   Zotero quits or the user disconnects, taking its transition with it, so the
+   avatar eased on and snapped off. Ambient emphasis, so 250ms. */
+.int-avatar {
+  width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+  background: var(--panel); border: 1px solid var(--panel-2);
+  display: flex; align-items: center; justify-content: center;
+  transition: color 250ms ease-in-out, border-color 250ms ease-in-out,
+    background 250ms ease-in-out, box-shadow 250ms ease-in-out;
+}
+
+.int-avatar-z { font-weight: 700; color: var(--accent-strong); font-size: 17px; }
+
+.int-avatar-ob { color: var(--accent-strong); }
+
+/* CONNECTED AND LIVE. Both conditions, never one: the avatar answers "are
+   papers reaching Zotero right now", which is false the moment Zotero quits
+   even though the setting survives. Colour is paired with a border and a ring
+   so the state does not rest on hue alone. */
+.int-avatar.is-live {
+  color: var(--ok);
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 14%, transparent);
+}
+
+/* Connected, but Zotero is closed. Distinct from BOTH the live state and the
+   never-configured one: the destination is still set, so this is a dashed
+   outline rather than the plain resting border. */
+.int-avatar.is-idle {
+  color: var(--muted-2);
+  border-style: dashed;
+  border-color: var(--muted-2);
+}
+
+.int-card-id { flex: 1; min-width: 0; }
+
+.int-card-name { font-size: 15.5px; font-weight: 600; color: var(--ink); }
+
+.int-status-line {
+  font-size: 12px; color: var(--ok); display: flex; align-items: center; gap: 6px; margin-top: 2px;
+}
+
+.int-status-line.is-off { color: var(--muted-2); }
+
+.int-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+.int-pill {
+  font-size: 12px; padding: 5px 12px; border-radius: 999px;
+  border: 1px solid var(--border); color: var(--muted); white-space: nowrap;
+}
+
+.int-section-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted-3); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.int-section-label-spaced { margin-top: 18px; }
+
+/* Small inline qualifier badge ("read-only" / "not saved"). Uses the shared
+   .badge geometry; only size + spacing are adjusted, never colour. */
+.int-card .int-tag,
+.int-section-label .int-tag {
+  font-size: 9.5px;
+  padding: 1px 7px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* Remediation / status explanation. Follows the app's borderless-wash idiom
+   (cf. .job-error) rather than inventing an alert box. */
+.int-remedy {
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 18px;
+  background: var(--panel); border: 1px solid var(--panel-2);
+  font-size: 12.5px; line-height: 1.55; color: var(--muted);
+}
+
+.int-remedy-title { font-weight: 600; color: var(--ink-2); }
+
+/* An UNANSWERED probe is a caveat, not a failure — distinct from both the
+   neutral note and the red error, so "we could not check" never reads as
+   "this is broken". */
+.int-remedy-warn {
+  border-left: 3px solid var(--warn); background: var(--warn-soft); color: var(--warn-strong);
+}
+
+.int-remedy strong { color: var(--ink-2); }
+
+/* Sections describing a not-yet-active outlet: dimmed to read as inactive but
+   deliberately still interactive + still exposed to assistive tech — the
+   content is meaningful preview text and real focusable controls. */
+.int-inactive { opacity: 0.72; }
+
+/* ------------------------------------------------------------------ mapping */
+.int-map-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+
+.int-map-row {
+  display: flex; align-items: center; gap: 10px; font-size: 13px;
+  padding: 10px 12px; border: 1px solid var(--panel-2); border-radius: 11px;
+}
+
+.int-map-project { color: var(--ink); font-weight: 500; flex-shrink: 0; }
+
+.int-arrow { color: var(--border-2); margin: 0 2px; flex-shrink: 0; }
+
+.int-map-target {
+  font-size: 11.5px; color: var(--muted); min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ toggles */
+.int-toggle-row {
+  display: flex; align-items: center; gap: 12px; padding: 12px 0;
+  border-top: 1px solid var(--panel-2);
+}
+
+.int-toggle-copy { flex: 1; min-width: 0; }
+
+.int-toggle-title {
+  font-size: 13.5px; font-weight: 500; color: var(--ink);
+  display: flex; align-items: center; flex-wrap: wrap;
+}
+
+.int-toggle-sub { font-size: 12px; color: var(--muted-3); margin-top: 2px; line-height: 1.45; }
+
+.int-switch {
+  width: 38px; height: 22px; border-radius: 999px; border: none; padding: 0;
+  cursor: pointer; position: relative; flex-shrink: 0;
+  background: var(--panel-2); transition: background 0.25s ease;
+}
+
+.int-switch.on { background: var(--accent); }
+
+/* Hover is a real affordance now: every switch on this screen persists, so
+   pointing at one means it can be clicked. Distinct in BOTH positions. */
+.int-switch:not(:disabled):hover { background: var(--border-2); }
+
+.int-switch.on:not(:disabled):hover { background: var(--accent-strong); }
+
+/* In flight — the write has not landed yet. Dimmed AND non-interactive, and
+   distinct from both hover positions so a slow disk never looks like a dead
+   control. The knob keeps moving (optimistic), so the row still responds. */
+.int-switch:disabled { cursor: progress; opacity: 0.55; }
+
+.int-toggle-row.is-busy .int-toggle-title { color: var(--muted); }
+
+.int-switch:focus-visible {
+  outline: 2px solid var(--accent-strong); outline-offset: 2px;
+}
+
+.int-knob {
+  position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: left 0.25s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+.int-switch.on .int-knob { left: 18px; }
+
+/* ------------------------------------------------------------- outlet actions */
+.outlet-actions { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--panel-2); }
+
+.outlet-action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.outlet-btn { padding: 8px 14px; font-size: 12.5px; border-radius: 9px; }
+
+/* Destructive: this one replaces notes the user edited themselves. Danger
+   colouring arrives on HOVER rather than at rest — a permanently red button
+   reads as an error state, and the emphasis belongs at the moment of intent. */
+.outlet-btn-danger:not(:disabled):hover {
+  background: var(--danger-soft); border-color: var(--danger); color: var(--danger-strong);
+}
+
+.outlet-btn-danger:not(:disabled):active {
+  background: var(--danger); border-color: var(--danger-strong); color: #fff;
+}
+
+.outlet-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* The confirmation for a destructive action. Tinted so it reads as an
+   interruption, and it names the consequence rather than asking "are you sure". */
+.outlet-confirm {
+  margin-top: 10px; padding: 11px 13px; border-radius: 10px;
+  border: 1px solid var(--danger); border-left-width: 3px; background: var(--danger-soft);
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+
+.outlet-confirm-copy { flex: 1; min-width: 200px; font-size: 12px; line-height: 1.5; color: var(--danger-strong); }
+
+.outlet-confirm-actions { display: flex; gap: 7px; }
+
+.outlet-result-count { color: var(--muted-3); }
+
+.outlet-select { flex: 1; min-width: 0; }
+
+/* ------------------------------------------------------------------- fields */
+.int-fields { display: flex; flex-direction: column; gap: 11px; margin-bottom: 18px; }
+
+/* A value beside the control that changes it (vault folder + "Choose…"). */
+.int-field-row { display: flex; align-items: center; gap: 9px; }
+
+.int-btn-sm { padding: 6px 11px; font-size: 11.5px; border-radius: 8px; flex-shrink: 0; }
+
+.int-folder-input { width: 100%; font-family: var(--mono); font-size: 11.5px; }
+
+/* Shown only while the box differs from what is saved: changing the folder
+   orphans notes already written to the old one, and that consequence belongs
+   next to the control at the moment of the decision. */
+.int-folder-warn {
+  margin-top: 6px; font-size: 11px; line-height: 1.5; color: var(--warn-strong);
+}
+
+.int-field .int-section-label { margin-bottom: 5px; }
+
+.int-field-val { font-size: 12px; color: var(--ink-2); word-break: break-all; line-height: 1.5; }
+
+/* ----------------------------------------------------------------- previews */
+.int-preview {
+  margin-top: 16px; padding: 14px; border-radius: 12px;
+  background: var(--panel); border: 1px solid var(--panel-2);
+}
+
+.int-preview-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  margin-bottom: 8px;
+}
+
+.int-preview-label { margin-bottom: 0; }
+
+.int-preview-file {
+  font-size: 10.5px; color: var(--muted-3); min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.int-preview-body { font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
+
+.int-preview-empty { font-size: 12.5px; color: var(--muted-2); line-height: 1.55; }
+
+/* The preview is the REAL markdown, so it is preformatted: reflowing it would
+   show something other than the file that gets written. Bounded and scrollable
+   rather than allowed to grow the card without limit. */
+.int-md-preview {
+  font-size: 11.5px; line-height: 1.6; color: var(--muted);
+  white-space: pre-wrap; word-break: break-word; margin: 0;
+  max-height: 260px; overflow-y: auto;
+}
+
+/* A failed run must not read like an ordinary note. */
+.int-remedy-error {
+  border-left: 3px solid var(--danger); background: var(--danger-soft); color: var(--danger-strong);
+}
+
+.int-md-fence { color: var(--muted-3); }
+
+.int-md-head { color: var(--accent-strong); margin-top: 4px; word-break: break-word; }
+
+.int-md-dim { color: var(--muted-3); }
+
+.int-md-link { color: var(--muted-3); }
+
+/* Paths wrap at word/segment boundaries rather than mid-token, so a path never
+   renders as "/mnt/n as/ke07-corpus". */
+.int-footnote {
+  margin-top: 12px; font-size: 11px; color: var(--muted-3);
+  word-break: break-word; line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------- tabs */
+/* Underline tabs, matching the Ingest sub-switch idiom rather than inventing a
+   third tab style for the app. */
+.int-tabs {
+  display: flex; gap: 20px; margin: 0 0 18px;
+  border-bottom: 1px solid var(--panel-2);
+}
+
+.int-tab {
+  font-family: var(--sans); font-size: 13px; font-weight: 400;
+  padding: 0 0 9px; border: none; border-bottom: 2px solid transparent;
+  background: transparent; color: var(--muted-2); cursor: pointer;
+  transition: color 0.16s ease-in-out, border-color 0.16s ease-in-out;
+}
+
+.int-tab:hover { color: var(--ink); }
+
+.int-tab:focus-visible {
+  outline: 2px solid var(--accent-strong); outline-offset: 3px; border-radius: 3px;
+}
+
+.int-tab.is-active {
+  font-weight: 600; color: var(--ink); border-bottom-color: var(--accent);
+}
+
+/* ------------------------------------------------------------------- export */
+/* Match the outlet cards' radius/padding so the screen has one corner language
+   (the shared .card is 14px; the design's integration cards are 18px). */
+.int-storage {
+  width: 100%; margin: 0;
+  border-radius: 18px; padding: 22px 24px;
+}
+
+.int-export .eyebrow { display: block; margin-bottom: 6px; }
+
+.int-export-copy {
+  font-size: 12.5px; color: var(--muted-2); margin-bottom: 12px; line-height: 1.5;
+  max-width: 640px;
+}
+
+.int-export-status { min-height: 22px; }
+
+/* One ROW per thing that can be exported, with its formats on the right. The
+   list is derived from the project's own schemas, so its length is data — two
+   rows for one project and six for another — and each row names the content
+   once instead of repeating a long schema name per format. */
+.export-groups {
+  display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px;
+}
+
+.export-group {
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--panel-2);
+}
+
+.export-group:last-child { border-bottom: none; }
+
+.export-group-copy { flex: 1; min-width: 0; }
+
+.export-group-name { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+
+.export-group-desc {
+  font-size: 11.5px; color: var(--muted-3); margin-top: 2px; line-height: 1.45;
+}
+
+/* Buttons lead, so the labels beside them must line up: a fixed column keeps
+   every row's text at the same x, whether the row offers one format or two.
+   Right-aligned within the column so the LAST button always sits against the
+   text it belongs to, which is what visually binds the two. */
+.export-group-formats {
+  display: flex; gap: 6px; flex-shrink: 0;
+  width: 140px; justify-content: flex-end;
+}
+
+/* The format IS the label here, so the button is sized for a short word and
+   the content it belongs to is the row it sits in. */
+.export-option {
+  min-width: 62px; justify-content: center;
+  padding: 7px 12px; font-size: 11.5px; font-weight: 500;
+  letter-spacing: 0.02em; border-radius: 8px;
+}
+
+.export-option:not(:disabled):hover {
+  background: var(--accent-soft); border-color: var(--accent-100); color: var(--accent-strong);
+}
+
+.export-option:not(:disabled):active {
+  background: var(--accent-100); border-color: var(--accent);
+}
+
+/* While an export is being built every button is disabled; they must LOOK it,
+   and must not light up under the pointer. */
+.export-option:disabled { opacity: 0.5; cursor: default; }
+
+.int-export-status .export-msg {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 11.5px; line-height: 1.5;
+}
+
+/* --------------------------------------------------------------- responsive */
+@media (max-width: 1000px) {
+  .int-layout { grid-template-columns: 1fr; }
+  .int-basedir-note { display: none; }
+}
+
+/* The real path of a file that now exists on disk — wraps rather than
+   truncates, because a half-shown path is a claim the user cannot verify. */
+.int-export-path {
+  font-family: var(--mono, monospace);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.int-export-reveal {
+  font-size: 11px;
+}
+
+.int-export-reveal:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The check state spelled out beside the glyph — shape + word, so neither an
+   icon nor a colour is the only carrier of the yes/no/unknown distinction. */
+.int-check-word {
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.int-check-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.int-export-gone { color: var(--muted-3); }
+
+/* ── Connect-with-Zotero dialog ──────────────────────────────────────────── */
+
+/* The waiting block. A live spinner is the whole point: this dialog is asking
+   the user to go and start another app, and a still panel would leave them
+   unsure whether it is still watching. */
+.zc-wait {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.zc-wait-title { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+
+.zc-spinner {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  border-radius: 50%;
+  border: 2px solid var(--panel-2);
+  border-top-color: var(--accent-strong);
+  animation: spin 900ms linear infinite;
+}
+
+/* Motion is the only cue here, so a reader who suppresses it gets a static ring
+   that still reads as a control rather than a stray dot. */
+@media (prefers-reduced-motion: reduce) {
+  .zc-spinner { animation: spin 3s steps(8) infinite; }
+}
+
+/* ── The live connection block ───────────────────────────────────────────────
+   Bounded, because it is a different KIND of thing from the label-and-value
+   rows around it: a link to another running application, with the controls that
+   act on it. Flat rows put it at the same weight as a folder path, and the card
+   read as one undifferentiated stack. The destination itself is read-only here
+   on purpose — changing it reopens the dialog, the one place that can confirm
+   the id still resolves against a running Zotero. */
+.zc-live {
+  margin: 14px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--panel-2);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.zc-live-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.zc-live-copy { flex: 1; min-width: 0; }
+
+.zc-live-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-3);
+  margin-bottom: 3px;
+}
+
+.zc-live-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zc-live-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* The exceptions sit BELOW the destination, not beside it: crowded onto the
+   same line they competed with the name for the eye, and wrapped badly on a
+   narrow card. */
+.zc-live-notes {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--panel-2);
+}
+
+.zc-live-note { display: flex; align-items: center; gap: 8px; }

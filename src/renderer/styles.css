@@ -1,0 +1,2875 @@
+/* Fonts vendored locally via @fontsource (no CDN, no Google Fonts). */
+@import '@fontsource/instrument-sans/400.css';
+@import '@fontsource/instrument-sans/500.css';
+@import '@fontsource/instrument-sans/600.css';
+@import '@fontsource/instrument-sans/700.css';
+@import '@fontsource/geist-mono/400.css';
+@import '@fontsource/geist-mono/500.css';
+
+/* Per-screen style modules (each owned by one design agent to avoid conflicts). */
+@import './styles/tabs.css';
+@import './styles/dashboard.css';
+@import './styles/ranking.css';
+@import './styles/graph.css';
+@import './styles/references.css';
+@import './styles/ingest.css';
+@import './styles/paper.css';
+@import './styles/extraction.css';
+@import './styles/misc.css';
+@import './styles/review.css';
+@import './styles/dossier.css';
+@import './styles/integrations.css';
+@import './styles/storage.css';
+@import './styles/semantic.css';
+@import './styles/plugins.css';
+@import './styles/citations.css';
+@import './styles/summary.css';
+@import './styles/settingsTransfer.css';
+@import './styles/analytics.css';
+@import './styles/setup.css';
+@import './styles/referenceAbstract.css';
+
+:root {
+  --bg: #fffaf5;
+  --bg-2: #ffffff;
+  --panel: #faf8f5;
+  --panel-2: #f1ece5;
+  --border: #ece7e0;
+  --border-2: #e6ded3;
+  --ink: #211a12;
+  --ink-2: #2c261e;
+  --muted: #6b6157;
+  --muted-2: #8a8073;
+  --muted-3: #a89e91;
+  --accent: #e2600f;
+  --accent-strong: #c2510c;
+  --accent-soft: #fdefe4;
+  --accent-100: #fbe2cf;
+  --ok: #3f9166;
+  --warn: #c98a1c;
+  --danger: #c1584a;
+  /* WORK IN PROGRESS. Its own hue because the accent orange already means "this
+     is the thing you selected", and using it for "running" made a busy row look
+     like a chosen one — and, next to the red of a failure, like a warning. Blue
+     is the only family in this palette that carries neither meaning. Muted and
+     slightly warm (a hint of the page's cream) so it sits in the same world as
+     --ok and --warn rather than looking like a pasted-in system colour. */
+  --busy: #3f74a8;
+  /* The fourth hue of the frontier map's categories. Purple is the only family
+     left that is neither the accent (selection), --ok (agreement), --busy
+     (running) nor --danger (a failure or an exclusion), so a category wearing
+     it cannot be misread as a status. Weighted warm to sit with the rest of
+     this palette rather than looking pasted in. */
+  --violet: #7a5aa8;
+  /* Tinted surfaces for the status hues. Named here rather than inlined so a
+     status fill is the same colour wherever it is used, and so a state that
+     needs a background is not forced to invent one. */
+  --ok-soft: #eef6f1;
+  --warn-soft: #fbf2e0;
+  --danger-soft: #f9edeb;
+  /* Darkened variants for text and pressed fills, mirroring --accent-strong:
+     --warn is too light to read as body text on a tinted panel. */
+  --warn-strong: #8a5c05;
+  --danger-strong: #a94537;
+  /* The neutral hover fill, shared by the sidebar's nav items, the tab strip
+     and the window controls. */
+  --panel-hover: #f6f2ec;
+  /* The danger family's hover/pressed ramp, mirroring --accent-100 for the
+     accent. Named because a state that needs a background must not invent
+     one. */
+  --danger-100: #f3ded9;
+  --danger-200: #eed3ce;
+  --sidebar-w: 246px;
+  --radius-card: 14px;
+  /* SETTINGS TYPE SCALE. Named steps rather than a magic number per rule, so a
+     new settings pane cannot invent a sixth size that lands between two
+     existing ones — which is how every level ended up reading as 10-13px grey.
+     Each step pairs a size with the weight and colour it is meant to carry
+     (see .set-h2 / .set-help / .set-label / .set-meta below); size alone does
+     not separate a heading from its help text at these magnitudes. */
+  --fs-set-h2: 17px;    /* section heading — 700, --ink */
+  --fs-set-h3: 15px;    /* the thing being asked for — 650, --ink */
+  --fs-set-body: 13.5px;/* the reading size inside a pane — 400/500, --ink-2 */
+  --fs-set-help: 13px;  /* the sentence under a heading — 400, --muted */
+  --fs-set-meta: 12px;  /* status, sizes, counts — 500, --muted-2 */
+  --fs-set-label: 11px; /* mono uppercase field label — 500, --muted-2 */
+  --fs-set-code: 12.5px;/* a port, a token, a path, a prompt — mono 400 */
+  --sans: 'Instrument Sans', system-ui, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body, #root {
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  max-width: none;
+  overflow: hidden;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #d8cec0; }
+
+.eyebrow {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  color: var(--muted-3);
+}
+.mono { font-family: var(--mono); }
+
+/* -------------------------------------------------------------- keyframes */
+@keyframes screenIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes nodePop { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 2px var(--accent); } 50% { box-shadow: 0 0 0 5px var(--accent-soft); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+
+/* -------------------------------------------------------------- skeletons */
+.sk {
+  border-radius: 7px;
+  background: linear-gradient(90deg, #f3efe9 25%, #faf7f2 45%, #f3efe9 65%);
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+.sk-stack { display: flex; flex-direction: column; gap: 10px; padding: 8px 0; }
+
+/* -------------------------------------------------------------- shell */
+/* Full-bleed desktop shell: fills the entire window edge-to-edge, no outer
+   margin / max-width / centering / rounded chrome. */
+.app-shell { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+
+/* ---------------- SIDEBAR (design: 246px, #fff, right border #ece7e0) ------- */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-2);
+  display: flex;
+  flex-direction: column;
+}
+/* Drag region #2 (see .topbar): the app-name block behaves like the left half
+   of an OS title bar now that the window is frameless. */
+.sidebar-head {
+  padding: 22px 20px 16px; display: flex; align-items: center; gap: 11px;
+  -webkit-app-region: drag;
+}
+.sidebar-logo { height: 30px; width: auto; display: block; }
+.sidebar-word { font-weight: 700; font-size: 16px; letter-spacing: -0.02em; color: var(--ink); }
+.sidebar-nav { padding: 6px 12px; display: flex; flex-direction: column; gap: 2px; }
+
+.side-nav-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 11px; border: none; border-radius: 11px; cursor: pointer;
+  font: inherit; text-align: left; width: 100%;
+  background: var(--bg-2); color: var(--ink);
+  transition: all 0.18s ease-in-out;
+}
+.side-nav-item:hover { background: var(--panel-hover); }
+.side-nav-item.active { background: var(--accent-soft); color: var(--accent-strong); }
+.side-nav-item .side-nav-label { font-size: 13.5px; font-weight: 500; }
+.side-back .side-back-label { font-weight: 600; }
+.side-back svg { flex-shrink: 0; }
+.side-project-eyebrow {
+  padding: 12px 12px 9px; font-family: var(--mono); font-size: 9.5px;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.side-nav-badge {
+  margin-left: auto; display: flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 10px; color: var(--danger);
+}
+.side-nav-badge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--danger); }
+
+.sidebar-foot { margin-top: auto; padding: 12px; border-top: 1px solid var(--border); }
+.side-settings { padding: 10px 11px; color: var(--muted); }
+.side-settings:hover { color: var(--ink); }
+
+/* ---------------- TOPBAR (design: 62px, #fff, bottom border) --------------- */
+.content-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+/* PAGE chrome, not WINDOW chrome. The title bar is the tab strip above it,
+   which owns the drag region and the window controls; this bar is ordinary
+   interactive surface all the way across, so there are no opt-outs here to get
+   wrong and its title selects like text. Height stays 62px, so `.app-shell`
+   100vh / `.route-area` flex:1 math is unchanged. */
+.topbar {
+  height: 62px; flex-shrink: 0; display: flex; align-items: center; gap: 18px;
+  padding: 0 24px; border-bottom: 1px solid var(--border); background: var(--bg-2);
+}
+/* The sidebar head is still a drag region, so the opt-out class stays for its
+   descendants and for anything else placed on draggable surface. */
+.no-drag { -webkit-app-region: no-drag; }
+
+/* ------------------------------------------------------------- tooltip ---- */
+/* App-wide replacement for the OS bubble. Portalled to <body>, position:fixed,
+   anchored on the CENTRE of its target — hence translateX(-50%). z-index sits
+   above the modal backdrop (100) so a tip inside a dialog is not swallowed. */
+.tip {
+  position: fixed; z-index: 120; pointer-events: none;
+  max-width: 320px; padding: 7px 10px; border-radius: 9px;
+  background: var(--ink); color: var(--bg-2);
+  font-family: var(--sans); font-size: 14px; line-height: 1.45; font-weight: 400;
+  box-shadow: 0 8px 24px -10px rgba(33,26,18,.5);
+  animation: tipIn 0.12s ease both;
+  /* `pre-line`, so a tip can put separate facts on their OWN LINES while still
+     wrapping long ones at max-width. A tooltip reporting several things — what
+     a step did, how long it took — was running them into one paragraph, where
+     a filename landed mid-sentence. Newlines in a tip are deliberate; runs of
+     spaces are not, and `pre-line` collapses those. */
+  white-space: pre-line;
+}
+.tip-below { transform: translateX(-50%); }
+.tip-above { transform: translate(-50%, -100%); }
+@keyframes tipIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .tip { animation: none; } }
+
+/* Session back/forward, sitting immediately before the screen title so the pair
+   reads as "where am I, and how do I get back". Tighter gap than the topbar's
+   own so the two arrows read as one control. */
+.topbar-nav { display: flex; gap: 2px; flex-shrink: 0; margin-right: -8px; }
+.topbar-nav-btn {
+  width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 9px; background: none; color: var(--muted); cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.topbar-nav-btn:hover:not(:disabled) { background: var(--panel-2); color: var(--ink); }
+.topbar-nav-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Nothing to go back to is a real state: the arrow stays visible (so the
+   control does not jump around) but is plainly inert. */
+.topbar-nav-btn:disabled { color: var(--muted-3); opacity: 0.45; cursor: default; }
+
+.topbar-titles { flex: 1 1 auto; min-width: 0; }
+/* Ellipsis, not wrap: the fixed 62px bar must not grow when a long project
+   subtitle meets the narrower space left by the window controls. */
+.topbar-title {
+  font-size: 16px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.1; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.topbar-sub {
+  font-size: 10.5px; color: var(--muted-3); letter-spacing: 0.04em; margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+/* "No model can be reached, so a new analysis cannot run."
+   In the chrome, always visible, and rendered ONLY when no model is answering —
+   a permanent badge is one the eye stops seeing, and a working gateway needs no
+   notice. Warn hue rather than danger: nothing is broken and nothing stored is
+   in doubt, but new work will be declined. The ⊘ glyph carries the state
+   independently of colour, and the pill is focusable so the full reason (which
+   names the remedy) is reachable without a pointer. */
+.topbar-llm {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1px solid color-mix(in srgb, var(--warn) 40%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warn) 10%, var(--panel));
+  color: var(--warn-strong);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  /* It is a <button> now: it re-runs the gateway pre-flight. Inheriting the
+     font and resetting the browser chrome keeps it reading as the pill it was,
+     and no-drag stops the frameless titlebar swallowing the click. */
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition:
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    transform 150ms ease-in-out,
+    opacity 150ms ease-in-out;
+}
+.topbar-llm:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--warn) 18%, var(--panel));
+  border-color: var(--warn);
+}
+/* Pressed is DISTINCT from hover, not a repeat of it: on a control whose work
+   is invisible and can take a second, the click landing is the only immediate
+   feedback there is. */
+.topbar-llm:active:not(:disabled) {
+  background: color-mix(in srgb, var(--warn) 26%, var(--panel));
+  border-color: var(--warn);
+  transform: scale(0.97);
+}
+.topbar-llm:focus-visible {
+  background: color-mix(in srgb, var(--warn) 18%, var(--panel));
+  border-color: var(--warn);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* BUSY, which here is the only way this control is ever disabled — a probe is
+   already in flight. Dimmed, with its own cursor, and the label reads
+   "checking…", so it is never a control that merely stopped responding. */
+.topbar-llm:disabled {
+  cursor: progress;
+  opacity: 0.66;
+  background: color-mix(in srgb, var(--warn) 10%, var(--panel));
+  border-color: color-mix(in srgb, var(--warn) 40%, var(--border));
+}
+.topbar-llm-glyph { font-size: 12px; line-height: 1; }
+/* The glyph turns ONLY while a probe is in flight; nothing in the chrome
+   animates at rest. */
+.topbar-llm[aria-busy='true'] .topbar-llm-glyph {
+  display: inline-block;
+  animation: topbar-llm-spin 900ms linear infinite;
+}
+@keyframes topbar-llm-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .topbar-llm { transition: none; }
+  .topbar-llm:active:not(:disabled) { transform: none; }
+  .topbar-llm[aria-busy='true'] .topbar-llm-glyph { animation: none; }
+}
+
+/* Invisible resize grips for the frameless window (no WM border on X11).
+   position:fixed keeps them out of the flex flow, so no height math changes.
+   They are only RENDERED while the window is not maximized (see
+   WindowResizeGrips) — the default maximized state has none at all.
+   z-index 90 deliberately sits BELOW .modal-backdrop (100): a modal must keep
+   its click-outside-to-dismiss behaviour all the way to the window edge.
+   The vertical bands are 3px so they graze only the outermost sliver of the
+   10px scrollbar track (whose thumb is inset by its 999px radius). */
+.win-resize-layer { position: fixed; inset: 0; pointer-events: none; z-index: 90; }
+.win-resize { position: fixed; pointer-events: auto; -webkit-app-region: no-drag; }
+.win-resize-n { top: 0; left: 8px; right: 8px; height: 3px; cursor: ns-resize; }
+.win-resize-s { bottom: 0; left: 8px; right: 8px; height: 3px; cursor: ns-resize; }
+.win-resize-w { left: 0; top: 8px; bottom: 8px; width: 3px; cursor: ew-resize; }
+.win-resize-e { right: 0; top: 8px; bottom: 8px; width: 3px; cursor: ew-resize; }
+.win-resize-nw { top: 0; left: 0; width: 8px; height: 8px; cursor: nwse-resize; }
+.win-resize-ne { top: 0; right: 0; width: 8px; height: 8px; cursor: nesw-resize; }
+.win-resize-sw { bottom: 0; left: 0; width: 8px; height: 8px; cursor: nesw-resize; }
+.win-resize-se { bottom: 0; right: 0; width: 8px; height: 8px; cursor: nwse-resize; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------------------------------------------------------- Settings modal */
+/* ------------------------------------------------------------- settings shell
+   SIZED TO THE VIEWPORT, CLAMPED AT BOTH ENDS — and scoped to `:has(.set-shell)`
+   so the other eight `<Modal>` consumers (the wizards, the confirms, the
+   licences list) keep the shared 568px form width. `clamp()` gives one rule
+   that covers a 1366px laptop and an ultrawide: 78vw of a 1920px window is
+   ~1500px, the 1180px floor keeps it generous on a small screen without
+   exceeding it, and the 1560px ceiling stops it becoming a full-screen wall.
+
+   STILL FIXED RELATIVE TO THE TABS. The size follows the WINDOW, never the
+   pane's contents — the panes hold wildly different amounts (two fields on AI,
+   a scrolling list on Storage) and a modal that resized to each one jumped
+   under the pointer every time a tab was clicked. The PANE scrolls; the rail
+   and the dialog edge never move.
+
+   The rail shares the canvas surface rather than taking a fill of its own: a
+   hairline is enough structure for five items. */
+.modal:has(.set-shell) {
+  width: clamp(1180px, 78vw, 1560px);
+  max-width: 94vw;
+  padding: 0;
+}
+.modal:has(.set-shell) .modal-head { margin: 0; padding: 20px 26px; }
+.modal:has(.set-shell) .modal-head .card-title { font-size: 19px; letter-spacing: -0.01em; }
+.set-shell {
+  display: grid;
+  grid-template-columns: 214px minmax(0, 1fr);
+  /* Tall enough that a multi-paragraph brief is read rather than scrolled four
+     lines at a time, and the pane grows with the window instead of pinning a
+     1080px screen to the same 460px box a 768px one gets. */
+  height: clamp(520px, 78vh, 900px);
+  max-height: calc(100vh - 150px);
+}
+.set-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 18px 12px;
+  /* Softer than --border: this divides two halves of one surface, it does not
+     bound a component. The eye should find it only when looking for it. */
+  border-right: 1px solid var(--panel-2);
+}
+/* Icon AND label. Icon-only would make the reader learn four glyphs to find a
+   setting they open twice a year. */
+.set-rail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  /* The rail label is the top of the hierarchy the reader meets first, so it
+     reads at the body size in a medium weight — at 12.5px/400 it was quieter
+     than the help text inside the pane it navigates to. */
+  font-size: var(--fs-set-body);
+  font-weight: 500;
+  text-align: left;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    background 150ms ease-in-out,
+    color 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+/* The icon carries the state as much as the label does, so it dims further
+   than the text when idle and leads the accent when active. */
+.set-rail-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--muted-3);
+  transition: color 150ms ease-in-out;
+}
+.set-rail-item:hover { background: var(--panel); color: var(--ink); }
+.set-rail-item:hover .set-rail-icon { color: var(--muted); }
+.set-rail-item:active { background: var(--panel-2); }
+.set-rail-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+/* The section being read. Tint, weight AND the icon together — never the
+   accent alone, which a colourblind reader would not see. */
+.set-rail-item.is-on {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+.set-rail-item.is-on .set-rail-icon { color: var(--accent); }
+.set-rail-item.is-on:hover { background: var(--accent-100); }
+/* Pressing the tab you are already on. `.set-rail-item:active` and
+   `.set-rail-item.is-on` are equally specific, so `.is-on` wins on source order
+   and the current tab needs its own press state or the pointer reads as dead on
+   the one tab most likely to be clicked again. The inset is the non-colour
+   half. */
+.set-rail-item.is-on:active {
+  background: var(--accent-100);
+  border-color: var(--accent);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+/* The selected tab keeps its accent border under the focus ring, so
+   selected+focus-visible cannot be read as merely focused. */
+.set-rail-item.is-on:focus-visible { border-color: var(--accent); }
+
+/* The pane owns the scroll, so the rail and the dialog edge stay put. */
+.set-pane {
+  min-width: 0;
+  overflow-y: auto;
+  padding: 26px 30px 30px;
+  font-size: var(--fs-set-body);
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+/* MEASURE. The dialog is now ~1500px wide, and prose set across all of it is
+   unreadable however good the type is. Sections cap their text column; the
+   things that genuinely want the width (a prompt textarea, a storage table)
+   opt out below. */
+.set-pane > * { max-width: 940px; }
+/* The prompt editor takes MORE than the prose cap but not the whole dialog: a
+   brief needs height and a wide-enough line to hold a clause, and at the full
+   1500px its lines ran ~200 characters, which the extra width made HARDER to
+   read rather than easier. */
+.set-pane > .prompt-editor { max-width: 1120px; }
+
+/* ---- the settings type scale, one class per step ----
+   Each step differs from its neighbours in SIZE, WEIGHT and COLOUR together, so
+   no two levels can be confused by a reader who sees only one of the three. */
+
+/* Section heading. The largest thing in the pane and the only one at 700 — the
+   eye should land here first without hunting. */
+.set-h2 {
+  font-family: var(--sans);
+  font-size: var(--fs-set-h2);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+/* The sentence explaining a heading. Same family, clearly smaller, clearly
+   lighter, and given a measure so it does not run the full dialog width. */
+.set-help {
+  font-size: var(--fs-set-help);
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 68ch;
+  margin: 0 0 14px;
+}
+/* Status, sizes, counts, versions — a value the reader glances at rather than
+   reads. Heavier than the help text but smaller and greyer, so it reads as an
+   annotation and not as prose. */
+.set-meta {
+  font-size: var(--fs-set-meta);
+  font-weight: 500;
+  color: var(--muted-2);
+}
+/* Genuine code: a port, a token, a filesystem path, a prompt. Mono is a
+   MEANING here, not a decoration — it marks text that must be transcribed
+   exactly — so it is never used for a label or a heading. */
+.set-code {
+  font-family: var(--mono);
+  font-size: var(--fs-set-code);
+  font-weight: 400;
+  color: var(--ink-2);
+}
+/* A rule between subjects in one pane. With five sections now visible at once
+   in a 900px-tall dialog, whitespace alone stopped separating them. */
+.set-pane > .settings-section + .settings-section,
+.set-pane > .settings-section + .set-sec,
+.set-pane > .set-sec + .settings-section,
+.set-pane > .set-sec + .set-sec {
+  border-top: 1px solid var(--border);
+  padding-top: 22px;
+}
+
+/* State changes still READ without motion — every one of them carries a colour,
+   weight or ring change as well — so removing the tween loses nothing but the
+   tween. The dialog's entrance animation goes too: it is the largest movement
+   in the app. */
+@media (prefers-reduced-motion: reduce) {
+  .modal:has(.set-shell) { animation: none; }
+  .set-rail-item,
+  .set-rail-icon,
+  .settings-storage-head,
+  .settings-storage-name,
+  .settings-caret,
+  .prompt-editor-text { transition: none; }
+}
+.set-pane > .settings-section:last-child,
+.set-pane > .set-sec:last-child { margin-bottom: 0; }
+
+/* ---- the gateway fields ---- */
+.set-fields { display: flex; flex-direction: column; gap: 18px; max-width: 520px; }
+.set-field { display: flex; flex-direction: column; gap: 7px; }
+/* Field label. Mono uppercase is kept HERE — it names a slot the user types a
+   literal into (an endpoint, a key), and the tracking distinguishes it from the
+   value below without competing with the section heading above. Raised off 10px,
+   which was below the app's minimum legible size. */
+.set-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: var(--fs-set-label);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+.set-fields .input { font-size: var(--fs-set-body); padding: 9px 12px; }
+/* Inputs are INSET — they receive text, so they sit on a surface slightly
+   recessed from the pane rather than floating above it. */
+.set-fields .input { background: var(--panel); }
+.set-fields .input:focus { background: var(--bg-2); }
+.set-note {
+  font-family: var(--sans);
+  font-size: var(--fs-set-meta);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted-2);
+}
+/* "Saved" gets the tick as well as the green: colour alone would not reach a
+   colourblind reader, and it is the only confirmation this action gives. */
+.set-note-ok { color: var(--ok); }
+.set-note-ok::before { content: '✓ '; font-weight: 700; }
+/* `wrap`, because the buttons are the row's whole content now that the answers
+   have their own: a narrow pane must drop one onto a second line rather than
+   squeeze every label. */
+.set-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 2px; }
+
+/* WHERE THE SENTENCES GO, and the reason they are not in `.set-actions`.
+   A result here is prose — "The extension is answering, and can search …" runs
+   to a line and more — and rendered beside the buttons it shoved them sideways
+   the instant it arrived, moving the control the user was reaching for. Given
+   its own region the answer costs the buttons no position at all.
+   `min-height` reserves one line, so the layout below does not jump either as
+   the region fills and empties. */
+.set-answers {
+  display: flex; flex-direction: column; gap: 4px;
+  min-height: 1.35em; margin-top: 8px;
+}
+/* Faded in rather than snapped on. The sentence is the answer to a press, and an
+   answer that simply exists on the next frame reads as though it had been there
+   all along — which is exactly wrong for a result the user is waiting for. */
+.set-answers .set-note {
+  margin: 0;
+  animation: set-answer-in 150ms ease-in-out;
+}
+@keyframes set-answer-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .set-answers .set-note { animation: none; }
+}
+
+.settings-sub {
+  font-size: var(--fs-set-help); color: var(--muted); margin-top: 0; margin-bottom: 16px;
+}
+.settings-section { margin-bottom: 22px; }
+.settings-section:last-child { margin-bottom: 0; }
+.settings-eyebrow {
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted-3); margin-bottom: 10px;
+}
+/* Inside Settings this class IS every section's heading — six panes use it that
+   way — so in this one context it takes the heading step of the scale instead of
+   the 10px mono micro-label it was. A 10px uppercase grey line is the right
+   treatment for a label ABOVE a heading and the wrong one for the heading
+   itself: it made the first thing in every pane the quietest thing in it.
+   `.mono` is beaten on specificity rather than removed from six call sites —
+   one of which has uncommitted work in it — and mono is reserved for text that
+   must be transcribed exactly (see .set-code). */
+.set-pane .settings-eyebrow,
+.set-pane .settings-eyebrow.mono,
+.set-pane .set-sec > h3,
+.set-pane .set-sec > header > h3 {
+  font-family: var(--sans);
+  font-size: var(--fs-set-h2);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  text-transform: none;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+.settings-model-list { display: flex; flex-direction: column; gap: 4px; }
+.settings-model-item {
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+  border: 1px solid transparent; border-radius: 9px; background: var(--bg-2);
+  font: inherit; cursor: pointer; text-align: left; transition: background 0.14s ease;
+}
+.settings-model-item:hover { background: #f6f2ec; }
+.settings-model-item.active { background: var(--accent-soft); border-color: #f6d3b6; }
+.settings-model-name { flex: 1; }
+.settings-model-label { font-size: 13px; font-weight: 500; color: var(--ink); }
+.settings-model-sub { font-size: 11.5px; color: var(--muted-3); }
+.settings-model-check { color: var(--accent); font-size: 13px; width: 12px; }
+
+.settings-storage-hint {
+  font-size: var(--fs-set-meta); font-weight: 500; color: var(--muted-2); padding: 4px 0;
+}
+.settings-storage-list { display: flex; flex-direction: column; gap: 9px; }
+.settings-storage-row { border: 1px solid var(--border); border-radius: 13px; overflow: hidden; }
+.settings-storage-head {
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 16px;
+  border: none; background: var(--bg-2); font: inherit; cursor: pointer;
+  text-align: left;
+  transition: background 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+.settings-storage-head:hover { background: var(--panel); }
+.settings-storage-head:active { background: var(--panel-2); }
+/* Expanded is a state of the row, not just of its caret: the caret alone is a
+   14px glyph, so the open row also carries a tint and a heavier name. */
+.settings-storage-head[aria-expanded='true'] { background: var(--accent-soft); }
+.settings-storage-head[aria-expanded='true'] .settings-storage-name { color: var(--accent-strong); }
+.settings-storage-head[aria-expanded='true']:hover { background: var(--accent-100); }
+.settings-storage-head:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: -2px; background: var(--panel);
+}
+.settings-caret {
+  width: 14px; color: var(--accent); font-size: 11px; display: inline-block;
+  transition: transform 0.22s ease; flex-shrink: 0;
+}
+.settings-caret.open { transform: rotate(90deg); }
+.settings-storage-name {
+  flex: 1; font-size: var(--fs-set-body); font-weight: 600; color: var(--ink);
+  transition: color 150ms ease-in-out;
+}
+.settings-storage-size {
+  font-size: var(--fs-set-code); font-family: var(--mono); color: var(--muted);
+}
+.settings-storage-papers {
+  border-top: 1px solid #f4efe8; padding: 4px 16px 10px 41px; background: #fdfbf8;
+}
+.settings-storage-paper {
+  display: flex; align-items: center; gap: 14px; padding: 9px 0;
+  border-bottom: 1px solid #f4efe8;
+}
+.settings-storage-paper:last-child { border-bottom: none; }
+.settings-storage-paper-t { flex: 1; font-size: var(--fs-set-help); color: var(--muted); line-height: 1.45; }
+.settings-storage-paper-s {
+  font-size: var(--fs-set-meta); font-family: var(--mono); color: var(--muted-2); flex-shrink: 0;
+}
+
+.settings-about-btn { width: 100%; justify-content: center; }
+
+/* ------------------------------------------------------- Settings switch
+   A two-state preference switch. Every state of it — off/on crossed with
+   default, hover, active, focus-visible and focus+hover — is MUTUALLY DISTINCT
+   and proven so by scripts/check-provenance-toggle-states.mjs.
+
+   Nothing here rests on colour: the knob SLIDES, and carries ✓/✕, and the row
+   spells the state as a word, so the switch survives grayscale and a
+   colourblind reader. Nothing snaps either — 150ms ease-in-out on the pointer
+   feedback and on the knob. */
+.settings-pref-row {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 16px 18px; border: 1px solid var(--border); border-radius: 13px;
+  background: var(--bg-2);
+  max-width: 720px;
+}
+/* Two cards in a row shared an edge, so a pair of independent settings read as
+   one divided box. They are separate subjects and are spaced as such. */
+.settings-pref-row + .settings-pref-row { margin-top: 12px; }
+/* Anything following the last card in a section — the licences button sits
+   directly under one — needs the same air, or it reads as part of it. */
+.settings-section > .settings-pref-row:last-of-type + * { margin-top: 18px; }
+.settings-pref-text { flex: 1; min-width: 0; }
+/* A row's own label sits BELOW the section heading in the hierarchy: same
+   weight family, one step smaller, so the reader can tell "the subject of this
+   pane" from "the name of this switch". */
+.settings-pref-label { font-size: var(--fs-set-body); font-weight: 600; color: var(--ink); }
+.settings-pref-help {
+  margin-top: 4px; font-size: var(--fs-set-help); line-height: 1.5; color: var(--muted);
+}
+.settings-pref-help.is-bad { color: var(--danger); }
+/* A caution about a choice that is allowed and probably not what was wanted —
+   distinct from `is-bad`, which is a refusal, and from the plain help colour,
+   which the eye passes over. */
+.settings-pref-help.is-warn { color: #9a6512; }
+
+/* A row whose control sits BELOW its label rather than beside it: three fields
+   do not fit in the right-hand slot a switch or stepper occupies. */
+.settings-pref-stack { flex-direction: column; align-items: stretch; gap: 12px; }
+.settings-model-fields { display: flex; flex-wrap: wrap; gap: 10px; }
+.settings-model-field {
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+}
+.settings-model-field-grow { flex: 1 1 220px; }
+/* Small caps over the field rather than beside it: three labelled inputs in a
+   row read as a form, and a label to the left of each would double the width. */
+.settings-model-cap {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--muted-2);
+}
+.settings-text {
+  font-family: var(--sans); font-size: 13px; color: var(--ink);
+  background-color: var(--bg-2); border: 1px solid var(--border-2);
+  border-radius: 9px; padding: 7px 10px; line-height: 1.2; min-width: 0;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+.settings-text::placeholder { color: var(--muted-3); }
+.settings-text:hover:not(:disabled) { border-color: var(--border-2); background-color: var(--panel); }
+.settings-text:focus-visible { outline: none; border-color: var(--accent); background-color: var(--panel); }
+.settings-text:disabled { opacity: 0.55; cursor: default; }
+/* A number is read by comparing digits, so it is monospaced and its column does
+   not jiggle as the value changes. */
+.settings-text-num {
+  /* Wide enough for a seven-digit context window (2000000) plus the padding.
+     At 8.5ch a 1000000 clipped to `100000(`, which reads as a different and
+     much smaller number rather than as a truncation. */
+  width: 11ch; font-family: var(--mono); font-variant-numeric: tabular-nums;
+}
+
+/* A number chosen with two buttons. Sits in the same slot as a switch, on the
+   right of a pref row, so the two controls read as the same kind of thing. */
+.settings-stepper {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 3px; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--panel-2);
+}
+.settings-stepper-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid transparent; background: transparent;
+  font: inherit; font-size: 15px; line-height: 1; color: var(--muted);
+  cursor: pointer;
+  transition:
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    color 150ms ease-in-out;
+}
+.settings-stepper-btn:hover:not(:disabled) {
+  background: var(--bg-2); border-color: var(--border-2); color: var(--ink);
+}
+.settings-stepper-btn:active:not(:disabled) {
+  background: var(--accent-100); border-color: var(--accent); color: var(--accent-strong);
+}
+.settings-stepper-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Disabled at the end of the range: dimmed AND inert, and carrying a data-tip
+   that says which end it is rather than just failing to respond. */
+.settings-stepper-btn:disabled { opacity: 0.4; cursor: default; }
+.settings-stepper-value {
+  min-width: 26px; text-align: center;
+  font-size: 14px; font-weight: 600; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.settings-switch {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 6px 10px; border: 1px solid transparent; border-radius: 999px;
+  background: transparent; font: inherit; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.02em; color: var(--muted); cursor: pointer;
+  transition:
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+/* Hover does not rest on the tint: a RING appears around the track, so the
+   "your pointer is on this" feedback is a shape that survives grayscale.
+
+   Every pointer rule is gated on `:not([aria-disabled='true'])` rather than
+   being overridden further down. `aria-disabled` leaves pointer events on, so a
+   refusing switch would otherwise light up and read as live — and an override
+   has to name a value, which FLATTENS whatever the control was saying: hovering
+   a refusing FAILED switch repainted it as a plain resting one and took the
+   failure off the screen. A refusal must suppress the response, not the
+   state. */
+.settings-switch:not([aria-disabled='true']):hover {
+  background: var(--panel-2); border-color: var(--border-2); color: var(--ink);
+}
+.settings-switch:not([aria-disabled='true']):hover .settings-switch-track {
+  box-shadow: 0 0 0 2px var(--border-2);
+}
+.settings-switch.is-on:not([aria-disabled='true']):hover .settings-switch-track {
+  box-shadow: 0 0 0 2px var(--accent-100);
+}
+.settings-switch:not([aria-disabled='true']):active {
+  background: var(--border-2); border-color: var(--muted-3); color: var(--ink);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.settings-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.settings-switch.is-on { color: var(--accent-strong); }
+.settings-switch.is-on:not([aria-disabled='true']):hover {
+  background: var(--accent-soft); border-color: var(--accent-100); color: var(--accent-strong);
+}
+.settings-switch.is-on:not([aria-disabled='true']):active {
+  background: var(--accent-100); border-color: var(--accent); color: var(--accent-strong);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.22);
+}
+/* A switch that refuses input.
+
+   `aria-disabled` as well as `:disabled`, because a control that must EXPLAIN
+   its refusal cannot use `disabled`: Chromium dispatches neither `pointerover`
+   nor `focusin` on a disabled form control, and the tooltip is delegated off
+   exactly those, so the explanation would never be readable. Those controls
+   carry `aria-disabled` and refuse in their handler instead — and without this
+   rule they would look identical to an ordinary enabled switch, which is the
+   whole of "disabled must LOOK disabled". */
+.settings-switch:disabled:not(.is-busy),
+.settings-switch[aria-disabled='true']:not(.is-busy) {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-style: dotted;
+}
+/* The track takes the dotted rim too, so the switch's largest element carries
+   the refusal rather than leaving it to the button's opacity alone. */
+.settings-switch[aria-disabled='true'] .settings-switch-track {
+  border-style: dotted;
+}
+
+/* In flight. Distinct from BOTH resting states and from hover: the write is a
+   round trip to the main process, and a switch that looks unchanged for it
+   invites a second click that toggles straight back. The busy switch also
+   carries `aria-disabled`, and the rules above take its hover away, so this
+   cannot be mistaken for a live control. */
+.settings-switch.is-busy {
+  opacity: 0.6;
+  cursor: progress;
+}
+.settings-switch.is-busy .settings-switch-track {
+  box-shadow: 0 0 0 2px var(--border-2);
+  animation: settings-switch-pulse 1s ease-in-out infinite;
+}
+@keyframes settings-switch-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+/* Honour the OS setting: a pulse is ambient emphasis, not information — the
+   word beside it already says what is happening. */
+@media (prefers-reduced-motion: reduce) {
+  .settings-switch.is-busy .settings-switch-track { animation: none; }
+}
+
+/* Where the recording went. Wraps rather than truncating the path to an
+   ellipsis: a path the user cannot read is a path they cannot open. */
+.settings-devlog-file {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);
+}
+.settings-devlog-path {
+  flex: 1 1 260px; min-width: 0;
+  font-size: 10.5px; line-height: 1.5; color: var(--muted-2);
+  overflow-wrap: anywhere;
+}
+.settings-devlog-size {
+  flex-shrink: 0; font-size: 10.5px; font-weight: 600; color: var(--ink);
+}
+
+.settings-switch-track {
+  position: relative; display: inline-block; width: 38px; height: 21px;
+  border-radius: 999px; border: 1px solid var(--border-2); background: var(--panel-2);
+  transition:
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.settings-switch.is-on .settings-switch-track { background: var(--accent-soft); border-color: var(--accent); }
+.settings-switch-knob {
+  position: absolute; top: 1px; left: 1px; width: 17px; height: 17px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 999px; border: 1px solid var(--muted-3); background: var(--bg-2);
+  font-size: 9px; line-height: 1; color: var(--muted-2);
+  transition:
+    transform 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    color 150ms ease-in-out;
+}
+.settings-switch.is-on .settings-switch-knob {
+  transform: translateX(17px); border-color: var(--accent-strong); color: var(--accent-strong);
+}
+/* Reserved so the row does not shift width as the word changes length. */
+.settings-switch-word { min-width: 46px; text-align: left; }
+
+/* The same switch standing on its own in a toolbar rather than at the end of a
+   settings row: it carries its own label, so it needs the full-width fill and a
+   visible resting edge that the settings variant gets from the row around it. */
+.switch-field {
+  width: 100%;
+  justify-content: flex-start;
+  border-color: var(--border);
+  border-radius: 10px;
+  padding: 5px 9px;
+}
+.switch-field-label { flex: 1 1 auto; text-align: left; color: inherit; }
+/* The word is the STATE and the label is the subject, so the two must not read
+   as one phrase. Right-aligned against a rule, the way a value sits against a
+   field name everywhere else in the app. */
+.switch-field .settings-switch-word {
+  flex: 0 0 auto;
+  text-align: right;
+  min-width: 52px;
+  padding-left: 9px;
+  border-left: 1px solid var(--border-2);
+}
+.switch-field.is-on .settings-switch-word { border-left-color: var(--accent-100); }
+@media (prefers-reduced-motion: reduce) {
+  .settings-switch, .settings-switch-track, .settings-switch-knob { transition: none; }
+}
+
+/* ------------------------------------------------- Third-party licences modal
+   Every state of the expandable row is styled and MUTUALLY DISTINCT, proven by
+   scripts/check-licence-states.mjs. Each one changes at least two of
+   {background, border, ring, weight} so none reads by colour alone, and each
+   transitions rather than snapping. */
+.lic-filter {
+  width: 100%; box-sizing: border-box; margin-bottom: 16px;
+  padding: 9px 12px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--bg-2); color: var(--ink); font: inherit; font-size: 13px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.lic-filter::placeholder { color: var(--muted-3); }
+.lic-filter:hover { border-color: var(--border-2); background: #fffdfa; }
+.lic-filter:focus-visible {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-100); background: var(--bg-2);
+}
+/* Focus AND hover is its own state, not a repeat of focus: the pointer must
+   still get an answer over an already-focused field, or it reads as dead. */
+.lic-filter:focus-visible:hover { background: #fffdfa; box-shadow: 0 0 0 4px var(--accent-100); }
+.lic-list { display: flex; flex-direction: column; gap: 6px; }
+.lic-row {
+  border: 1px solid var(--border); border-radius: 11px; overflow: hidden;
+  background: var(--bg-2);
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, background 0.2s ease;
+}
+/* Expanded is an AMBIENT emphasis (slower), pointer feedback below is faster. */
+.lic-row.is-open {
+  border-color: var(--border-2); background: #fdfbf8;
+  box-shadow: 0 6px 18px -12px rgba(33, 26, 18, 0.3);
+}
+.lic-head {
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border: none; background: transparent; font: inherit; cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.lic-head:hover { background: var(--panel); }
+/* Pressed is darker AND inset, so it never merely repeats hover. */
+.lic-head:active { background: var(--panel-2); box-shadow: inset 0 2px 4px rgba(33,26,18,.1); }
+.lic-head:focus-visible {
+  outline: none; background: var(--accent-soft);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+/* Keyboard focus plus a pointer over it is a distinct situation from either
+   alone; without this the hover is swallowed and the row stops responding. */
+.lic-head:focus-visible:hover { background: var(--accent-100); box-shadow: inset 0 0 0 3px var(--accent); }
+.lic-caret {
+  width: 12px; flex-shrink: 0; color: var(--accent); font-size: 10px;
+  display: inline-block; transition: transform 0.2s ease;
+}
+.lic-caret.open { transform: rotate(90deg); }
+.lic-name { flex: 1; min-width: 0; font-size: 12.5px; color: var(--ink); overflow-wrap: anywhere; }
+/* The expanded row's own name goes bold — the open state is not carried by
+   background alone. */
+.lic-row.is-open .lic-name { font-weight: 600; }
+.lic-version { font-size: 10.5px; color: var(--muted-3); flex-shrink: 0; }
+.lic-spdx {
+  flex-shrink: 0; font-size: 10px; padding: 2px 7px; border-radius: 999px;
+  border: 1px solid var(--border-2); background: var(--panel); color: var(--muted);
+}
+/* A bundled BINARY is the licence-critical class, so it is outlined and heavier
+   as well as tinted. */
+.lic-spdx.is-payload {
+  border-color: #f6d3b6; background: var(--accent-soft); color: var(--accent-strong);
+  font-weight: 600;
+}
+.lic-body {
+  border-top: 1px solid var(--border); padding: 10px 12px 12px 34px;
+  animation: licBodyIn 0.2s ease both;
+}
+@keyframes licBodyIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+.lic-purpose { margin: 0 0 5px; font-size: 12px; color: #5a5147; line-height: 1.45; }
+.lic-home { margin: 0 0 8px; font-size: 10.5px; color: var(--muted-3); overflow-wrap: anywhere; }
+.lic-actions { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+.lic-copy { font-size: 11px; padding: 4px 10px; transition: all 0.15s ease; }
+/* Acknowledged, not just recoloured: the label itself changes to "✓ Copied". */
+.lic-copy.is-copied {
+  border-color: var(--ok); background: var(--ok-soft); color: var(--ok); font-weight: 600;
+}
+.lic-text {
+  max-height: 300px; overflow: auto; margin: 0;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 9px;
+  background: var(--panel); color: #4a423a;
+  font-size: 10.5px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.lic-note { font-size: 11.5px; color: var(--muted-2); padding: 6px 0; }
+/* Busy carries a MOVING signal plus its own tint and inset rule, so it can
+   never be mistaken for the settled "no text available" note that shares the
+   base class — the two used to render byte-identically. */
+.lic-note.is-busy {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--accent-strong); padding: 8px 10px;
+  border-left: 2px solid var(--accent); background: var(--accent-soft); border-radius: 0 8px 8px 0;
+}
+/* An empty RESULT is a different fact from "upstream ships no text", so it does
+   not wear the same neutral note: it is centred and boxed, saying the list is
+   intact and the filter is what is hiding it. */
+.lic-note.is-empty {
+  text-align: center; padding: 16px 12px; line-height: 1.5;
+  border: 1px dashed var(--border-2); border-radius: 10px; background: var(--panel);
+}
+.lic-spin {
+  width: 11px; height: 11px; flex-shrink: 0; border-radius: 50%;
+  border: 2px solid var(--accent-100); border-top-color: var(--accent);
+  animation: licSpin 0.7s linear infinite;
+}
+@keyframes licSpin { to { transform: rotate(360deg); } }
+/* The busy INDICATOR keeps a distinct look when motion is off — a ring that is
+   simply frozen still says "not the same as the settled note", which is the
+   whole reason it exists. Only the movement goes. */
+@media (prefers-reduced-motion: reduce) {
+  .lic-body { animation: none; }
+  .lic-spin { animation: none; border-top-color: var(--accent-strong); }
+}
+/* Failure is ringed and bold as well as tinted — never colour alone. */
+.lic-note.is-failed {
+  color: var(--danger-strong); font-weight: 600;
+  border: 1px solid var(--danger); border-radius: 9px;
+  background: var(--danger-soft); padding: 8px 10px;
+}
+
+/* Full-bleed route area: takes all remaining window width next to the sidebar.
+   Padding is for readability only — screen content spans the full width. */
+.route-area { flex: 1; min-width: 0; overflow-y: auto; padding: 24px 26px; }
+.screen { width: 100%; animation: screenIn 0.28s ease; }
+.route-title { font-size: 22px; font-weight: 700; color: var(--ink-2); margin: 4px 0 2px; }
+.route-sub { color: var(--muted); font-size: 14px; margin-bottom: 4px; }
+.screen-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.screen-head-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* -------------------------------------------------------------- primitives */
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius-card); padding: 16px 18px; margin-bottom: 14px;
+}
+.card-title { font-weight: 600; color: var(--ink-2); margin-bottom: 8px; }
+.pill {
+  border-radius: 999px; padding: 2px 10px; font-size: 11px; font-family: var(--mono);
+  background: var(--panel-2); color: var(--muted); white-space: nowrap;
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 4px; border-radius: 999px;
+  padding: 1px 9px; font-size: 11px; font-family: var(--mono); white-space: nowrap;
+  border: 1px solid transparent;
+}
+.badge-ok { background: #e7f2eb; color: var(--ok); border-color: #cfe6d8; }
+.badge-warn { background: #fbf1dd; color: var(--warn); border-color: #f0e0bd; }
+.badge-danger { background: #f9e6e3; color: var(--danger); border-color: #f0cdc7; }
+.badge-accent { background: var(--accent-soft); color: var(--accent-strong); border-color: var(--accent-100); }
+.badge-muted { background: var(--panel-2); color: var(--muted); border-color: var(--border); }
+
+/* "This did not come from your machine." Shared by the Paper, Review and
+   Extraction provenance surfaces, so it is styled once here rather than copied
+   into each screen's sheet.
+
+   It carries its explanation in a tooltip and is therefore focusable, so it
+   owns a full state space: default / hover / active / focus-visible. The two
+   ORIGINS are also distinguishable without reading the label, and not by colour
+   alone — `imported` takes a dashed border, because it is the one the user
+   could have caused (an import they performed) rather than one that arrived in
+   the download. */
+.run-origin-badge {
+  cursor: help;
+  transition:
+    box-shadow 150ms ease-in-out,
+    filter 150ms ease-in-out;
+}
+.run-origin-badge[data-origin='imported'] { border-style: dashed; }
+.run-origin-badge:hover {
+  filter: brightness(0.96);
+  box-shadow: 0 0 0 2px var(--border-2);
+}
+.run-origin-badge:active { filter: brightness(0.92); }
+.run-origin-badge:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
+.btn {
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  border-radius: 10px; padding: 8px 14px; cursor: pointer; border: 1px solid transparent;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-strong); }
+.btn-primary:disabled { opacity: 0.6; cursor: default; }
+.btn-secondary { background: var(--panel); border-color: var(--border-2); color: var(--ink); }
+.btn-secondary:hover { background: var(--panel-2); }
+.btn-secondary:active { background: var(--border); }
+.btn-secondary:disabled { opacity: 0.5; cursor: default; background: var(--panel); }
+.btn-primary:active:not(:disabled) { background: var(--accent-strong); filter: brightness(0.94); }
+/* Destructive action. The tone does not rest on the colour alone: the button
+   carries a ⚠ glyph, wears a darker inset rim than any other filled button, and
+   takes a doubled --danger focus ring. */
+.btn-danger { background: var(--danger); border-color: color-mix(in srgb, var(--danger) 72%, #000); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.16); }
+.btn-danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 88%, #000); }
+.btn-danger:active:not(:disabled) { background: color-mix(in srgb, var(--danger) 74%, #000); box-shadow: inset 0 2px 4px rgba(0,0,0,.28); }
+.btn-danger:disabled { opacity: 0.45; cursor: default; }
+/* Unavailable but still focusable and still hoverable, so the tooltip saying
+   WHY can reach the user. A real `disabled` attribute would suppress both. */
+.btn[aria-disabled='true'] { opacity: 0.45; cursor: default; }
+/* Neutralise the variant hovers, which key off :not(:disabled) and would
+   otherwise still light up an unavailable button. */
+.btn-danger[aria-disabled='true']:hover { background: var(--danger); }
+.btn-primary[aria-disabled='true']:hover { background: var(--accent); }
+.btn-secondary[aria-disabled='true']:hover { background: var(--panel); }
+/* And the PRESSES, for the same reason and more urgently: the variant :active
+   rules also key off :not(:disabled), which an aria-disabled button passes, so
+   pressing an unavailable button paints the full pressed fill — the one piece
+   of feedback that reads as "that worked". */
+.btn[aria-disabled='true']:active { box-shadow: none; filter: none; transform: none; }
+.btn-danger[aria-disabled='true']:active { background: var(--danger); }
+.btn-primary[aria-disabled='true']:active { background: var(--accent); }
+.btn-secondary[aria-disabled='true']:active { background: var(--panel); }
+/* The answer the user is carrying out.
+   Distinct from :active — which it would otherwise be pixel-identical to — by
+   the moving glyph and the lifted rim, not by a shade of the same fill; and
+   distinct from the plain :disabled the OTHER two buttons wear at that same
+   moment by staying at full opacity. */
+.btn.is-busy { opacity: 1 !important; cursor: progress; }
+.btn.is-busy .btn-glyph { animation: btn-glyph-pulse 900ms ease-in-out infinite; }
+.btn-danger.is-busy { box-shadow: inset 0 0 0 2px rgba(255,255,255,.42); }
+.btn-primary.is-busy { box-shadow: inset 0 0 0 2px rgba(255,255,255,.42); }
+.btn-secondary.is-busy { box-shadow: inset 0 0 0 2px var(--accent); }
+@keyframes btn-glyph-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) {
+  .btn.is-busy .btn-glyph { animation: btn-glyph-pulse 2.4s steps(2) infinite; }
+}
+/* Leading glyph inside a button — the non-colour half of a tone signal. */
+.btn-glyph { margin-right: 6px; font-size: 11px; line-height: 1; }
+.btn { transition: background 0.07s ease, border-color 0.07s ease, opacity 0.07s ease, filter 0.07s ease, box-shadow 0.12s ease; }
+
+/* A button that is WORKING, as opposed to one that is merely unavailable.
+ *
+ * The shared .btn transition is 70ms, which is right for hover -- a press should feel
+ * instant -- and wrong for this: the state change lands within a frame or two and reads as
+ * the label teleporting rather than the button responding. The dim is slowed to 220ms and
+ * given a slow pulse, so an action that finishes in 50ms still LOOKS like something ran.
+ *
+ * Keyed off [data-busy] rather than :disabled, so a control that is disabled for an ordinary
+ * reason -- nothing to do, not permitted -- keeps the flat, immediate treatment it wants. */
+.btn[data-busy='true'] {
+  transition: opacity 0.22s ease, background 0.22s ease;
+  animation: btnBusyPulse 1.1s ease-in-out infinite;
+}
+
+@keyframes btnBusyPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.74; }
+}
+
+/* Someone who asked the OS for less motion keeps the fade and loses the pulse. */
+@media (prefers-reduced-motion: reduce) {
+  .btn[data-busy='true'] { animation: none; }
+}
+
+/* Add-to-dossier toggle. ONE definition for every place it appears (a Ranking
+   row, the Paper header) so they cannot drift apart. Off is a quiet outlined
+   button — most rows never need this action; on is filled accent, and the star
+   fills too, so the state survives without relying on colour. */
+.dossier-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--border-2); color: var(--muted);
+}
+.dossier-toggle-sm { padding: 4px 9px; font-size: 11.5px; border-radius: 8px; }
+.dossier-toggle-md { padding: 7px 13px; font-size: 12.5px; border-radius: 9px; }
+.dossier-toggle:hover { color: var(--ink); border-color: var(--accent); background: var(--panel-2); }
+.dossier-toggle:active { background: var(--border); }
+.dossier-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dossier-toggle.is-on { color: #fff; border-color: var(--accent); background: var(--accent); }
+.dossier-toggle.is-on:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.dossier-toggle.is-on:active { background: var(--accent-strong); filter: brightness(0.94); }
+/* AT THE LIMIT: the project already holds as many context papers as it may, so
+   this one cannot go in. Muted and flattened, with the cursor saying the press
+   will not land — and it keeps its hover, because the hover is what carries the
+   sentence explaining why. A `disabled` attribute would have taken that away
+   along with the click. Ordered AFTER `.is-on` so a paper already in the
+   context keeps its filled state: `.is-blocked` is only ever set when the
+   toggle is off. */
+.dossier-toggle.is-blocked {
+  color: var(--muted-3);
+  border-color: var(--border);
+  background: var(--panel);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+.dossier-toggle.is-blocked:hover {
+  color: var(--muted-2);
+  border-color: var(--border-2);
+  background: var(--panel);
+}
+.dossier-toggle.is-blocked:active { background: var(--panel); }
+/* `.btn`'s transition covers background and border-COLOR but not border-STYLE,
+   so the solid-to-dashed flip arrived in one frame while the colour eased —
+   half the change animated and half snapped. Naming the shorthand transitions
+   the style with it. */
+.dossier-toggle.is-blocked { transition: border 150ms ease-in-out, color 150ms ease-in-out; }
+/* `aria-disabled` keeps this focusable, so a keyboard user reaches it — and the
+   accent ring every other button wears would say "this will act". Warn-coloured
+   and dashed to match the state the pointer sees. */
+.dossier-toggle.is-blocked:focus-visible {
+  outline: 2px dashed var(--warn);
+  outline-offset: 2px;
+}
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* AFTER .btn:focus-visible, which has the same specificity and would otherwise
+   win on source order and reset the colour via its `outline` shorthand. */
+.btn-danger:focus-visible { outline: 3px solid var(--danger); outline-offset: 3px; }
+.btn-icon { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 14px; }
+.btn-link { background: none; border: none; color: var(--accent-strong); cursor: pointer; font-family: var(--mono); font-size: 12px; padding: 0; transition: color 150ms ease-in-out, text-decoration-color 150ms ease-in-out; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 3px; }
+/* It is a link, so it underlines on hover — without this, default, hover and
+   active were the same three pixels and the control looked inert. */
+.btn-link:hover { color: var(--accent); text-decoration-color: currentColor; }
+.btn-link:active { color: var(--ink); text-decoration-color: currentColor; }
+.btn-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.btn-link:disabled { color: var(--muted-3); cursor: default; text-decoration-color: transparent; }
+.btn-mini { background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; font-size: 10px; padding: 1px 6px; cursor: pointer; color: var(--muted); margin-left: 6px; }
+/* Icon-only secondary action (audit: frontier save/resume). Square, same
+   surface as .btn-secondary; the accessible name lives on aria-label + title. */
+.btn-icon-only {
+  background: var(--panel); border: 1px solid var(--border-2); color: var(--muted);
+  border-radius: 10px; padding: 0; width: 34px; height: 34px;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.btn-icon-only:hover { background: var(--panel-2); color: var(--ink); }
+.show-more { margin-top: 12px; }
+.rank-count { color: var(--muted); font-size: 12px; padding: 6px 2px; }
+
+.input {
+  font-family: var(--sans); font-size: 13px; color: var(--ink);
+  background: var(--bg-2); border: 1px solid var(--border-2); border-radius: 10px;
+  padding: 8px 11px; width: 100%;
+}
+.input:focus { outline: none; border-color: var(--accent); }
+.input-sm { padding: 6px 9px; width: auto; }
+.textarea { resize: vertical; font-family: var(--sans); }
+
+/* -------------------------------------------------------------- dropdowns / menus
+   GLOBAL styling so every native <select> and shared menu across all screens
+   matches the app's design tokens (no per-screen overrides needed). Tokens only. */
+
+/* Styled dropdown (components/ui.tsx <Select>). Chromium hands the native
+   <select> popup to the OS/GTK widget, which CSS cannot reach — `select option`
+   is simply ignored on Linux, so the OPEN list never matched the app. Only a
+   custom listbox can be styled. The trigger mirrors the native `select` rules
+   below it so both read identically. */
+.sel-trigger {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--sans); font-size: 13px; color: var(--ink);
+  background-color: var(--bg-2); border: 1px solid var(--border-2);
+  border-radius: 10px; padding: 8px 11px; cursor: pointer;
+  line-height: 1.2; text-align: left;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+.sel-trigger:hover { border-color: var(--muted-3); background-color: var(--panel); }
+/* PRESSED is its own place, not a repeat of hover: without it the pointer-down
+   on a dropdown resolved identically to hovering it, so the click read as
+   unregistered on the one control whose whole job is to open something. */
+.sel-trigger:active { border-color: var(--muted-2); background-color: var(--panel-2); }
+.sel-trigger:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-100); }
+.sel-trigger:focus-visible:hover { border-color: var(--accent-strong); box-shadow: 0 0 0 3px var(--accent-soft); }
+/* OPEN is a base the pointer can still move, not a terminal look. Written after
+   `:hover`/`:active` at equal specificity, a flat `[aria-expanded]` rule simply
+   overwrote them — so an open dropdown resolved identically hovered, pressed
+   and at rest, and the pointer read as dead over the control the user was in
+   the middle of using. Each interaction therefore gets its own open variant. */
+.sel-trigger[aria-expanded='true'] { border-color: var(--accent); background-color: var(--panel); }
+.sel-trigger[aria-expanded='true']:hover { border-color: var(--accent-strong); background-color: var(--panel-2); }
+.sel-trigger[aria-expanded='true']:active { border-color: var(--accent-strong); background-color: var(--accent-soft); }
+.sel-trigger[aria-expanded='true']:focus-visible { border-color: var(--accent-strong); box-shadow: 0 0 0 3px var(--accent-100); }
+.sel-trigger[aria-expanded='true']:focus-visible:hover { background-color: var(--panel-2); box-shadow: 0 0 0 3px var(--accent-soft); }
+.sel-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sel-caret { flex-shrink: 0; color: var(--muted); transition: transform 0.16s ease-in-out, color 0.16s ease-in-out; }
+/* The caret points where the list will go, so it turns with it. */
+.sel-trigger[aria-expanded='true'] .sel-caret { transform: rotate(180deg); color: var(--accent); }
+
+/* Portalled to <body> — the ranked-works list is a scroll container that would
+   otherwise clip the popup — so position is fixed, set inline from the rect.
+   ABOVE `.modal-backdrop` (100), because the portal makes the popup a sibling
+   of the modal rather than a child: dropdowns inside Settings and the outlet
+   panels opened UNDERNEATH the dialog that owns them, which looks exactly like
+   a trigger that does nothing. Nothing is dismissed by it — the popup closes on
+   any outside pointerdown — so sitting above the backdrop costs the modal
+   nothing. */
+.sel-menu {
+  position: fixed; z-index: 110; margin: 0; list-style: none;
+  max-height: 280px; overflow-y: auto;
+}
+.sel-option { cursor: pointer; justify-content: space-between; }
+/* Two distinct states: `is-active` follows the arrow keys, `is-selected` marks
+   the stored value. */
+.sel-option.is-active { background: var(--panel-2); }
+.sel-option.is-selected { color: var(--accent-strong); font-weight: 600; }
+.sel-option.is-selected::after { content: '✓'; font-size: 11px; }
+/* Both spellings: `MultiSelect` disables natively, `Select` uses `aria-disabled`
+   so the trigger keeps its tooltip and stays reachable to say WHY it is inert.
+   The dashed border is what makes the two tell apart from a merely faded
+   control — opacity alone reads as a rendering artefact rather than a state. */
+.sel-trigger:disabled,
+.sel-trigger.is-disabled {
+  opacity: 0.55; cursor: not-allowed;
+  border-style: dashed; background-color: var(--panel-2); color: var(--muted-2);
+}
+.sel-trigger:disabled:hover,
+.sel-trigger.is-disabled:hover { border-color: var(--border-2); background-color: var(--panel-2); }
+.sel-trigger.is-disabled:active { border-color: var(--border-2); background-color: var(--panel-2); }
+.sel-trigger.is-disabled .sel-caret { color: var(--muted-2); }
+/* The trigger says something is being hidden even while the menu is shut —
+   colour alone would not survive a colourblind reader, so the border carries it
+   too and the label goes bold. A FILL as well, because a border tint alone put
+   `narrowed` within one property of the resting state on a busy filter row.
+   Every interaction it can be in is then pushed further again: a narrowed
+   trigger that hovers to exactly what it already looked like tells the reader
+   their pointer is dead over the one control that is hiding their data. */
+.sel-trigger.is-narrowed {
+  border-color: var(--accent-100); color: var(--accent-strong); font-weight: 600;
+  background-color: var(--accent-soft);
+}
+.sel-trigger.is-narrowed:hover { border-color: var(--accent); background-color: var(--accent-100); }
+.sel-trigger.is-narrowed:active {
+  border-color: var(--accent-strong);
+  background-color: color-mix(in srgb, var(--accent) 22%, var(--bg-2));
+}
+.sel-trigger.is-narrowed:focus-visible {
+  border-color: var(--accent-strong); background-color: var(--accent-soft);
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+.sel-trigger.is-narrowed:focus-visible:hover {
+  background-color: var(--accent-100); box-shadow: 0 0 0 3px var(--accent-soft);
+}
+/* Narrowed AND open, with its own ramp again — same reason as above. The fill
+   alone could not separate them: a narrowed trigger already walks the accent
+   ramp on hover and press, so every tint dark enough to read as "open" was one
+   the shut control could also reach. The INSET is the second axis, and it is
+   the honest one — the popup is attached below, so the trigger sits pressed
+   into the surface for as long as it is showing it. */
+.sel-trigger.is-narrowed[aria-expanded='true'] {
+  border-color: var(--accent-strong); background-color: var(--accent-100);
+  box-shadow: inset 0 1px 3px rgba(120, 60, 10, 0.18);
+}
+.sel-trigger.is-narrowed[aria-expanded='true']:hover {
+  background-color: color-mix(in srgb, var(--accent) 22%, var(--bg-2));
+  box-shadow: inset 0 1px 3px rgba(120, 60, 10, 0.18);
+}
+.sel-trigger.is-narrowed[aria-expanded='true']:active {
+  background-color: color-mix(in srgb, var(--accent) 32%, var(--bg-2));
+  box-shadow: inset 0 2px 4px rgba(120, 60, 10, 0.24);
+}
+/* The ring and the open inset COMPOSITED, not one replacing the other: a focus
+   ring that erased the inset would take "this list is open" off the screen the
+   moment the keyboard reached it. */
+.sel-trigger.is-narrowed[aria-expanded='true']:focus-visible {
+  background-color: var(--accent-100);
+  box-shadow: inset 0 1px 3px rgba(120, 60, 10, 0.18), 0 0 0 3px var(--accent-soft);
+}
+.sel-trigger.is-narrowed[aria-expanded='true']:focus-visible:hover {
+  background-color: color-mix(in srgb, var(--accent) 22%, var(--bg-2));
+  box-shadow: inset 0 1px 3px rgba(120, 60, 10, 0.18), 0 0 0 3px var(--accent-100);
+}
+.sel-trigger.is-narrowed .sel-caret { color: var(--accent-strong); }
+
+/* A multi row leads with its own tick box, so the trailing ✓ that marks a
+   single-choice selection would be a second, contradictory mark on the same
+   line. The box is at the START because it is what the user aims at. */
+.sel-option-multi { justify-content: flex-start; gap: 9px; }
+.sel-option-multi.is-selected::after { content: none; }
+.sel-tick {
+  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  width: 15px; height: 15px; border-radius: 4px;
+  border: 1px solid var(--border-2); background: var(--bg-2); color: transparent;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+.sel-tick.is-on { background: var(--accent); border-color: var(--accent); color: var(--bg-2); }
+.sel-option-multi:not(.is-disabled):hover .sel-tick { border-color: var(--accent); }
+.sel-option-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* An index that was searched and came back with nothing. Shown, not hidden, so
+   "no match here" is distinguishable from "never asked" — and it says which. */
+.sel-option-multi.is-disabled { cursor: default; opacity: 0.5; }
+.sel-option-multi.is-disabled:hover { background: transparent; }
+.sel-option-note { flex-shrink: 0; font-size: 11px; color: var(--muted); font-style: italic; }
+
+/* NOTHING IN THE APP RENDERS ONE. Every dropdown is the `.sel-trigger` listbox
+   above, because Chromium hands a native popup to the OS/GTK widget and the
+   open list then ignores the app's design entirely. This block is the backstop
+   for a `<select>` that gets written anyway: it makes the CLOSED control blend
+   in, so a stray one is not obvious until it is opened. Prefer `<Select>`. */
+select {
+  font-family: var(--sans); font-size: 13px; color: var(--ink);
+  background-color: var(--bg-2); border: 1px solid var(--border-2);
+  border-radius: 10px; padding: 8px 34px 8px 11px; cursor: pointer;
+  line-height: 1.2; appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  /* Caret drawn in the --muted token colour (URL-encoded #6b6157). */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20' fill='none' stroke='%236b6157' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+select:hover { border-color: var(--border-2); background-color: var(--panel); }
+select:focus, select:focus-visible {
+  outline: none; border-color: var(--accent);
+}
+select:disabled { opacity: 0.6; cursor: default; }
+/* Native option list — honoured by some platforms; harmless elsewhere. */
+select option { background: var(--bg-2); color: var(--ink); }
+
+/* Shared custom menu surface (popover-style dropdown lists). Extends the
+   existing .popover/.pop-row primitives so any screen using .menu picks up the
+   design automatically. */
+.menu {
+  background: var(--bg-2); border: 1px solid var(--border-2); border-radius: 12px;
+  box-shadow: 0 12px 32px -16px rgba(40, 35, 28, .35);
+  padding: 6px; min-width: 180px; display: flex; flex-direction: column; gap: 2px;
+}
+.menu-item {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  background: none; border: none; border-radius: 8px; padding: 8px 10px;
+  font: inherit; font-size: 13px; color: var(--ink); cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.menu-item:hover { background: var(--panel-2); }
+.menu-item:focus-visible { outline: none; background: var(--panel-2); }
+.menu-item.active { background: var(--accent-soft); color: var(--accent-strong); }
+.menu-item:disabled { opacity: 0.55; cursor: default; }
+
+.empty { color: var(--muted-2); font-style: italic; padding: 6px 0; }
+.empty-state { text-align: center; padding: 40px 20px; }
+.empty-state-title { font-weight: 600; color: var(--ink-2); }
+.empty-state-hint { color: var(--muted); margin-top: 6px; font-size: 13px; }
+.empty-state-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+.state-error-msg { color: var(--danger); font-size: 12px; margin-top: 6px; word-break: break-word; }
+.app-error-boundary { padding: 24px; }
+
+/* -------------------------------------------------------------- chips / popover / modal */
+.chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.chip {
+  border-radius: 999px; padding: 4px 12px; font-size: 12px; font-family: var(--mono);
+  background: var(--panel); border: 1px solid var(--border-2); color: var(--muted); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.chip-active { background: var(--accent-soft); border-color: var(--accent-100); color: var(--accent-strong); }
+.chip-count { font-size: 10px; color: var(--muted-2); }
+
+.popover-wrap { position: relative; display: inline-block; }
+.popover {
+  position: absolute; z-index: 40; top: calc(100% + 6px); right: 0; min-width: 240px; max-width: 360px;
+  background: var(--bg-2); border: 1px solid var(--border-2); border-radius: 12px;
+  box-shadow: 0 12px 32px -16px rgba(40,35,28,.35); padding: 12px 14px;
+}
+.pop-title { font-weight: 600; font-size: 12px; margin-bottom: 6px; color: var(--ink-2); }
+.pop-body { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.pop-row { display: block; width: 100%; text-align: left; background: none; border: none; padding: 6px 4px; cursor: pointer; font-size: 13px; color: var(--ink); border-radius: 6px; }
+.pop-row:hover { background: var(--panel-2); }
+
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 100; background: rgba(33,26,18,.28);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal {
+  background: var(--bg); border: 1px solid var(--border-2); border-radius: 18px;
+  width: 568px; max-width: 92vw; box-shadow: 0 30px 80px -30px rgba(33,26,18,.24);
+  max-height: calc(100vh - 80px); overflow: auto;
+  padding: 0 22px 22px; animation: screenIn 0.4s ease both;
+}
+/* Header band is full-bleed (cancels the container's side padding) so its
+   bottom border spans edge-to-edge, matching the design's split header. */
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 0 -22px 18px; padding: 20px 22px; border-bottom: 1px solid var(--panel-2);
+}
+.modal-head .btn-icon {
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); border-radius: 9px; background: var(--bg-2);
+  color: var(--muted-2); font-size: 17px; line-height: 1; transition: all 0.16s ease;
+}
+.modal-head .btn-icon:hover { background: var(--panel); color: var(--ink); }
+/* This ✕ is what `Modal` auto-focuses on open, so every modal in the app used
+   to open with the keyboard on a control wearing the browser's default ring
+   rather than the app's — and with no pressed state at all. It is not a `.btn`,
+   so the shared `.btn:focus-visible` rule never reached it. */
+.modal-head .btn-icon:active { background: var(--panel-2); color: var(--ink); transform: scale(0.94); }
+.modal-head .btn-icon:focus-visible {
+  outline: none; background: var(--accent-soft); color: var(--accent-strong);
+  border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-100);
+}
+.modal-head .btn-icon:focus-visible:hover { background: var(--accent-100); border-color: var(--accent-strong); }
+.modal-body { display: flex; flex-direction: column; gap: 6px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+/* ---- close prompt (asked when quitting mid-analysis) ---- */
+/* Keyed on the phase in the JSX, so asking → finishing crossfades instead of
+   swapping the whole modal in one frame. */
+.cgd-body { animation: cgd-phase-in 180ms ease-out both; }
+@keyframes cgd-phase-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+.cgd-lede { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+.cgd-wait { display: flex; align-items: center; gap: 10px; }
+.cgd-wait-text { font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+.cgd-spinner {
+  flex: 0 0 auto; width: 15px; height: 15px; border-radius: 50%;
+  border: 2px solid var(--border-2); border-top-color: var(--accent);
+  animation: cgd-spin 720ms linear infinite;
+}
+@keyframes cgd-spin { to { transform: rotate(360deg); } }
+.cgd-count { margin-top: 9px; font-size: 11px; color: var(--muted); }
+.cgd-slow {
+  margin-top: 11px; padding: 9px 11px; font-size: 12px; line-height: 1.45;
+  color: var(--ink-2); background: var(--panel);
+  border: 1px solid var(--border-2); border-left: 3px solid var(--warn);
+  border-radius: 9px;
+  animation: cgd-phase-in 180ms ease-out both;
+}
+/* Keyed on the phase too: the middle button disappears between phases, so the
+   row is re-created and fades in with the body rather than snapping. */
+.cgd-actions { flex-wrap: wrap; animation: cgd-phase-in 180ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .cgd-body, .cgd-slow, .cgd-actions { animation: none; }
+  /* The spinner is the only signal that the wait is live, so it keeps turning —
+     slowed to a step so it no longer sweeps. */
+  .cgd-spinner { animation: cgd-spin 3s steps(8) infinite; }
+}
+
+.form { display: flex; flex-direction: column; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; align-items: center; margin-top: 6px; }
+.form-error { color: var(--danger); font-size: 12px; }
+
+/* ------------------------------------------------------- new-project wizard
+   Scoped to `:has(.wizard-shell)` so the other `<Modal>` consumers keep the
+   shared 568px form width. Wide enough that an archive's title and facts are
+   lines rather than ellipses.
+
+   HEIGHT FOLLOWS THE CONTENT here, and the viewport only in the import branch.
+   The fixed clamp existed because the create form carried a folded fourteen-line
+   brief, and unfolding it must not resize the dialog under the pointer. That
+   editor is gone — the form asks for a name — and the clamp then held a 460px
+   dialog open around two controls, most of it blank. Nothing in this branch
+   changes size any more, so there is nothing for a fixed height to steady. */
+.modal:has(.wizard-shell) {
+  width: clamp(620px, 46vw, 860px);
+  max-width: 94vw;
+}
+.modal:has(.wizard-shell) .modal-head .card-title { font-size: 19px; letter-spacing: -0.01em; }
+.modal:has(.wizard-shell) .form-error {
+  font-size: var(--fs-set-help); line-height: 1.5;
+  padding: 10px 13px; border-radius: 10px;
+  color: var(--danger-strong); background: var(--danger-soft);
+  border-left: 3px solid var(--danger);
+}
+.wizard-shell {
+  display: flex; flex-direction: column; gap: 0;
+  max-height: calc(100vh - 170px);
+}
+/* The IMPORT branch keeps a floor. Its body is a summary of whatever archive
+   was chosen — a project with no PDFs and no index states two notes, one with
+   nine states four — so without it the dialog would jump between file
+   choices. */
+.wizard-shell:has(.import-summary) {
+  height: clamp(460px, 68vh, 760px);
+}
+/* Only this scrolls, so Cancel / Create never slide off the bottom of a long
+   brief. The negative side margin lets the focus ring of a full-width input
+   clear the scroll edge. */
+.wizard-body {
+  flex: 1; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 22px;
+  padding: 2px 2px 20px;
+}
+.wizard-field { gap: 7px; }
+/* The thing being asked for, at the heading step: these were 12px --muted,
+   the same weight as the help text under them, so nothing said where to start. */
+.wizard-label {
+  font-size: var(--fs-set-h3); font-weight: 650; color: var(--ink);
+  letter-spacing: -0.005em;
+}
+.wizard-help {
+  font-size: var(--fs-set-help); line-height: 1.5; color: var(--muted);
+  margin-top: -2px; max-width: 62ch;
+}
+.wizard-shell .input { font-size: var(--fs-set-body); padding: 10px 13px; }
+
+/* The import entry point, below a rule: creating a project is the common case,
+   so importing sits after it as an alternative rather than a competing button
+   of the same weight. It is the last thing in the SCROLLING body, so it is no
+   longer crowded level with the footer's two actions. */
+.wizard-import {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 18px; flex-wrap: wrap;
+  margin-top: 4px; padding: 16px 18px;
+  border: 1px solid var(--border); border-radius: var(--radius-card);
+  background: var(--panel);
+}
+.wizard-import-text {
+  flex: 1 1 300px; display: flex; flex-direction: column; gap: 3px;
+  font-size: var(--fs-set-help); line-height: 1.5; color: var(--muted);
+}
+.wizard-import-title { font-size: var(--fs-set-body); font-weight: 600; color: var(--ink-2); }
+/* Separated from the body by a rule and its own padding, so the two actions
+   are not a third thing competing in the bottom fifth of the dialog. */
+.wizard-footer {
+  flex-shrink: 0; margin-top: 0; padding-top: 18px;
+  border-top: 1px solid var(--border-2);
+}
+
+/* What an archive holds, shown before it is imported. Tinted like the other
+   "something is about to be added" surfaces so the whole family reads together,
+   and bordered in the accent because this panel is the decision point. */
+.import-summary {
+  border: 1px solid var(--accent-100); border-radius: var(--radius-card);
+  background: var(--accent-soft); padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.import-project { font-size: 16px; font-weight: 700; color: var(--ink-2); }
+.import-desc { font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+/* The counts, as separated figures rather than a sentence: a reader is checking
+   whether this is the right project, which is a scan, not a read. */
+.import-facts {
+  display: flex; flex-wrap: wrap; gap: 6px 14px;
+  font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.import-notes { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; line-height: 1.5; }
+/* Never colour alone: what is present and what is missing are also distinguished
+   by their leading mark, so the difference survives a colourblind reader. */
+.import-note-ok { color: var(--muted); }
+.import-note-ok::before { content: '✓ '; color: var(--ok); font-weight: 700; }
+.import-note-warn { color: var(--warn-strong); }
+.import-note-warn::before { content: '! '; font-weight: 700; }
+/* The path, last and quietest — it confirms WHICH file, which matters only
+   after everything above has already answered "which project". */
+.import-path {
+  font-size: 10.5px; color: var(--muted-3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left;
+}
+
+/* One card per schema rather than rows flush inside a single bordered box: the
+   two used to abut with no separation and their descriptions were clipped
+   mid-word, so the user could not tell what they were choosing. */
+.wizard-schemas {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: clamp(180px, 30vh, 340px); overflow-y: auto;
+  padding: 2px;
+}
+.wizard-schema {
+  display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: start; gap: 12px;
+  width: 100%; text-align: left; cursor: pointer;
+  padding: 12px 14px; border-radius: var(--radius-card);
+  border: 1px solid var(--border); background: var(--bg-2);
+  color: var(--ink); font: inherit;
+  transition: background 150ms ease-in-out, border-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.wizard-schema:hover { background: var(--panel); border-color: var(--border-2); }
+.wizard-schema:active { background: var(--panel-2); }
+.wizard-schema:focus-visible {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-100);
+}
+/* SELECTED, and never by colour alone: the tick appears, the name goes bold,
+   and a ring is drawn — so the state survives a colourblind reader and a
+   low-contrast panel. */
+.wizard-schema.is-on {
+  background: var(--accent-soft); border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent-100);
+}
+.wizard-schema.is-on:hover {
+  background: var(--accent-100); border-color: var(--accent-strong);
+}
+.wizard-schema.is-on:active { background: var(--accent-100); box-shadow: inset 0 0 0 2px var(--accent); }
+.wizard-schema.is-on:focus-visible {
+  border-color: var(--accent-strong); box-shadow: 0 0 0 3px var(--accent-100);
+}
+/* The box is always drawn — an empty one is what tells the user this is a
+   choice at all. Only its tick is conditional. */
+.wizard-schema-check {
+  width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--border-2); border-radius: 6px;
+  background: var(--bg); color: transparent;
+  font-size: 13px; font-weight: 700; line-height: 1;
+  transition: background 150ms ease-in-out, border-color 150ms ease-in-out,
+    color 150ms ease-in-out;
+}
+.wizard-schema:hover .wizard-schema-check { border-color: var(--muted-2); }
+.wizard-schema.is-on .wizard-schema-check {
+  background: var(--accent); border-color: var(--accent); color: var(--bg-2);
+}
+.wizard-schema-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.wizard-schema-name {
+  font-size: var(--fs-set-body); font-weight: 600; color: var(--ink);
+  transition: font-weight 150ms ease-in-out;
+}
+.wizard-schema.is-on .wizard-schema-name { font-weight: 700; color: var(--accent-strong); }
+/* Two lines, wrapped — the description is the whole basis of the choice, so it
+   is read rather than truncated at the first ellipsis. */
+.wizard-schema-desc {
+  color: var(--muted); font-size: var(--fs-set-help); line-height: 1.5;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+.wizard-schema.is-on .wizard-schema-desc { color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) {
+  .wizard-schema, .wizard-schema-check, .wizard-schema-name { transition: none; }
+}
+
+/* -------------------------------------------------------------- projects */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.project-card {
+  text-align: left; background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius-card); padding: 16px 18px; cursor: pointer; display: flex; flex-direction: column; gap: 6px;
+}
+.project-card:hover { border-color: var(--accent-100); background: var(--bg-2); }
+.project-card-name { font-weight: 700; font-size: 16px; color: var(--ink-2); }
+.project-card-desc { color: var(--muted); font-size: 13px; line-height: 1.4; }
+.project-card-foot { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: var(--muted-2); }
+
+/* -------------------------------------------------------------- graph */
+.graph-toolbar { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.toolbar-check, .toolbar-range { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.graph-body { display: flex; gap: 14px; }
+.graph-canvas-wrap { position: relative; flex: 1; height: 580px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden; }
+.graph-canvas { width: 100%; height: 100%; }
+.graph-count { position: absolute; top: 12px; left: 14px; font-size: 11px; color: var(--muted); background: color-mix(in srgb, var(--panel) 90%, transparent); padding: 3px 8px; border-radius: 7px; border: 1px solid var(--border); }
+.graph-legend { position: absolute; top: 12px; right: 12px; background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.legend-dot { width: 10px; height: 10px; border-radius: 999px; }
+.nodePop { animation: nodePop 0.3s ease; }
+.graph-detail { width: 280px; flex-shrink: 0; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 16px; }
+.detail-title { font-weight: 600; margin: 6px 0; color: var(--ink-2); }
+.detail-meta { font-size: 11px; color: var(--muted-2); margin-bottom: 10px; }
+.detail-scores { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.detail-actions { display: flex; gap: 8px; }
+
+/* -------------------------------------------------------------- ranking / tables */
+.table-card { padding: 0; overflow: hidden; }
+.rank-head, .rank-row { display: grid; grid-template-columns: 3fr 0.6fr 1.1fr 1.1fr 1.4fr 0.6fr; gap: 10px; align-items: center; padding: 10px 16px; }
+.rank-head { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-2); border-bottom: 1px solid var(--border); }
+.rank-row { border-bottom: 1px solid var(--border); }
+.rank-row:last-child { border-bottom: none; }
+.rank-title { text-align: left; background: none; border: none; cursor: pointer; color: var(--ink); font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.rank-title:hover { color: var(--accent-strong); }
+.score-cell { font-family: var(--mono); font-size: 13px; color: var(--accent-strong); display: flex; align-items: center; }
+.score-cell.warn { color: var(--warn); }
+.status-select { font-family: var(--mono); font-size: 11px; border: 1px solid var(--border-2); border-radius: 6px; padding: 2px 4px; margin-right: 6px; background: var(--bg-2); }
+
+.ext-head, .ext-row { display: grid; grid-template-columns: 1.4fr 1fr 1.4fr 1.2fr 0.9fr 2fr 0.7fr; gap: 8px; align-items: center; padding: 9px 16px; font-size: 12.5px; }
+.ext-head { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-2); border-bottom: 1px solid var(--border); }
+.ext-row { border-bottom: 1px solid var(--border); }
+.ext-row:last-child { border-bottom: none; }
+.ext-qty { font-weight: 500; }
+.ext-cond, .ext-fold-detail { color: var(--muted); font-size: 11px; }
+.ext-fold { display: flex; flex-direction: column; gap: 2px; }
+
+/* -------------------------------------------------------------- paper detail */
+.paper-layout { display: flex; gap: 16px; align-items: flex-start; }
+.paper-main { flex: 1; min-width: 0; }
+.paper-pdf { width: 46%; min-width: 380px; position: sticky; top: 0; }
+.authors { display: flex; flex-wrap: wrap; gap: 8px; }
+.author-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.ident-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.ident { font-size: 12px; }
+.ident-scheme { color: var(--muted-2); text-transform: uppercase; }
+.abstract { color: var(--ink); line-height: 1.6; font-size: 14px; margin: 4px 0 0; }
+.doc-list, .cite-list, .job-list, .review-list { display: flex; flex-direction: column; gap: 8px; }
+.doc-row { display: flex; align-items: center; gap: 10px; }
+.doc-title { flex: 1; font-size: 13px; }
+.cite-row { border-left: 3px solid var(--border-2); padding: 6px 0 6px 12px; }
+.cite-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cite-section, .cite-conf { font-size: 11px; color: var(--muted-2); }
+.cite-raw { font-size: 12px; color: var(--muted); margin-top: 4px; font-style: italic; }
+
+.analysis-panel { display: flex; flex-direction: column; gap: 12px; }
+.run-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.run-tab { display: flex; align-items: center; gap: 6px; background: var(--panel-2); border: 1px solid var(--border-2); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 12px; }
+.run-tab-active { border-color: var(--accent); background: var(--accent-soft); }
+.run-tab-superseded { opacity: 0.7; }
+.provenance { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.provenance-superseded { opacity: 0.75; }
+.prov-badges { display: flex; gap: 6px; margin-bottom: 8px; }
+.prov-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; font-size: 11.5px; }
+.prov-grid span:nth-child(odd) { color: var(--muted-2); text-transform: uppercase; letter-spacing: .04em; }
+.analysis-scope-label { margin-top: 4px; }
+.scope-hint { font-size: 11px; color: var(--muted-2); }
+.facts-list { display: flex; flex-direction: column; gap: 6px; }
+.fact-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px; border: 1px solid var(--border); border-radius: 10px; }
+.fact-row-active { border-color: var(--accent); background: var(--accent-soft); }
+.fact-body { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.fact-pred { font-size: 13px; }
+.fact-measure { font-size: 12px; color: var(--muted); }
+.fact-conf { font-size: 11px; color: var(--muted-2); }
+
+/* -------------------------------------------------------------- ingest */
+.kind-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.job-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px; border: 1px solid var(--border); border-radius: 10px; }
+.job-title { flex: 1; font-size: 13px; }
+.job-time, .job-attempts { font-size: 11px; color: var(--muted-2); }
+.job-actions { display: flex; gap: 6px; }
+.job-error { flex-basis: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 4px; background: #f9e6e3; border-radius: 8px; padding: 6px 8px; }
+.job-error .mono { color: var(--danger); font-size: 11px; }
+.job-remedy { font-size: 11px; color: var(--muted); }
+.ingest-msg { font-size: 12px; color: var(--muted); }
+
+/* -------------------------------------------------------------- review / dossier */
+.review-item { display: flex; flex-direction: column; gap: 6px; }
+.review-head { display: flex; align-items: center; gap: 10px; }
+.review-work { background: none; border: none; cursor: pointer; color: var(--ink-2); font-weight: 600; font-size: 14px; padding: 0; }
+.review-conf { font-size: 11px; color: var(--muted-2); }
+.review-reason { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--muted); }
+.review-verifier { font-size: 11px; color: var(--warn); }
+.caveat { background: var(--accent-soft); border-color: var(--accent-100); }
+.caveat-body { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 6px 0 0; }
+.dossier-groups { display: flex; flex-direction: column; gap: 12px; }
+.dossier-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.dossier-row:last-child { border-bottom: none; }
+.dossier-val { flex: 1; text-align: left; font-size: 13px; }
+
+/* --------------------------------------- search (lives on the Papers screen) */
+/* Same 7px side padding as .facet-row below: without it the head's right edge
+   sat 7px outside the column of counts, so "all 13 years" visibly overhung the
+   numbers it belongs with. */
+.facet-group-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  padding: 0 7px;
+}
+.facet-toggle { font-size: 10.5px; color: var(--muted-2); white-space: nowrap; }
+.facet-toggle:hover { color: var(--accent-strong); }
+.search-layout { display: flex; gap: 16px; align-items: flex-start; }
+.facet-panel { width: 240px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px; }
+.facet-group { display: flex; flex-direction: column; gap: 4px; }
+/* A facet bucket is a real toggle button. Selection is signalled by THREE
+   redundant channels — the check glyph, the border/background, and the weight —
+   so it never depends on colour alone. */
+.facet-row {
+  display: flex; align-items: center; gap: 7px; width: 100%;
+  font-family: var(--sans); font-size: 12px; text-align: left; cursor: pointer;
+  padding: 4px 7px; border: 1px solid transparent; border-radius: 7px;
+  background: transparent; transition: background 0.16s ease, border-color 0.16s ease;
+}
+.facet-row:hover { background: var(--panel-2); border-color: var(--border); }
+.facet-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.facet-row.is-on { background: var(--accent-soft); border-color: var(--accent-100); }
+.facet-row.is-on .facet-value { font-weight: 600; color: var(--ink-2); }
+.facet-check { width: 11px; flex-shrink: 0; color: var(--accent-strong); font-size: 11px; }
+.facet-value { color: var(--ink); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.facet-count { flex-shrink: 0; }
+.saved-searches { display: flex; flex-direction: column; gap: 4px; }
+.saved-row { text-align: left; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 13px; }
+/* A gap in the list ABOVE the list, so the reader meets it before they read the
+   entries as complete. Warn rather than danger: nothing the user did was lost —
+   the search ran — only its note of it. */
+.saved-unwritten {
+  display: flex; align-items: flex-start; gap: 6px;
+  padding: 6px 9px; border: 1px solid var(--warn); border-radius: 8px;
+  background: var(--warn-soft); color: var(--warn-strong);
+  font-size: 11.5px; font-weight: 500; line-height: 1.45;
+  animation: saved-unwritten-in 250ms ease-in-out both;
+}
+.saved-unwritten svg { flex: none; margin-top: 2px; }
+@keyframes saved-unwritten-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .saved-unwritten { animation: none; } }
+/* The results column fills the pane, but the TEXT inside a row is capped (see
+   .result-main) — at full width a line ran ~1300px, far past the ~75 characters
+   the eye can track back to the next line. Capping the column instead left a
+   dead gutter half the pane wide. */
+.search-results { flex: 1; min-width: 0; }
+.result-list { display: flex; flex-direction: column; gap: 6px; }
+
+/* Two columns: the paper, and the numbers the list was ordered by. The numbers
+   sit in their own rail so they line up down the page and can be compared,
+   instead of trailing a different distance into every row. */
+.result-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 14px;
+  cursor: pointer;
+  transition: border-color 0.08s ease, background 0.08s ease;
+}
+/* Driven by the overlay button rather than the row, so the highlight tracks the
+   actual click target rather than the whole grid area. */
+.result-row { position: relative; }
+.result-row:has(.result-open:hover) { border-color: var(--accent-100); background: var(--bg-2); }
+.result-row:has(.result-open:active) { background: var(--panel-2); }
+.result-row:has(.result-open:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Invisible sheet covering the row: opening is the row's primary action, so its
+   target is the whole row, while the controls in the side rail sit above it. */
+.result-open {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 10px;
+}
+.result-main, .result-side { position: relative; z-index: 1; }
+/* The rail is read-only, so it must not shadow the row's open target. The cites
+   badge takes pointer events back for its tooltip, and nothing else does. */
+.result-main, .result-side { pointer-events: none; }
+.result-cites { pointer-events: auto; }
+
+/* The measure, not the column: the row stretches to the pane so the year rail
+   stays pinned right, while the prose stops at a readable line length. */
+.result-main { min-width: 0; max-width: 78ch; }
+
+.result-title {
+  font-size: 13.5px; font-weight: 600; color: var(--ink-2); line-height: 1.35;
+}
+.result-authors {
+  font-size: 11.5px; color: var(--muted); margin-top: 3px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Venue and type are provenance, not content: quieter than the authors, and on
+   their own line so neither pushes the other out of view. */
+.result-meta {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  font-size: 10.5px; color: var(--muted-3); margin-top: 4px;
+}
+.result-venue { font-style: italic; }
+.result-type {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.04em;
+  padding: 1px 6px; border: 1px solid var(--border); border-radius: 999px;
+  color: var(--muted-2);
+}
+/* Two lines of abstract: enough to judge relevance, not so much that the row
+   becomes the paper. */
+.result-snippet {
+  font-size: 12px; color: var(--muted); line-height: 1.45; margin-top: 6px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.result-side {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
+  flex-shrink: 0; text-align: right;
+}
+.result-year { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.result-cites { font-size: 10px; color: var(--muted-3); white-space: nowrap; }
+.export-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.export-msg { margin-top: 10px; font-size: 12px; color: var(--muted); word-break: break-all; }
+
+/* ======================================================================
+   PDF VIEWER — ported from ai-detector report.css (L555-866), 1:1 in spirit.
+   Class prefix dropped (.ai-report-root -> scoped under .pdf-col); severity
+   tokens mapped to Corpus Studio palette.
+   ====================================================================== */
+.pdf-col { position: relative; height: 620px; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden; background: var(--panel); margin-top: 6px; }
+.pdf-nofile { align-items: center; justify-content: center; }
+.pdf-scroll { overflow-y: auto; padding: 24px 18px 80px; scroll-behavior: smooth; flex: 1; }
+.pdf-scroll.is-locked { overflow: hidden; }
+.pdf-pages { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.pdf-page {
+  position: relative; background: #fff; border: 1px solid var(--border);
+  border-radius: 4px; overflow: hidden;
+  box-shadow: 0 1px 0 rgba(40,35,28,.03), 0 14px 40px -28px rgba(40,35,28,.45);
+  contain: layout paint style;
+}
+.pdf-canvas { display: block; position: absolute; inset: 0; z-index: 0; }
+/**
+ * The notice on a page the renderer could not allocate a bitmap for.
+ *
+ * Above the text layer, because the point is that the GLYPHS of this page are
+ * still selectable and searchable while the picture of it is not available — a
+ * reader must not mistake an undrawable page for a blank one and conclude the
+ * passage they are looking for is absent. The words themselves live in
+ * `PdfDocView`, not in a `content:` string, so a screen reader can reach them and
+ * so the copy can change without touching the stylesheet.
+ */
+.pdf-paint-failed {
+  position: absolute; inset: 0; z-index: 3;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 18%; text-align: center;
+  font-size: 12.5px; line-height: 1.5; color: var(--danger-strong);
+  background: var(--danger-soft);
+  opacity: 0; pointer-events: none; transition: opacity 0.18s ease-in-out;
+}
+.pdf-page[data-paint-failed] .pdf-paint-failed { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .pdf-paint-failed { transition: none; }
+}
+.pdf-text-layer {
+  position: absolute; inset: 0; z-index: 1; overflow: hidden; line-height: 1;
+  text-align: initial; forced-color-adjust: none; transform-origin: 0 0;
+}
+
+/* A page the PDF rotates (/Rotate 90) — a landscape table dropped into a
+   portrait document, which this corpus really contains: page 4 of the KE07
+   series paper is one.
+
+   pdf.js lays the text layer out in UNROTATED page space and hands the rotation
+   off to CSS: `setLayerDimensions` sizes the container 595x842, writes
+   `data-main-rotation="90"`, and expects the stylesheet to turn it upright. We
+   bundle the library but not its viewer stylesheet (it styles a whole
+   application we do not use), so that attribute landed on the element and
+   NOTHING acted on it — the canvas rendered landscape while the selectable text
+   sat portrait on top of it, and every character was in the wrong place.
+   Selection, find and evidence anchoring were all wrong on those pages.
+   Rotating the CANVAS is not an option: pdf.js already rasterises it upright
+   via the viewport transform.
+
+   `inset: 0` above must be neutralised on these pages, or the layer would take
+   the page box's landscape dimensions while its spans are positioned in
+   portrait coordinates — the very mismatch this fixes. So width/height are
+   restored from the page box (swapped), and the element is rotated about its
+   origin and pushed back into view.
+
+   180 needs no swap: the page box and the text box have the same dimensions,
+   only the direction is reversed. */
+.pdf-text-layer[data-main-rotation='90'] {
+  inset: auto; top: 0; left: 100%;
+  width: var(--rot-h, 100%); height: var(--rot-w, 100%);
+  transform: rotate(90deg);
+}
+.pdf-text-layer[data-main-rotation='180'] {
+  inset: auto; top: 100%; left: 100%;
+  width: 100%; height: 100%;
+  transform: rotate(180deg);
+}
+.pdf-text-layer[data-main-rotation='270'] {
+  inset: auto; top: 100%; left: 0;
+  width: var(--rot-h, 100%); height: var(--rot-w, 100%);
+  transform: rotate(270deg);
+}
+.pdf-text-layer span, .pdf-text-layer br {
+  color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0 0;
+}
+.pdf-hl-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; contain: layout paint; }
+/* A highlight is ONE svg path spanning every line of its passage, so the tint
+   is painted exactly once. The host div carries no background of its own —
+   giving it one would re-introduce the double-multiply at the line seams that
+   per-line rectangles used to produce. */
+.pdf-hl {
+  position: absolute; pointer-events: none;
+  mix-blend-mode: multiply; opacity: 1;
+}
+.pdf-hl > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.pdf-hl > svg > path {
+  fill: color-mix(in srgb, var(--hl-color, var(--accent)) 32%, transparent);
+  stroke: none;
+  transition: fill .2s ease;
+}
+.pdf-hl[data-sev="info"]   > svg > path { fill: color-mix(in srgb, var(--hl-color, var(--muted-2)) 30%, transparent); }
+.pdf-hl[data-sev="low"]    > svg > path { fill: color-mix(in srgb, var(--hl-color, var(--warn)) 32%, transparent); }
+.pdf-hl[data-sev="medium"] > svg > path { fill: color-mix(in srgb, var(--hl-color, var(--accent)) 34%, transparent); }
+.pdf-hl[data-sev="high"]   > svg > path { fill: color-mix(in srgb, var(--hl-color, var(--danger)) 36%, transparent); }
+.pdf-hl.is-focused > svg > path {
+  fill: color-mix(in srgb, var(--hl-color, var(--accent)) 75%, transparent);
+}
+.pdf-loading-overlay {
+  position: absolute; inset: 0; z-index: 8; display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--panel) 70%, transparent); backdrop-filter: blur(1px);
+  pointer-events: auto; touch-action: none;
+}
+.pdf-loading-box {
+  display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 28px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: 0 12px 32px -16px rgba(40,35,28,.35);
+}
+.pdf-loading-label { font-family: var(--sans); font-size: 13.5px; color: var(--muted); text-align: center; }
+.pdf-loading-overlay--error .pdf-loading-label { color: var(--danger); }
+
+/**
+ * The "no bytes" panel when the reason is a FAILURE rather than an absence.
+ *
+ * A paper the corpus holds no document for is an ordinary, quiet state and
+ * keeps the muted panel. A file that is missing from its drive, unreadable, or
+ * recorded at a rejected path is something the reader has to act on, so the
+ * panel changes weight AND colour AND gains a badge and a retry — never colour
+ * alone, so the two survive a colourblind reader at a glance.
+ */
+.pdf-nofile--failed .pdf-loading-box {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  box-shadow: 0 12px 32px -16px rgba(40,35,28,.35), 0 0 0 1px var(--danger-100);
+  max-width: 420px;
+}
+.pdf-nofile--failed .pdf-loading-label {
+  color: var(--danger-strong);
+  font-weight: 500;
+  line-height: 1.5;
+}
+.pdf-nofile-badge { align-self: center; }
+.pdf-nofile-retry { transition: background .15s ease-in-out, box-shadow .15s ease-in-out, color .15s ease-in-out; }
+.pdf-nofile-retry:hover { background: var(--danger-100); border-color: var(--danger); color: var(--danger-strong); }
+.pdf-nofile-retry:active { background: var(--danger-200); }
+.pdf-nofile-retry:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .pdf-nofile-retry { transition: none; }
+}
+.pdf-spinner {
+  width: 26px; height: 26px; border-radius: 999px;
+  border: 2.5px solid var(--border); border-top-color: var(--muted-2);
+  animation: spin .7s linear infinite;
+}
+.pdf-pagebadge {
+  position: absolute; bottom: 12px; right: 12px; z-index: 6;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .02em; color: var(--muted);
+  background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--border);
+  border-radius: 7px; padding: 4px 9px; font-variant-numeric: tabular-nums;
+  pointer-events: none; backdrop-filter: blur(3px);
+}
+.pdf-scroll .pdf-text-layer span::selection { background: var(--sel-color, color-mix(in srgb, var(--muted-2) 28%, transparent)); }
+.pdf-scroll .pdf-text-layer span::-moz-selection { background: var(--sel-color, color-mix(in srgb, var(--muted-2) 28%, transparent)); }
+
+/* A text layer SYNTHESISED from OCR word boxes, over a scanned page.
+   Structurally identical to the one pdf.js builds — transparent, absolutely
+   positioned, selectable — so the document index, the find bar and the band
+   builder need not know which kind of page they are walking. The distinction
+   that IS drawn is one of provenance: these characters were recognised, not
+   read from the publisher's font, and a selection must not imply otherwise.
+
+   The layer also holds bare whitespace text nodes between the word spans, so a
+   COPY reproduces the document's spacing. They carry no ink, but the colour is
+   killed on the container rather than only on the spans so that stays true of
+   anything the layer ever holds. */
+.pdf-text-layer[data-ocr] { color: transparent; }
+.pdf-text-layer[data-ocr] span { color: transparent; }
+/* Selecting recognised text always carries WARM, so a reader copying from a
+   scan can see, at the moment of copying, that they are taking a machine
+   reading.
+
+   The warm is MIXED INTO the highlight colour rather than replacing it, and is
+   never a plain `var(--sel-color, …)` fallback: `--sel-color` is set inline on
+   every span belonging to an evidence highlight, and an inline custom property
+   wins — so a fallback would drop the OCR signal on exactly the spans a reader
+   is most likely to copy. Mixing keeps four states mutually distinct: plain
+   text, plain OCR, highlighted text, highlighted OCR. */
+.pdf-scroll .pdf-text-layer[data-ocr] span::selection {
+  background: color-mix(in srgb, var(--sel-color, transparent) 55%,
+                        color-mix(in srgb, var(--warn) 30%, transparent));
+}
+.pdf-scroll .pdf-text-layer[data-ocr] span::-moz-selection {
+  background: color-mix(in srgb, var(--sel-color, transparent) 55%,
+                        color-mix(in srgb, var(--warn) 30%, transparent));
+}
+/* A word tesseract itself was unsure of. Marked by a faint underline rather
+   than by colour alone (the glyphs are transparent — there is no colour to
+   change), so it survives a colourblind reader and reads as "check this against
+   the image", not as an error. Only on hover of the page, so it never becomes
+   permanent visual noise over the scan the reader is trying to read. */
+.pdf-text-layer[data-ocr] span[data-ocr-low] {
+  border-bottom: 1px dashed transparent;
+  transition: border-color .25s ease-in-out;
+}
+/* Revealed on hover OR while the page holds focus, so a reader who navigates by
+   the find bar and never touches the pointer still sees which words were poorly
+   read. Hover alone left that reader with no signal at all. */
+.pdf-page:hover .pdf-text-layer[data-ocr] span[data-ocr-low],
+.pdf-page:focus-within .pdf-text-layer[data-ocr] span[data-ocr-low] {
+  border-bottom-color: color-mix(in srgb, var(--warn) 55%, transparent);
+}
+.pdf-scroll .pdf-text-layer[data-ocr] span[data-ocr-low]::selection {
+  background: color-mix(in srgb, var(--sel-color, transparent) 45%,
+                        color-mix(in srgb, var(--warn) 48%, transparent));
+}
+.pdf-scroll .pdf-text-layer[data-ocr] span[data-ocr-low]::-moz-selection {
+  background: color-mix(in srgb, var(--sel-color, transparent) 45%,
+                        color-mix(in srgb, var(--warn) 48%, transparent));
+}
+
+/* --- paper bridge (Settings) ------------------------------------------------
+   Uses only existing tokens, so the panel follows the theme rather than pinning
+   its own colours. The status badge reuses the ok/warn/danger vocabulary the
+   storage-location badges already established, because "reachable" and
+   "answering" are the same kind of claim and should not look like different
+   kinds of fact. */
+.pb-head { display: flex; align-items: baseline; gap: 8px; }
+.pb-head h3 { margin: 0; }
+.pb-badge {
+  font-size: 11px; letter-spacing: .02em; padding: 1px 7px;
+  border-radius: 999px; border: 1px solid var(--border);
+}
+.pb-badge.ok { color: var(--ok); border-color: var(--ok); }
+.pb-badge.warn { color: var(--warn); border-color: var(--warn); }
+.pb-badge.danger { color: var(--danger); border-color: var(--danger); }
+.pb-intro { margin: 4px 0 8px; max-width: 60ch; }
+/* The action line is the one thing the user must read, so it is the one thing
+   that does not look like body copy. */
+.pb-action {
+  margin: 6px 0; padding: 7px 10px; max-width: 62ch;
+  border-left: 2px solid var(--accent); background: var(--accent-soft);
+}
+.pb-warn {
+  margin: 6px 0; padding: 7px 10px; max-width: 62ch;
+  border-left: 2px solid var(--danger); background: var(--danger-soft);
+}
+.pb-row { display: flex; gap: 8px; margin: 10px 0; }
+.pb-steps { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 12px; }
+.pb-step {
+  display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start;
+  padding: 10px; border: 1px solid var(--border); border-radius: 6px;
+}
+.pb-step p { margin: 4px 0 8px; max-width: 52ch; }
+/* Capped rather than fluid: a screenshot that grows with the modal turns a
+   three-step list into three screens of scrolling. */
+.pb-shot {
+  max-width: 260px; max-height: 150px; border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.pb-path {
+  display: block; font-family: var(--mono); font-size: 12px;
+  padding: 5px 7px; margin: 4px 0 8px; word-break: break-all;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+}
+
+/* The MCP pane carries no rule and no posture suffix. Loopback and read+write
+   are what this server IS unless someone changed it, and a mark that shows on
+   the ordinary case is one nobody reads. Only the genuine exceptions speak:
+   the LAN badge, the delete badge, and the failure notes. */
+.mcp-section { position: relative; }
+.mcp-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap;
+}
+.mcp-head .settings-eyebrow { margin-bottom: 0; }
+.mcp-badges { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.mcp-badge {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+  text-transform: uppercase; white-space: nowrap;
+  padding: 2px 7px; border-radius: 999px;
+  transition: color 250ms ease-in-out, background 250ms ease-in-out,
+    box-shadow 250ms ease-in-out;
+}
+.mcp-badge-lan {
+  color: var(--warn-strong); background: var(--warn-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 45%, transparent);
+}
+/* The level in words. Each of the three differs in weight and ring as well as
+   hue, matching the left rule beside it. */
+.mcp-badge-level.lvl-read {
+  color: var(--muted-2); background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--border-2);
+}
+.mcp-badge-level.lvl-write {
+  color: var(--accent-strong); background: var(--accent-soft); font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--accent-100);
+}
+.mcp-badge-level.lvl-delete {
+  color: var(--danger-strong); background: var(--danger-soft); font-weight: 700;
+  box-shadow: inset 0 0 0 2px var(--danger);
+}
+
+/* ---- the enable switch: four states the base .settings-switch has no idea
+   about (starting, stopping, failed, serving-a-call). `is-busy` already covers
+   the two transitional ones with a pulse; `is-failed` and `is-active` must be
+   distinct from EVERY resting state and from each other. */
+.mcp-switch.is-failed {
+  color: var(--danger-strong);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+  background: var(--danger-soft);
+}
+.mcp-switch.is-failed .settings-switch-track { box-shadow: 0 0 0 2px var(--danger); }
+.mcp-switch.is-failed:not([aria-disabled='true']):hover {
+  background: color-mix(in srgb, var(--danger) 16%, var(--panel));
+  border-color: var(--danger);
+}
+.mcp-switch.is-failed:not([aria-disabled='true']):hover .settings-switch-track {
+  box-shadow: 0 0 0 3px var(--danger);
+}
+/* Serving a call RIGHT NOW: an inset ring inside the track, so it reads as
+   "something is inside this" and cannot be confused with the outer hover ring
+   or the busy pulse. */
+.mcp-switch.is-on.is-active .settings-switch-track {
+  box-shadow: 0 0 0 2px var(--accent), inset 0 0 0 2px var(--bg-2);
+  animation: mcp-serving 1.6s ease-in-out infinite;
+}
+@keyframes mcp-serving {
+  0%, 100% { box-shadow: 0 0 0 2px var(--accent), inset 0 0 0 2px var(--bg-2); }
+  50% { box-shadow: 0 0 0 4px var(--accent-100), inset 0 0 0 2px var(--bg-2); }
+}
+/* Serving AND hovered. This rule outranks the base `.is-on:hover` track ring,
+   so without it the pointer changed nothing on the one control the user is
+   about to click — and with the animation off under reduced motion, serving and
+   serving+hover were the same pixels outright. */
+.mcp-switch.is-on.is-active:not([aria-disabled='true']):hover .settings-switch-track {
+  box-shadow: 0 0 0 4px var(--accent), inset 0 0 0 2px var(--bg-2);
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mcp-switch.is-on.is-active .settings-switch-track { animation: none; }
+}
+
+/* A permission switch that is on AND would need a restart to take effect. The
+   word beside it already reads "Pending"; this makes the control itself look
+   provisional rather than settled. */
+.settings-switch.is-pending {
+  border-style: dashed;
+  border-color: var(--warn);
+  color: var(--warn-strong);
+}
+.settings-switch.is-pending:not([aria-disabled='true']):hover {
+  background: var(--warn-soft); border-color: var(--warn-strong);
+}
+.settings-switch.is-pending .settings-switch-track { box-shadow: 0 0 0 2px var(--warn); }
+.settings-switch.is-pending:not([aria-disabled='true']):hover .settings-switch-track {
+  box-shadow: 0 0 0 3px var(--warn);
+}
+/* Pending-ON and pending-OFF are two different requests — "start exposing this"
+   and "stop exposing this" — and the dashed warn rim alone renders them
+   identically. The ON one keeps the accent fill under the dashes, so which way
+   the pending change points survives at a glance. */
+.settings-switch.is-on.is-pending { background: var(--accent-soft); }
+.settings-switch.is-on.is-pending:not([aria-disabled='true']):hover {
+  background: color-mix(in srgb, var(--warn) 14%, var(--accent-soft));
+}
+/* The destructive opt-in is not the same kind of switch as the others and must
+   not look like one when it is on. */
+.settings-switch.is-danger.is-on { color: var(--danger-strong); }
+.settings-switch.is-danger.is-on .settings-switch-track {
+  box-shadow: 0 0 0 2px var(--danger);
+}
+/* `:not([aria-disabled])` on each: these rules are later and at least as
+   specific as the refusal-suppression block above, so without it the switch
+   that is refusing input still lights up under the pointer and reads live. */
+.settings-switch.is-danger.is-on:not([aria-disabled='true']):hover {
+  background: var(--danger-soft); border-color: var(--danger); color: var(--danger-strong);
+}
+.settings-switch.is-danger.is-on:not([aria-disabled='true']):hover .settings-switch-track {
+  box-shadow: 0 0 0 3px var(--danger);
+}
+.settings-switch.is-danger:focus-visible { outline: 3px solid var(--danger); outline-offset: 3px; }
+/* ---- the status line: five states, each with its own glyph AND weight. */
+.mcp-status {
+  display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+  margin-top: 8px; font-size: 11.5px; line-height: 1.5;
+  transition: color 250ms ease-in-out;
+}
+.mcp-status.is-stopped { color: var(--muted-3); }
+.mcp-status.is-starting { color: var(--accent-strong); font-weight: 500; }
+.mcp-status.is-listening { color: var(--ok); font-weight: 600; }
+.mcp-status.is-listening.is-active { color: var(--accent-strong); }
+.mcp-status.is-listening.is-active > span[aria-hidden] {
+  animation: mcp-status-pulse 1.4s ease-in-out infinite;
+}
+.mcp-status.is-stopping { color: var(--warn-strong); font-weight: 500; }
+.mcp-status.is-failed { color: var(--danger-strong); font-weight: 600; }
+.mcp-status .btn-link { font-size: 11.5px; }
+@keyframes mcp-status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mcp-status.is-listening.is-active > span[aria-hidden] { animation: none; }
+}
+
+/* ---- the config block. Rendered as SELECTABLE text and copyable: the house
+   pattern, and the only path that survives a denied clipboard. */
+.mcp-config { margin-top: 14px; }
+.mcp-config-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 7px; flex-wrap: wrap;
+}
+.mcp-variants { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; background: var(--panel); }
+.mcp-variant {
+  padding: 4px 10px; border: 1px solid transparent; border-radius: 7px;
+  background: transparent; font: inherit; font-size: 11px; font-weight: 500;
+  color: var(--muted); cursor: pointer;
+  transition: background 150ms ease-in-out, color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+.mcp-variant:hover { background: var(--panel-2); color: var(--ink); }
+.mcp-variant:active { background: var(--border-2); }
+.mcp-variant:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.mcp-variant.is-on {
+  background: var(--bg-2); color: var(--accent-strong); font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), inset 0 0 0 1px var(--accent-100);
+}
+.mcp-variant.is-on:hover { background: var(--accent-soft); }
+.mcp-variant.is-on:active {
+  background: var(--accent-100);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.18), inset 0 0 0 1px var(--accent);
+}
+
+.mcp-config-text {
+  width: 100%; resize: vertical; min-height: 120px;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 11px;
+  background: var(--panel); color: var(--ink);
+  font-size: 11px; line-height: 1.6;
+  transition: border-color 150ms ease-in-out, background 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.mcp-config-text:hover { border-color: var(--border-2); }
+.mcp-config-text:focus { background: var(--bg-2); border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+/* Stale = what is on screen is WRONG, not merely old, because the port or the
+   token changed under it. Striped rather than tinted, so it cannot be mistaken
+   for the focus state.
+
+   The stripe is an overlay whose OPACITY eases, not a `background` swap: a
+   `background-image` is not an interpolable value, so a transition on it does
+   nothing at all. */
+.mcp-config-wrap { position: relative; }
+/* A striped BAND down the leading edge, not a wash over the whole box: laid
+   over the text, the stripes obscured the exact string the user has to read at
+   the moment they are being told it is wrong. */
+.mcp-config-wrap::after {
+  content: '';
+  position: absolute; inset: 1px auto 1px 1px; width: 9px;
+  border-radius: 9px 0 0 9px; pointer-events: none;
+  opacity: 0;
+  background: repeating-linear-gradient(
+    135deg, var(--warn), var(--warn) 4px, transparent 4px, transparent 8px
+  );
+  transition: opacity 250ms ease-in-out;
+}
+.mcp-config-wrap.is-stale::after { opacity: 1; }
+.mcp-config-text.is-stale { border-color: var(--warn); }
+.mcp-config-text.is-stale:hover { border-color: var(--warn-strong); }
+.mcp-config-text.is-stale:focus {
+  border-color: var(--warn-strong);
+  box-shadow: 0 0 0 3px var(--warn-soft);
+}
+
+.mcp-note {
+  margin-top: 7px; font-size: 11px; line-height: 1.5; color: var(--muted-2);
+}
+.mcp-note-warn { color: var(--warn-strong); font-weight: 500; }
+
+/* ---- addresses, one copyable row each. */
+.mcp-addresses { display: flex; flex-direction: column; gap: 5px; margin-top: 12px; }
+.mcp-address {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; padding: 7px 11px; text-align: left;
+  border: 1px solid var(--border); border-radius: 9px; background: var(--bg-2);
+  font: inherit; cursor: pointer;
+  transition: background 150ms ease-in-out, border-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.mcp-address:hover { background: var(--panel); border-color: var(--border-2); }
+.mcp-address:active { background: var(--border-2); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); }
+.mcp-address:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mcp-address.is-copied {
+  border-color: var(--ok); background: var(--ok-soft);
+  /* `box-shadow` must stay in this list: the copied+hover ring below IS a
+     shadow, and dropping it here would let that ring snap on while the
+     background eased — two halves of one state arriving separately. */
+  transition: background 250ms ease-in-out, border-color 250ms ease-in-out,
+    box-shadow 250ms ease-in-out;
+}
+.mcp-address.is-copied:hover {
+  background: color-mix(in srgb, var(--ok) 16%, var(--bg-2));
+  box-shadow: 0 0 0 2px var(--ok);
+}
+.mcp-address.is-copied:active {
+  background: color-mix(in srgb, var(--ok) 26%, var(--bg-2));
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.14);
+}
+.mcp-address code { font-size: 11.5px; color: var(--ink); }
+.mcp-address-action {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted-3);
+  transition: color 150ms ease-in-out;
+}
+.mcp-address:hover .mcp-address-action { color: var(--accent-strong); }
+.mcp-address.is-copied .mcp-address-action { color: var(--ok); font-weight: 700; }
+
+/* ---- advanced disclosure. */
+.mcp-disclosure {
+  display: flex; align-items: center; gap: 7px; width: 100%;
+  margin-top: 14px; padding: 8px 4px; text-align: left;
+  border: none; background: none; font: inherit; font-size: 11.5px;
+  color: var(--muted); cursor: pointer;
+  border-radius: 7px;
+  /* `background` is in the list because the open row's press fills — a
+     transition that omits the property that changes is no transition. */
+  transition: color 150ms ease-in-out, background 150ms ease-in-out;
+}
+.mcp-disclosure:hover { color: var(--ink); }
+.mcp-disclosure:active { color: var(--accent-strong); }
+/* Open and closed differ by more than a rotated caret: the open row is the
+   heading of the block beneath it and reads as one. */
+.mcp-disclosure[aria-expanded='true'] { color: var(--ink); font-weight: 600; }
+/* An OPEN disclosure already sits at `--ink`, which is exactly where the closed
+   row's hover lands — so the open row needs the accent instead, or its hover
+   would be a no-op. The press below goes further still. */
+.mcp-disclosure[aria-expanded='true']:hover { color: var(--accent-strong); }
+.mcp-disclosure[aria-expanded='true']:active {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+.mcp-disclosure:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.mcp-advanced { display: flex; flex-direction: column; gap: 12px; padding-top: 4px; }
+.mcp-port { max-width: 220px; }
+/* `.input` declares no transition and no hover of its own, so idle and hover
+   would be the same pixels and every state below would snap into place. */
+.mcp-port .input {
+  transition: border-color 150ms ease-in-out, background 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.mcp-port .input:hover { border-color: var(--border-2); background: var(--panel); }
+/* The port is the one control that keeps working while the others refuse, so it
+   is also the one that must show it is the one working. */
+.mcp-port .input.is-busy {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  animation: settings-switch-pulse 1s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mcp-port .input.is-busy { animation: none; }
+}
+/* `.input:focus` sets `outline: none` and only a border colour, and these
+   modifiers outrank it — so without an explicit focus rule for each, the field
+   the status line just sent the user to would show NO change on arrival, and a
+   keyboard user would have no ring at all. */
+.mcp-port .input:focus { box-shadow: 0 0 0 3px var(--accent-soft); }
+.mcp-port .input.is-invalid { border-color: var(--danger); background: var(--danger-soft); }
+.mcp-port .input.is-invalid:focus { box-shadow: 0 0 0 3px var(--danger-soft), 0 0 0 4px var(--danger); }
+/* The port that was refused, highlighted so a user sent here from the status
+   line's "Choose another" lands on the field and can see WHICH field. */
+.mcp-port .input.is-in-use {
+  border-color: var(--warn);
+  box-shadow: 0 0 0 3px var(--warn-soft);
+}
+.mcp-port .input.is-in-use:focus { box-shadow: 0 0 0 3px var(--warn-soft), 0 0 0 4px var(--warn); }
+.mcp-pending {
+  font-family: var(--sans); font-size: 9.5px; letter-spacing: 0;
+  text-transform: none; color: var(--warn-strong); font-weight: 600;
+}
+/* Top-aligned: the help text runs to two or three lines and a centred switch
+   would float away from the label it belongs to. */
+.mcp-check-row { align-items: flex-start; }
+/* Revealed is a state OF THE BUTTON, not only of the code beside it. On the
+   label alone, the control currently exposing a secret would look exactly like
+   the one that is not. */
+.mcp-reveal.is-revealed {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn-strong);
+  font-weight: 600;
+}
+.mcp-reveal.is-revealed:hover {
+  background: color-mix(in srgb, var(--warn) 18%, var(--bg-2));
+  border-color: var(--warn-strong);
+}
+/* `.btn-secondary:active` is outranked by the two rules above, so a revealed
+   button needs its own press state or it reads as merely hovered. */
+.mcp-reveal.is-revealed:active {
+  background: color-mix(in srgb, var(--warn) 30%, var(--bg-2));
+  border-color: var(--warn-strong);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.22);
+}
+/* A refusing button in this pane keeps pointer events — that is the point, the
+   tip has to be reachable — so its hover and press are neutralised explicitly
+   or it lights up under the pointer and reads as live. The dotted rim is the
+   non-colour half and survives grayscale; `:not(.is-busy)` keeps it off the
+   in-flight buttons, which refuse for a different reason and say so with a
+   moving glyph at full opacity. */
+.mcp-section .btn[aria-disabled='true']:not(.is-busy) { border-style: dotted; }
+/* The response is suppressed; the STATE is not repainted. Naming a background
+   and a border here flattened a refusing REVEALED button back to a plain one,
+   taking "a secret is on screen" away at the moment the pointer arrived. */
+.mcp-section .btn[aria-disabled='true']:not(.is-busy):hover,
+.mcp-section .btn[aria-disabled='true']:not(.is-busy):active {
+  box-shadow: none;
+  filter: none;
+}
+.mcp-section .mcp-reveal.is-revealed[aria-disabled='true']:hover,
+.mcp-section .mcp-reveal.is-revealed[aria-disabled='true']:active {
+  background: var(--warn-soft);
+  border-color: var(--warn);
+}
+
+/* ---- the token. */
+.mcp-token {
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 11px 12px; border: 1px solid var(--border); border-radius: 13px;
+  background: var(--bg-2);
+}
+.mcp-token-value {
+  font-size: 11px; line-height: 1.5; overflow-wrap: anywhere;
+  color: var(--muted-3);
+  transition: color 250ms ease-in-out;
+}
+.mcp-token-value.is-revealed { color: var(--ink); font-weight: 600; }
+.mcp-token-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.mcp-audit-link { align-self: flex-start; }
+
+/* A compact button, for the copy/reveal/regenerate row. Modifier only — it
+   still needs the base `btn` class, which carries every state. */
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+/* "It worked", eased back rather than snapping off. */
+.btn.is-copied {
+  background: var(--ok-soft); border-color: var(--ok); color: var(--ok);
+  transition: background 250ms ease-in-out, border-color 250ms ease-in-out,
+    color 250ms ease-in-out;
+}
+.btn.is-copied:hover {
+  background: color-mix(in srgb, var(--ok) 18%, var(--panel));
+  box-shadow: 0 0 0 2px var(--ok);
+}
+.btn.is-copied:active { background: color-mix(in srgb, var(--ok) 30%, var(--panel)); box-shadow: inset 0 1px 3px rgba(0,0,0,.18); }
+/* Before the first enable there is no token, so there is no config to show. A
+   sentence saying what will appear beats an empty box that looks broken. */
+.mcp-config-pending {
+  margin-top: 14px; padding: 14px 15px;
+  border: 1px dashed var(--border-2); border-radius: 11px;
+  background: var(--panel);
+}
+
+/* A pending restart with no way to apply it is half a control: the label said
+   what was wrong and offered nothing to do about it. */
+.mcp-restart-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  padding: 10px 12px; border: 1px dashed var(--warn); border-radius: 11px;
+  background: var(--warn-soft);
+}
+.mcp-restart-row .mcp-note { margin-top: 0; }
+.mcp-note-ok { color: var(--ok); font-weight: 600; }
+
+/* A request that was REFUSED, as opposed to the status line's account of the
+   server. Solid danger rim, not the restart row's dashed warn one: a pending
+   restart is a thing still to do, this is a thing that did not happen. */
+.mcp-error {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  margin-top: 10px; padding: 9px 12px;
+  border: 1px solid var(--danger); border-radius: 11px;
+  background: var(--danger-soft);
+}
+.mcp-error .mcp-note { margin-top: 0; color: var(--danger-strong); font-weight: 600; }
+.mcp-error .btn-link { flex: 0 0 auto; font-size: 11px; }
+
+/* ------------------------------------------------- the summary-prompt editor
+   A SYSTEM prompt shown as editable text. Monospace and inset, because it is
+   instructions to a machine and not the user's own prose: the same surface
+   treatment the gateway fields get, so a reader can tell at a glance that this
+   box is configuration rather than a note. */
+.prompt-editor-help {
+  margin: 0 0 12px; font-size: var(--fs-set-help); line-height: 1.55; color: var(--muted);
+  max-width: 78ch;
+}
+.prompt-editor-badge { margin-bottom: 10px; }
+.prompt-editor-text {
+  width: 100%; background: var(--panel);
+  /* A brief is READ here, not glanced at, so it is set at the code step of the
+     scale rather than the 11.5px it was — and given the height the wider dialog
+     finally affords, so a multi-paragraph prompt is visible at once instead of
+     through a four-line window. `vh` so it grows with the window; the ceiling
+     keeps the Save button on screen without scrolling the pane. */
+  /* `.textarea` sets `font-family: var(--sans)` and beats the `mono` utility on
+     specificity, so the brief rendered in sans however it was classed. Mono is
+     load-bearing here: it is text the model receives verbatim. */
+  font-family: var(--mono);
+  font-size: var(--fs-set-code); line-height: 1.65;
+  min-height: clamp(240px, 34vh, 460px);
+  transition: background 150ms ease-in-out, border-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.prompt-editor-text:hover:not(:disabled) { border-color: var(--border-2); }
+.prompt-editor-text:focus { background: var(--bg-2); box-shadow: 0 0 0 3px var(--accent-soft); }
+/* Saving. The box is still readable but must not look editable, and busy has to
+   be distinct from both disabled (flat, half-opacity) and focused. */
+.prompt-editor-text[aria-busy='true'] {
+  background: var(--panel-2); border-color: var(--busy); cursor: progress;
+}
+/* Still loading, so there is nothing to edit yet. Distinct from every live
+   state by opacity AND by the flat surface — never by colour alone. */
+.prompt-editor-text:disabled {
+  opacity: 0.5; cursor: default; background: var(--panel-2);
+}
+.prompt-editor-actions {
+  display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap;
+}
+.prompt-editor-reveal { font-size: var(--fs-set-meta); }
+/* The shipped text, read-only, for comparison against a replaced brief. Wrapped
+   rather than scrolled sideways: it is prose to be read, not a log. */
+.prompt-editor-builtin {
+  margin: 12px 0 0; padding: 14px 16px; max-height: 320px; overflow-y: auto;
+  border: 1px solid var(--border); border-radius: 11px; background: var(--panel-2);
+  font-size: var(--fs-set-code); line-height: 1.65; color: var(--muted); white-space: pre-wrap;
+  word-break: break-word;
+}
+/* `btn-link` has a `:disabled` rule but no `aria-disabled` one, and these
+   controls must be able to EXPLAIN their refusal — a disabled form control
+   dispatches no pointer events, so the tooltip would never open. */
+.btn-link[aria-disabled='true'] {
+  color: var(--muted-3); cursor: default; text-decoration-color: transparent;
+}
+.btn-link[aria-disabled='true']:hover,
+.btn-link[aria-disabled='true']:active {
+  color: var(--muted-3); text-decoration-color: transparent;
+}
+
+/* ---- the same brief, folded into the new-project form ----
+   A SETTING, not a debug toggle: it was an orange monospace `▸` link, which
+   read as developer scaffolding rather than a considered choice about how this
+   project's papers are read. It is now a full-width row on the form's own
+   surface, with the disclosure caret at the leading edge. */
+.wizard-prompt { gap: 0; }
+.wizard-prompt-toggle {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 13px 16px; cursor: pointer; text-align: left;
+  border: 1px solid var(--border); border-radius: var(--radius-card);
+  background: var(--bg-2); color: var(--ink); font: inherit;
+  transition: background 150ms ease-in-out, border-color 150ms ease-in-out,
+    border-radius 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+.wizard-prompt-toggle:hover { background: var(--panel); border-color: var(--border-2); }
+.wizard-prompt-toggle:active { background: var(--panel-2); }
+.wizard-prompt-toggle:focus-visible {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-100);
+}
+/* Open: the row joins the panel below it into one object. */
+.wizard-prompt.is-open .wizard-prompt-toggle {
+  border-bottom-color: transparent;
+  border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+  background: var(--panel);
+}
+.wizard-prompt .settings-caret { color: var(--muted-2); font-size: 10px; }
+.wizard-prompt-title {
+  flex: 1; font-size: var(--fs-set-body); font-weight: 600; color: var(--ink);
+}
+/* The exception only — the built-in brief is what every project gets, so
+   nothing is said when it is in force. */
+.wizard-prompt-state {
+  flex-shrink: 0; font-size: var(--fs-set-meta); font-weight: 600;
+  color: var(--accent-strong); background: var(--accent-soft);
+  border: 1px solid var(--accent-100); border-radius: 999px; padding: 2px 9px;
+}
+.wizard-prompt-panel {
+  display: flex; flex-direction: column;
+  padding: 4px 16px 16px;
+  border: 1px solid var(--border-2); border-top: 0;
+  border-bottom-left-radius: var(--radius-card); border-bottom-right-radius: var(--radius-card);
+  background: var(--panel);
+  animation: screenIn 220ms ease both;
+}
+.wizard-prompt-help {
+  margin: 0 0 10px; font-size: var(--fs-set-help); line-height: 1.55; color: var(--muted);
+  max-width: 62ch;
+}
+.wizard-prompt-reset {
+  align-self: flex-start; margin-top: 10px; font-size: var(--fs-set-meta);
+}
+@media (prefers-reduced-motion: reduce) {
+  .wizard-prompt-toggle { transition: none; }
+  .wizard-prompt-panel { animation: none; }
+}
+
+/* ---------------------------------------------------------------- updates
+ *
+ * The section is plain, like every other one in Settings. The phase is carried
+ * by what the card SAYS and offers — the badge, the sentence, the action — not
+ * by a container drawn around it, which set this one apart from its neighbours
+ * for no reason a reader benefits from.
+ */
+
+.upd-head { display: flex; align-items: baseline; gap: 8px; }
+.upd-head h3 { margin: 0; }
+.upd-badge { font-weight: 600; }
+.upd-version { margin-left: auto; color: var(--muted); }
+
+.upd-notes {
+  margin: 8px 0 0; padding: 8px 10px; max-width: 62ch;
+  font-size: var(--fs-set-help); line-height: 1.55;
+  white-space: pre-wrap;
+  border: 1px solid var(--border); border-radius: 4px; background: var(--panel);
+}
+/* A note the reader has to act on. Danger ONLY when something actually failed:
+   a `ready` card explaining that the app was not closed is reporting the user's
+   own choice, and a red box there contradicts the card it sits in. */
+.upd-error {
+  margin: 8px 0 0; padding: 7px 10px; max-width: 62ch;
+  border: 1px solid var(--danger); border-left-width: 2px; border-radius: 4px;
+  color: var(--danger); background: var(--panel);
+  transition: border-color 250ms ease-in-out, color 250ms ease-in-out;
+}
+.upd-note {
+  margin: 8px 0 0; padding: 7px 10px; max-width: 62ch;
+  border: 1px solid var(--border-2); border-left: 2px solid var(--accent);
+  border-radius: 4px;
+  color: var(--ink); background: var(--panel);
+  transition: border-color 250ms ease-in-out, color 250ms ease-in-out;
+}
+
+.upd-progress {
+  margin: 10px 0 4px; height: 6px; max-width: 420px;
+  border-radius: 999px; background: var(--panel-2); overflow: hidden;
+}
+.upd-progress-bar {
+  height: 100%; border-radius: 999px; background: var(--accent);
+  /* Progress arrives in bursts; easing the width keeps the bar from stuttering
+     backwards and forwards as the reported percentage jitters. */
+  transition: width 150ms ease-in-out;
+}
+.upd-progress-text { margin: 0; font-variant-numeric: tabular-nums; }
+
+/* The bottom margin is what keeps the last control off the rule that starts the
+   next section. Every other section ends in a block with its own spacing, so
+   this row was the one place a button sat directly on the border. */
+.upd-row { display: flex; align-items: center; gap: 8px; margin: 12px 0 22px; }
+.upd-checked { margin-left: 2px; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .upd-progress-bar { transition: none; }
+}

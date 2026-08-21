@@ -1,0 +1,535 @@
+/* dashboard screen styles — owned by the dashboard design agent.
+   Values mirror the design mockup (Corpus.dc.html "Research projects" region,
+   ~line 710-752) and screenshots/dashboard.png. */
+
+/* Full-bleed: the dashboard spans the whole route area; readability padding
+   comes from .route-area, not from a centering max-width cap. */
+.dashboard {
+  width: 100%;
+}
+
+/* ---- Header row: h1 + subtitle on the left, solid accent button on the right ---- */
+.dash-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 22px;
+  gap: 16px;
+}
+
+.dash-header-text {
+  min-width: 0;
+}
+
+.dash-title {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+}
+
+/* ---- Card grid: 3-up at 1440, responsive down ---- */
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* ---- Project card ---- */
+.project-card {
+  display: block;
+  text-align: left;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
+  cursor: pointer;
+  background: var(--bg-2);
+  color: inherit;
+  font: inherit;
+  box-shadow: 0 1px 2px rgba(33, 26, 18, 0.04);
+  transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+}
+
+.project-card {
+  /* Matches the ghost add-tile so a card carrying no exceptions does not sit
+     visibly shorter than the button beside it. Content is pinned top and
+     bottom, so the reading bar lines up across the row. */
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.project-card-reading,
+.project-card-unstarted {
+  margin-top: auto;
+}
+
+.project-card:hover {
+  box-shadow: 0 14px 34px rgba(33, 26, 18, 0.09);
+  transform: translateY(-3px);
+  border-color: #e6c8a8;
+}
+
+.project-card:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(214, 138, 62, 0.28);
+}
+
+.project-card:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 26, 18, 0.1);
+  border-color: var(--accent);
+}
+
+/* ---- Ghost "add" card: dashed outline, last cell of the grid ---- */
+.project-card-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 200px;
+  border: 1.5px dashed var(--border-2);
+  background: var(--bg);
+  box-shadow: none;
+  color: var(--muted-2);
+}
+
+.project-card-add:hover {
+  box-shadow: none;
+  transform: none;
+  border-color: var(--muted-2);
+  background: var(--panel);
+}
+
+.project-card-add:focus-visible {
+  border-style: solid;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(214, 138, 62, 0.28);
+}
+
+.project-card-add:active {
+  background: var(--panel-2);
+  border-color: var(--accent);
+  transform: scale(0.995);
+}
+
+.project-card-add:hover .project-card-add-glyph,
+.project-card-add:hover .project-card-add-label {
+  color: var(--ink-2);
+}
+
+.project-card-add-glyph,
+.project-card-add-label {
+  transition: color 0.15s ease-in-out;
+}
+
+.project-card-add-glyph {
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--muted-2);
+}
+
+.project-card-add-label {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--muted-2);
+}
+
+.project-card-head {
+  margin-bottom: 18px;
+}
+
+.project-card-name {
+  margin: 0 0 6px;
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.project-card-field {
+  font-size: 12px;
+  color: #a89e91;
+}
+
+/* ---- The headline: how big this project is ---- */
+.project-card-size {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.project-card-size-value {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.project-card-size-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.project-card-size-note {
+  margin-left: auto;
+  font-size: 11px;
+  color: #a89e91;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Exception flags. Rendered ONLY when the condition holds. ---- */
+.project-card-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.project-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 3px 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 999px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition: box-shadow 0.15s ease-in-out, border-color 0.15s ease-in-out,
+    background 0.15s ease-in-out;
+}
+
+/* The glyph carries the severity alongside the colour, so the three tones stay
+   distinguishable without it. */
+.project-flag-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--bg-2);
+}
+
+.project-flag-danger {
+  background: #fbeae7;
+  border-color: #eec4bc;
+  color: var(--danger);
+}
+.project-flag-danger .project-flag-glyph {
+  background: var(--danger);
+}
+
+.project-flag-review {
+  background: #fdf1de;
+  border-color: #ecca94;
+  color: #9a6512;
+}
+.project-flag-review .project-flag-glyph {
+  background: #c8871d;
+}
+
+/* WORK IN PROGRESS, not a fault — so it reads as calm rather than as an alarm:
+   the accent hue, no red or amber. The glyph SPINS, which is what separates it
+   at a glance from the two static pills beside it and from a stalled queue.
+   The animation is on the glyph alone so the text stays readable. */
+.project-flag-busy {
+  background: var(--panel-2);
+  border-color: var(--border-2);
+  color: var(--accent-strong);
+}
+.project-flag-busy .project-flag-glyph {
+  background: transparent;
+  color: var(--accent);
+  font-size: 11px;
+  animation: project-flag-spin 1.4s linear infinite;
+}
+@keyframes project-flag-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* A reader who has asked for less motion still gets the pill and its count;
+   only the rotation goes. */
+@media (prefers-reduced-motion: reduce) {
+  .project-flag-busy .project-flag-glyph {
+    animation: none;
+  }
+}
+.project-card:hover .project-flag-busy {
+  border-color: var(--accent);
+  background: var(--panel);
+}
+
+.project-flag-warn {
+  background: var(--panel-2);
+  border-color: var(--border-2);
+  color: var(--muted);
+  font-weight: 500;
+}
+.project-flag-warn .project-flag-glyph {
+  background: transparent;
+  color: var(--muted-2);
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+/* Hovering the CARD lifts its flags with it, so a pointer over a project makes
+   its problems the most legible thing on the screen. */
+.project-card:hover .project-flag-danger {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px rgba(190, 79, 60, 0.13);
+}
+.project-card:hover .project-flag-review {
+  border-color: #c8871d;
+  box-shadow: 0 0 0 2px rgba(200, 135, 29, 0.13);
+}
+.project-card:hover .project-flag-warn {
+  border-color: var(--muted-2);
+  background: var(--panel);
+}
+
+/* ---- Reading progress: a segmented bar over inclusion_status.
+   NOTE: the card is a <button>, whose block children shrink-to-fit (width 0)
+   instead of filling — so the track MUST declare width:100% explicitly. ---- */
+.project-card-reading {
+  width: 100%;
+}
+
+.project-reading-track {
+  display: flex;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--panel-2);
+}
+
+.project-reading-seg {
+  height: 100%;
+  transition: width 0.4s ease-in-out, filter 0.15s ease-in-out;
+}
+
+/* Weight runs with the colour: settled work is solid, in-flight is hatched,
+   untouched is the bare track. Colour alone never carries the distinction. */
+.project-reading-decided {
+  background: var(--accent);
+}
+
+.project-reading-undecided {
+  background: repeating-linear-gradient(
+    -45deg,
+    #f0bf8c,
+    #f0bf8c 3px,
+    #f8dcc0 3px,
+    #f8dcc0 6px
+  );
+}
+
+.project-reading-unread {
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.project-card:hover .project-reading-seg {
+  filter: saturate(1.15);
+}
+
+.project-reading-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 8px;
+  font-size: 10.5px;
+  color: #a89e91;
+  font-variant-numeric: tabular-nums;
+}
+
+.project-reading-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.project-reading-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.project-reading-key-decided .project-reading-swatch {
+  background: var(--accent);
+}
+.project-reading-key-undecided .project-reading-swatch {
+  background: repeating-linear-gradient(
+    -45deg,
+    #f0bf8c,
+    #f0bf8c 2px,
+    #f8dcc0 2px,
+    #f8dcc0 4px
+  );
+}
+.project-reading-key-unread .project-reading-swatch {
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+
+/* ---- First run: the dashboard with no projects in it ----
+   Bounded rather than full-bleed: prose at 1920px wide is unreadable, and the
+   screen has one thing to say. */
+.first-run {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 60px;
+}
+
+.first-run-body {
+  max-width: 620px;
+  width: 100%;
+}
+
+.first-run-title {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.first-run-lede {
+  margin: 10px 0 0;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.first-run-steps {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.first-run-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  /* Ambient emphasis, not pointer feedback: the row is not a control, so it
+     warms slowly rather than tracking the cursor. */
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+/* The steps are prose, not buttons — but the pointer still passes over them, and
+   a row that reacts to nothing while sitting inside a panel whose only other
+   element is clickable reads as a control that has broken. A faint warm wash
+   says "read this", not "press this": no lift, no shadow, no cursor change. */
+.first-run-step:hover {
+  background: var(--panel);
+  border-color: var(--border);
+}
+
+.first-run-step-num {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-100);
+  margin-top: 1px;
+}
+
+.first-run-step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.first-run-step-title {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.first-run-step-hint {
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.first-run-actions {
+  margin-top: 26px;
+}
+
+/* Larger than a toolbar button: it is the only action on a first launch, and
+   the default `.btn` metrics make it look incidental beside 26px prose. The
+   state rules below are additive to `.btn`/`.btn-primary`, which already own
+   hover, active, disabled, busy and focus-visible. */
+.first-run-cta {
+  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(33, 26, 18, 0.12);
+  transition: background 0.15s ease-in-out, box-shadow 0.15s ease-in-out,
+    transform 0.15s ease-in-out, filter 0.15s ease-in-out;
+}
+
+.first-run-cta:hover:not(:disabled) {
+  box-shadow: 0 6px 18px rgba(194, 81, 12, 0.26);
+  transform: translateY(-1px);
+}
+
+/* Pressed must differ from hover, not merely from rest: the lift collapses and
+   the shadow tucks under, so the button reads as depressed rather than glowing. */
+.first-run-cta:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(33, 26, 18, 0.28);
+}
+
+.first-run-cta:focus-visible {
+  transform: none;
+  box-shadow: 0 0 0 4px var(--accent-100);
+}
+
+/* Occupies the progress track's slot on a project with no papers, so the card
+   keeps its height and the grid does not jag between started and unstarted. */
+.project-card-unstarted {
+  height: 6px;
+  margin-bottom: 14px;
+  font-size: 10px;
+  line-height: 6px;
+  color: var(--muted-3);
+  letter-spacing: 0.02em;
+}

@@ -1,0 +1,243 @@
+/* Settings → Analytics: the token-usage chart and its filters. */
+
+.tok-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tok-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Capped rather than flexed to fill: a select stretched across the pane reads
+   as the section's main control, and this one is a narrowing filter. */
+.tok-field-model {
+  min-width: 220px;
+  max-width: 300px;
+}
+
+.tok-date {
+  font-size: var(--fs-set-body);
+  padding: 6px 9px;
+  border-radius: 8px;
+  border: 1px solid var(--border-2);
+  background: var(--bg-2);
+  color: var(--ink-2);
+  transition:
+    border-color 150ms ease-in-out,
+    background-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out,
+    opacity 150ms ease-in-out;
+}
+
+.tok-date:hover:not(:disabled) {
+  border-color: var(--muted-3);
+  background: var(--panel-hover);
+}
+
+.tok-date:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  /* A RING as well as the colour: focus that is only a hue change disappears
+     for a colourblind reader and on a low-contrast panel. */
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+
+.tok-date:active:not(:disabled) {
+  background: var(--panel-2);
+  border-color: var(--accent-strong);
+}
+
+.tok-date:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--panel-2);
+  border-style: dashed;
+  color: var(--muted-2);
+}
+
+/* LAYOUT ONLY — the model dropdown is the shared `.sel-trigger` listbox, and
+   its states come with it. Sized to match the date fields beside it, since a
+   row of controls that answer one question should not read as three heights. */
+.tok-select {
+  width: 100%;
+  font-size: var(--fs-set-body);
+  padding: 6px 9px;
+  border-radius: 8px;
+}
+
+/* ------------------------------------------------------------------ chart */
+
+.tok-chart-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--bg-2);
+  padding: 12px 12px 10px;
+}
+
+.tok-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+}
+
+.tok-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.tok-axis-line {
+  stroke: var(--border-2);
+  stroke-width: 1;
+}
+
+.tok-axis {
+  font-size: 10px;
+  fill: var(--muted-2);
+}
+
+/* The two bands differ in FILL, OPACITY and STROKE — never hue alone. Input is
+   the solid floor, output the lighter band sitting on it, so the boundary
+   survives a greyscale print and a colourblind reader. */
+.tok-band {
+  transition: opacity 250ms ease-in-out;
+}
+
+.tok-band-in {
+  fill: var(--accent);
+  fill-opacity: 0.85;
+  stroke: var(--accent-strong);
+  stroke-width: 1;
+}
+
+.tok-band-out {
+  fill: var(--accent-100);
+  fill-opacity: 0.9;
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+
+/* Reused input, drawn FAINTEST and outlined rather than filled: it is the one
+   band that represents no work. A cache-heavy day is legitimately tall, and it
+   must not read as a day that cost a great deal. Distinguished from the two
+   bands below it by opacity and by a dotted edge, never by hue alone. */
+.tok-band-cache {
+  fill: var(--muted);
+  fill-opacity: 0.16;
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 1 3;
+}
+
+.tok-chart:hover .tok-band {
+  fill-opacity: 1;
+}
+
+.tok-dot-in {
+  fill: var(--accent);
+  stroke: var(--bg-2);
+  stroke-width: 1.5;
+}
+
+.tok-dot-out {
+  fill: var(--accent-100);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.tok-cursor {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+/* ----------------------------------------------------------- legend/readout */
+
+.tok-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: var(--fs-set-meta);
+  color: var(--muted);
+}
+
+.tok-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tok-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.tok-swatch-in {
+  background: var(--accent);
+  border: 1px solid var(--accent-strong);
+}
+
+.tok-swatch-out {
+  background: var(--accent-100);
+  border: 1px dashed var(--accent);
+}
+
+.tok-swatch-cache {
+  background: color-mix(in srgb, var(--muted) 16%, transparent);
+  border: 1px dotted var(--muted);
+}
+
+/* Fixed height: a readout that appears and disappears on hover would reflow the
+   pane under the pointer, which makes the chart hard to track across. */
+.tok-readout {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  min-height: 26px;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-set-code);
+  color: var(--ink-2);
+}
+
+.tok-readout-day {
+  font-weight: 600;
+}
+
+.tok-readout-total {
+  margin-left: auto;
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.tok-readout-idle {
+  color: var(--muted-3);
+}
+
+/* ------------------------------------------------------------------- notes */
+
+.tok-note {
+  font-size: var(--fs-set-help);
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.tok-note-warn {
+  margin-top: 10px;
+  color: var(--warn-strong);
+}
+
+.tok-note-bad {
+  color: var(--danger-strong);
+}

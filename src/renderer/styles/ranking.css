@@ -1,0 +1,704 @@
+/* ranking screen styles — owned by the ranking design agent.
+   Rebuilds the ranking body to match Corpus.dc.html: a two-column layout with a
+   FRONTIER MAP quadrant scatter on the left and a list of REL/EXP score-bar
+   CARDS on the right. Tokens: track #f1ece5, gradient #f6a35f→#e2600f,
+   ink #211a12, accent-strong #c2510c (EXP value). */
+
+/* ---- shared bits used on this screen ---- */
+.screen-ranking .eyebrow-mono {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a89e91;
+}
+.dot-ring {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid #e89a5b;
+  flex-shrink: 0;
+}
+
+/* ---- header action row (chips + sort) ---- */
+.ranking-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.ranking-actions .chip-row {
+  margin: 0;
+  flex: 1 1 auto;
+}
+.ranking-actions .input-sm {
+  margin-left: auto;
+}
+
+/* ---- fixed-height screen: ONLY the ranked list scrolls ----
+   `.route-area` (styles.css, not ours to edit) is the page scroller and has a
+   definite height (app-shell 100vh → content-col flex column → route-area
+   flex:1). Making `.screen-ranking` itself a bounded flex COLUMN means the real
+   rendered height of the screen-head action row (which wraps to two lines at
+   narrow widths) is subtracted automatically — only the topbar (62px) and the
+   route-area vertical padding (24px × 2) remain as constants. The grid then
+   takes the remaining space and both columns stretch into it, so the frontier
+   map stays in frame while the list scrolls on its own. */
+.screen-ranking {
+  display: flex;
+  flex-direction: column;
+  /* Derive the height from the ACTUAL parent box rather than guessing at window
+     chrome. `100%` here resolves against .route-area's content box, so the
+     topbar height and route padding are already excluded — no hardcoded 62px /
+     48px constants that silently drift when the shell changes (e.g. the custom
+     title bar). The route area is clamped below so this 100% is definite. */
+  height: 100%;
+  min-height: 0;
+}
+
+/* Only for the ranking split: stop the ROUTE AREA itself from scrolling, so the
+   page can never scroll behind the contained list (that page-level scroll was
+   what nudged the frontier map while the list scrolled). */
+.route-area:has(> .screen-ranking) {
+  overflow: hidden;
+}
+.screen-ranking > .screen-head {
+  flex: 0 0 auto;
+}
+
+/* ---- two-column body ---- */
+.ranking-grid {
+  display: flex;
+  /* NOWRAP is load-bearing: in a WRAPPING flex container the single line's
+     cross size grows to the tallest item's CONTENT height, so `align-items:
+     stretch` would never bound the columns and the long list would push the
+     page scroller again. With nowrap + a definite container height, both
+     columns are stretched to exactly that height and the list scrolls inside.
+     The <=1120px media query below restores wrapping for the stacked layout. */
+  flex-wrap: nowrap;
+  gap: 20px;
+  flex: 1 1 auto;
+  min-height: 0;
+  align-content: stretch;
+  align-items: stretch;
+}
+
+/* ---- LEFT: frontier map card ---- */
+.frontier-card {
+  flex: 2 1 460px;
+  min-width: 320px;
+  /* height comes from the stretched grid row; the 520px design height is the
+     floor so the plot never squashes on short windows. */
+  min-height: 380px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-2);
+  box-shadow: 0 1px 2px rgba(33, 26, 18, 0.04);
+}
+.frontier-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+.frontier-legend {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.frontier-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.frontier-plot {
+  /* Positioning context for the plot's own absolutely-placed children (the
+     axis labels and the quadrant captions). NOT for the hovercard — that is
+     `position: fixed` and takes viewport coords straight from the pointer. */
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.frontier-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* The plot is a READ surface: bubbles report on hover and are not clickable, so
+   they must not advertise a click with a pointer cursor. */
+.frontier-node {
+  cursor: default;
+}
+.frontier-node circle {
+  transition: r 0.2s ease, stroke 0.2s ease, stroke-width 0.2s ease;
+}
+/* selected frontier node gets a soft warm accent glow (design shows a drop-shadow) */
+.frontier-node.is-selected {
+  filter: drop-shadow(0 2px 6px rgba(226, 96, 15, 0.45)); /* --accent #e2600f @ 45% */
+}
+.frontier-plot .empty {
+  color: #a89e91;
+}
+
+/* ---- RIGHT: ranked list column ---- */
+.ranked-col {
+  flex: 1 1 340px;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.ranked-col-head,
+.ranked-col .empty,
+.ranked-col .show-more {
+  flex: 0 0 auto;
+}
+.ranked-col-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 0 13px;
+}
+.ranked-reorder-note {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+}
+.ranked-reorder-why {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--muted-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ranked-reorder-hint {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.ranked-reorder-hint:hover {
+  color: var(--accent);
+}
+.ranked-reorder-hint:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.ranked-col-head .rank-count {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #a89e91;
+}
+/* THE screen's scroller. `min-height:0` is what actually lets a flex child
+   shrink below its content height and scroll instead of pushing the page. The
+   generous bottom padding keeps the last card's "why?" popover (absolutely
+   positioned inside the card, so clipped by this overflow context) in view. */
+.ranked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 13px 140px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  /* NOT overflow-x:hidden — `overflow-x` and `overflow-y` cannot differ in a
+     scroll container, so hiding X would clip the right-aligned "why?" popover
+     that overhangs its card. `visible` here resolves to `auto`, which lets the
+     popover extend the scrollable area instead of being cut. */
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  position: relative;
+}
+/* while a drag is live, kill text selection + the native scroll chaining */
+.ranked-list.is-reordering {
+  user-select: none;
+  cursor: grabbing;
+}
+
+/* ---- DOCUMENT-WIDE grabbing cursor during a drag ----
+   The gesture is driven by WINDOW-level pointer listeners, so the pointer
+   leaves the handle almost immediately and hovers cards, titles, <select>s and
+   the SVG chart — each of which sets its own `cursor` and would win. A rule
+   scoped to `.ranked-list` therefore flickers. RankingScreen adds
+   `.is-dragging-row` to <html> for exactly the lifetime of the drag (added and
+   removed by one React effect keyed on the drag state, so every exit path —
+   drop, pointercancel, Escape, refetch-abort, unmount — cleans it up), and we
+   force the cursor on every element under it, including pseudo-elements and
+   the disabled handles that would otherwise show `not-allowed`. */
+html.is-dragging-row,
+html.is-dragging-row *,
+html.is-dragging-row *::before,
+html.is-dragging-row *::after {
+  cursor: grabbing !important;
+}
+/* no accidental text selection anywhere while dragging */
+html.is-dragging-row {
+  user-select: none;
+}
+
+/* ---- drop indicator: the gap the dragged row will land in ---- */
+.drop-indicator {
+  position: absolute;
+  left: 13px; /* matches .ranked-list horizontal padding */
+  right: 13px;
+  /* 0, not 1: the shifted cards are transformed (→ stacking contexts painted at
+     the z-index:0 layer), so an equal z-index lets tree order keep the
+     indicator BEHIND any card that transiently slides over it. */
+  z-index: 0;
+  border-radius: 13px;
+  border: 1px dashed var(--accent-100, #f2c39a);
+  background: rgba(226, 96, 15, 0.04); /* --accent #e2600f, barely tinted */
+  pointer-events: none;
+  transition: top 0.18s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+/* ---- score-bar CARD ---- */
+.rank-card {
+  border-radius: 13px;
+  padding: 12px 13px;
+  background: var(--bg-2);
+  box-shadow: 0 0 0 1px var(--border);
+  cursor: pointer;
+  flex: 0 0 auto;
+  /* transform is driven imperatively during a drag; the transition lives on the
+     shifting neighbours only (set inline) so the dragged card tracks the
+     pointer with zero lag. */
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+.rank-card:hover {
+  box-shadow: 0 4px 14px rgba(33, 26, 18, 0.07), 0 0 0 1px var(--border);
+}
+.rank-card.is-selected {
+  background: #fffaf5;
+  box-shadow: 0 0 0 2px #f2c39a;
+}
+.rank-card.is-excluded {
+  opacity: 0.62;
+}
+/* ---- drag-to-reorder feedback ----
+   The dragged card is LIFTED (scale + shadow) and rides above its neighbours,
+   which slide out of the way with their own transition. */
+.rank-card.is-dragging {
+  position: relative;
+  z-index: 5;
+  cursor: grabbing;
+  background: #fffaf5;
+  /* deeper, wider elevation than :hover so the row unmistakably reads as
+     lifted off the list plane (the scale(1.015) is applied with the drag
+     transform in RankingScreen, which owns `transform`). */
+  box-shadow:
+    0 18px 34px -12px rgba(33, 26, 18, 0.34),
+    0 4px 10px -4px rgba(33, 26, 18, 0.16),
+    0 0 0 2px var(--accent-100, #f2c39a);
+  transition: box-shadow 0.15s ease, background 0.15s ease;
+}
+/* the vacated original slot is dimmed so the eye follows the lifted card */
+.ranked-list.is-reordering .rank-card:not(.is-dragging) {
+  opacity: 0.86;
+}
+.ranked-list.is-reordering .rank-card.is-excluded:not(.is-dragging) {
+  opacity: 0.55;
+}
+/* neighbours must not fight the inline transform transition with their own */
+.ranked-list.is-reordering .rank-card:hover {
+  box-shadow: 0 0 0 1px var(--border);
+}
+.ranked-list.is-reordering .rank-card.is-dragging:hover {
+  box-shadow:
+    0 14px 28px -10px rgba(33, 26, 18, 0.28),
+    0 0 0 2px var(--accent-100, #f2c39a);
+}
+/* the frontier dot for the row being dragged pulses while it moves live */
+.frontier-node.is-live circle {
+  transition: none;
+}
+
+.rank-card-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 10px;
+}
+/* drag handle — a real <button> so it is focusable and offers the keyboard
+   reorder alternative (ArrowUp / ArrowDown) to pointer dragging. */
+.drag-handle {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 3px 2px;
+  margin: 0;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #cabfb0;
+  flex-shrink: 0;
+  cursor: grab;
+  touch-action: none; /* let pointermove drive the drag, not native scrolling */
+  transition: color 0.15s ease, background 0.15s ease;
+}
+/* resting state must be discoverable: hovering the handle tints it and gives it
+   a soft chip so the grab cursor is clearly attached to something grabbable. */
+.drag-handle:hover:not(:disabled) {
+  color: var(--accent-strong, #c2510c);
+  background: #faf4ec; /* same cream as .rank-badge */
+}
+.drag-handle:focus-visible {
+  outline: 2px solid var(--accent-100, #f2c39a);
+  outline-offset: 1px;
+  color: var(--accent-strong, #c2510c);
+}
+/* only rows sorted by relevance can be reordered; others show a dimmed handle */
+.drag-handle:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+.rank-card.is-draggable .drag-handle:active {
+  cursor: grabbing;
+}
+.drag-handle i {
+  width: 11px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+/* light numbered rank badge (design: cream bg, grey mono, weight 500) */
+.rank-badge {
+  width: 21px;
+  height: 21px;
+  border-radius: 6px;
+  background: #faf4ec; /* design cream; no exact token (nearest --panel #faf8f5) */
+  color: var(--muted-2); /* #8a8073 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+.rank-type-dot {
+  width: 9px;
+  height: 9px;
+}
+.rank-title {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.rank-title:hover {
+  color: var(--accent-strong);
+}
+.rank-year {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #a89e91;
+  flex-shrink: 0;
+}
+.override-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--warn);
+  background: #fbf1dd;
+  border: 1px solid #f0e0bc;
+  border-radius: 999px;
+  padding: 1px 7px;
+  flex-shrink: 0;
+}
+/* A marked reference. Shares the badge geometry with .override-badge, but it is
+   a BUTTON — the state it shows is one the user set and can unset, so it has to
+   invite the click that undoes it rather than sitting there as a label. */
+.reference-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--panel-2);
+  border: 1px solid var(--accent-100);
+  border-radius: 999px;
+  padding: 1px 7px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+.reference-badge:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.reference-badge:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+/* ---- the two mini score-bars ---- */
+.rank-card-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.scorebar {
+  flex: 1;
+  min-width: 0;
+}
+.scorebar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: #a89e91;
+  margin-bottom: 3px;
+}
+.scorebar-label > span {
+  white-space: nowrap;
+}
+.scorebar-track {
+  height: 5px;
+  border-radius: 3px;
+  background: #f1ece5;
+  overflow: hidden;
+}
+.scorebar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+/* VIRIDIS, over the sub-range that survives this background — the same colormap
+   the paper-view evidence highlights use, so one scale means one thing
+   throughout the app.
+   Both bars run over it: a low score is deep purple, a high one teal. They
+   differ by EXTENT (relevance spans further along the ramp than expansion), not
+   by hue, which is honest — they are the same kind of 0–10 quantity and were
+   never told apart by colour anyway. The label beside each bar names it.
+   The ramp STOPS at viridis's teal and never reaches its yellow tail: #fde725
+   measures 1.07:1 against this track, so a full bar would be indistinguishable
+   from an empty one. Both ends of both bars were measured and clear the 3:1
+   WCAG 1.4.11 floor for a graphical object. */
+.scorebar-fill.rel {
+  background: linear-gradient(90deg, #440154, #2c8a8b);
+}
+.scorebar-fill.exp {
+  background: linear-gradient(90deg, #3e4989, #2c8a8b);
+}
+/* the inline override trigger — kept subtle, required by ranking.spec */
+.scorebar .btn-mini {
+  font-family: var(--mono);
+  font-size: 9px;
+  line-height: 1;
+  padding: 1px 5px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--muted-2);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.rank-card:hover .scorebar .btn-mini,
+.scorebar .btn-mini:focus-visible {
+  opacity: 1;
+}
+.scorebar .btn-mini:hover {
+  color: var(--accent-strong);
+  border-color: var(--accent-100);
+}
+/* Iconized override trigger (pencil). Square so the glyph is not squashed;
+   accessible name comes from aria-label/title on the button. */
+.scorebar .btn-mini-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 16px;
+  padding: 0;
+}
+
+/* ---- card footer: status select + why ---- */
+/* WRAPS. The row carries a status select, the dossier toggle, two summary
+   buttons and the why-rank trigger, which together exceed the panel's width at
+   the sizes this app is used at — and a non-wrapping row overflowed, clipping
+   the why-rank trigger off the right edge and putting a horizontal scrollbar
+   under every card. Wrapping costs a row of height on narrow panels; the
+   alternative costs the user a control they cannot see. */
+.rank-card-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.rank-card-foot .status-select {
+  height: 26px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+.why-link {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+}
+/* Iconized "why this rank" trigger (question mark in a circle). Appears once
+   per row, so the text form cost ~20 labels per screen. */
+.why-link-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+.why-link-icon:hover {
+  color: var(--accent-strong);
+  background: var(--bg-2);
+}
+.why-link-icon:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+/* Sits directly after the controls rather than being pushed to the far right.
+   An `auto` left margin resolves per FLEX LINE, so on a row that wraps it
+   drove the trigger onto a line of its own and left a band of empty card under
+   every entry that happened to be one control too wide. Inline, the row wraps
+   as a group and reads as one cluster of actions. */
+.rank-card-foot .popover-wrap {
+  display: inline-flex;
+}
+
+/* A change that did not reach the database, said next to the control that
+   made it. It takes the WHOLE flex line (`flex-basis: 100%`) so the sentence
+   is never truncated into a chip the eye skips, and it fades in rather than
+   appearing, because something arriving without motion under a pointer that
+   has already moved on is easy to miss entirely. */
+.rank-save-failed {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border: 1px solid var(--danger);
+  border-radius: 7px;
+  background: var(--danger-soft);
+  color: var(--danger-strong);
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  animation: rank-save-failed-in .25s ease-in-out both;
+}
+.rank-save-failed svg { flex: none; }
+@keyframes rank-save-failed-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rank-save-failed { animation: none; }
+}
+
+/* pop title uses mono eyebrow styling here */
+.screen-ranking .pop-title.mono {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a89e91;
+}
+/* ranking-specific tweak: the override line inside the shared .why-rank block
+   is tinted with the warn token so it reads as a manual adjustment. The base
+   .why-rank / .why-rank-row / .why-rank-score / .why-rank-reason layout classes
+   live in graph.css (globally loaded) and are intentionally NOT redefined here. */
+.screen-ranking .why-rank-override {
+  color: var(--warn, #a06a1a);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+/* "title only", beside a relevance score that was read from a title alone. It
+   sits inside a tracked-out uppercase label, so it drops the tracking and takes
+   the smaller size the label uses; it carries its explanation in a tooltip and
+   is therefore focusable, which means it owns the whole pointer state space. */
+.scored-on-badge {
+  margin-left: 6px;
+  font-size: 9.5px;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 0 6px;
+  cursor: help;
+  transition:
+    box-shadow 150ms ease-in-out,
+    filter 150ms ease-in-out;
+}
+.scored-on-badge:hover {
+  filter: brightness(0.96);
+  box-shadow: 0 0 0 2px var(--border-2);
+}
+.scored-on-badge:active { filter: brightness(0.92); }
+.scored-on-badge:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ranked-col .show-more {
+  margin: 12px 13px 0;
+  align-self: flex-start;
+}
+
+/* Below ~1120px the two columns WRAP (they need 460 + 340 + 20 gap = 820px of
+   content width, and the shell spends 246px on the sidebar + 52px of padding).
+   A fixed screen height would then cram both stacked columns into one viewport,
+   so revert to natural heights and hand scrolling back to `.route-area`. */
+@media (max-width: 1120px) {
+  .screen-ranking {
+    height: auto;
+    min-height: 0;
+  }
+  .ranking-grid {
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    align-items: flex-start;
+  }
+  .frontier-card {
+    height: 420px;
+    min-height: 0;
+  }
+  .ranked-list {
+    overflow-y: visible;
+    padding-bottom: 6px;
+  }
+}

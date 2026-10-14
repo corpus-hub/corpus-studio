@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- The hardened runtime refuses to load a library the app itself did not
+       sign. better-sqlite3's addon IS signed with the app, but a SQLite
+       extension loaded at runtime via db.loadExtension() (sqlite-vec) is not,
+       and neither is a shipped helper binary until it is listed in
+       mac.binaries. This entitlement is notarization-acceptable; it is the
+       documented fallback and is preferred over shipping unsigned code paths
+       that fail only on a user's Mac. -->
+  <key>com.apple.security.cs.disable-library-validation</key>
+  <true/>
+
+  <!-- Node/Electron map writable-executable pages for JIT. Note this is a
+       PROCESS entitlement and has nothing to do with the renderer CSP, which
+       still forbids unsafe-eval. -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+  <true/>
+
+  <!-- The app is offline by design and requests no network entitlement.
+       It reads user-chosen PDFs, which arrive via the file dialog / drag and
+       drop, so it needs user-selected file access only. -->
+  <key>com.apple.security.files.user-selected.read-write</key>
+  <true/>
+</dict>
+</plist>

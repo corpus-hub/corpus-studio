@@ -1,0 +1,44 @@
+{
+  "$comment": [
+    "FAMILY KNOWLEDGE for the RERANKER role, keyed by the model id the packaging",
+    "step wrote into resources/rerankers/<org>/<model>/. The sibling of",
+    "models/spaces.json, and the same argument: a model absent from this file is",
+    "refused loudly rather than scored under guessed settings.",
+    "",
+    "Two settings live here because neither is in the model's own files and both",
+    "change what the number MEANS:",
+    "",
+    "  truncationSide  which half of an over-long (query, passage) pair loses",
+    "                  tokens. The same passage scored under `only_second` and",
+    "                  under a balanced strategy is two different scores, and",
+    "                  neither config.json nor tokenizer_config.json says which",
+    "                  the caller gets. MEASURED, not assumed: this said",
+    "                  `longest_first` until a probe encoded real pairs and read",
+    "                  the [SEP] positions back. transformers.js keeps the head",
+    "                  of the CONCATENATED sequence — a 400/400 pair kept all 400",
+    "                  query tokens and cut the passage, and a 600-token query",
+    "                  left no separator at all. This string is part of the",
+    "                  identity HASH, so correcting it changes the reranker's",
+    "                  fingerprint and every score stored under the false",
+    "                  description is correctly treated as a different",
+    "                  measurement and recomputed.",
+    "  scoreSemantics  what the stored number IS. This head emits ONE raw logit;",
+    "                  we record sigmoid(logit) beside it for readability, and",
+    "                  the pair is never a calibrated probability. Rank it, never",
+    "                  threshold it. If a later decision stores something else",
+    "                  under the same column, that is a different measurement and",
+    "                  the identity hash must move with it.",
+    "",
+    "Everything else — the weights' sha256, the quantisation, the maximum",
+    "sequence length — is derived from the bytes on disk, so swapping the",
+    "packaged model changes the identity without anyone editing a constant."
+  ],
+  "schemaVersion": 1,
+  "rerankers": {
+    "cross-encoder/ms-marco-MiniLM-L-6-v2": {
+      "truncationSide": "right-of-concatenated-pair",
+      "scoreSemantics": "logit-sigmoid",
+      "source": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2 — trained on MS MARCO over (query, passage) pairs; the model card's usage example sorts by the RAW logit and applies no softmax."
+    }
+  }
+}

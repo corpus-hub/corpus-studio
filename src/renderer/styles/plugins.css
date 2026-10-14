@@ -1,0 +1,1306 @@
+/* Settings → Plugins, and the sync chrome a sharing plugin puts in the
+   navbar and on the project cards.
+
+   STATE SPACE. Every state below is distinct from every other on TWO channels —
+   a hue and a shape, weight or glyph — so none of them is signalled by colour
+   alone. Transitions are 150ms on anything tracking the pointer and 250ms on
+   ambient emphasis. Keyframes run only while a thing is actually animating;
+   there is no always-on loop. */
+
+/* --------------------------------------------------------------- the toolbar */
+
+.plug-pane { display: flex; flex-direction: column; gap: 14px; }
+
+.plug-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.plug-toolbar-text { flex: 1 1 auto; min-width: 0; }
+.plug-toolbar .btn { flex: 0 0 auto; }
+
+.plug-add-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--danger-100);
+  border-left: 3px solid var(--danger);
+  border-radius: 10px;
+  background: var(--danger-soft);
+  color: var(--danger-strong);
+  font-size: var(--fs-set-help);
+  line-height: 1.5;
+}
+.plug-add-error .badge { flex: 0 0 auto; }
+
+.plug-empty {
+  margin: 0;
+  padding: 22px 16px;
+  border: 1px dashed var(--border-2);
+  border-radius: var(--radius-card);
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--fs-set-help);
+}
+
+/* ----------------------------------------------------------------- the table */
+
+.plug-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--panel);
+  overflow: hidden;
+}
+
+/* ONE grid definition for the header and every row, and every track after the
+   first is INTRINSIC-INDEPENDENT. That is what actually keeps the columns in
+   step: the header and each row are SEPARATE grid containers, so any track
+   sized by its own contents resolves to a different width in each of them. */
+.plug-thead,
+.plug-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 104px 168px;
+  gap: 14px;
+  align-items: center;
+  padding: 11px 16px;
+}
+
+.plug-thead {
+  font-size: var(--fs-set-label);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-2);
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-2);
+}
+
+.plug-row {
+  border-bottom: 1px solid var(--border);
+  /* The LEFT EDGE is the state channel that is not colour: it changes hue and
+     the row's background together, so a row is readable as a shape at a glance
+     and survives a colourblind reader. */
+  box-shadow: inset 3px 0 0 transparent;
+  background-color: transparent;
+  /* `background-color`, not `background`. The busy hatch is a
+     `background-image` on this element, and the shorthand transition would try
+     to tween a layer that is either present or absent — so the fill is the part
+     that eases and the hatch simply appears with the state it belongs to. */
+  transition:
+    background-color 150ms ease-in-out,
+    box-shadow 250ms ease-in-out;
+}
+.plug-row:last-child { border-bottom: none; }
+
+/* Every combination below is DISTINCT from every other.
+   `scripts/check-plugin-states.mjs` resolves each pair against the BUILT css in
+   a real browser and asserts none collide — the check that previously caught
+   `picked+hover === picked`. */
+/* `background-color`, NEVER the `background` shorthand, on every state below.
+   The shorthand resets `background-image`, and the busy hatch IS a
+   background-image laid over whichever of these the row is already in — so a
+   shorthand here erased the hatch the moment the pointer arrived, and "this row
+   is working" disappeared on exactly the states a user hovers to find out. */
+.plug-row:hover { background-color: var(--panel-hover); }
+.plug-row:focus-within { background-color: var(--bg-2); box-shadow: inset 3px 0 0 var(--accent-100); }
+
+.plug-row.is-on { box-shadow: inset 3px 0 0 var(--ok); }
+.plug-row.is-on:hover { background-color: var(--ok-soft); box-shadow: inset 4px 0 0 var(--ok); }
+.plug-row.is-on:focus-within { background-color: var(--ok-soft); box-shadow: inset 4px 0 0 var(--accent); }
+
+.plug-row.is-failed { box-shadow: inset 3px 0 0 var(--danger); background-color: var(--danger-soft); }
+.plug-row.is-failed:hover { background-color: var(--danger-100); box-shadow: inset 4px 0 0 var(--danger); }
+.plug-row.is-failed:focus-within { background-color: var(--danger-100); box-shadow: inset 4px 0 0 var(--danger-strong); }
+
+/* ON *AND* FAILED is its own state, not failed with the enabled edge painted
+   over. A plugin that is broken but still switched on is the one the user most
+   needs to act on, and rendering it identically to a broken disabled one hides
+   the fact that it is meant to be running. Both facts survive by SPLITTING the
+   edge: danger outermost, the enabled green behind it. */
+.plug-row.is-on.is-failed { box-shadow: inset 3px 0 0 var(--danger), inset 6px 0 0 var(--ok); }
+.plug-row.is-on.is-failed:hover {
+  background-color: var(--danger-100);
+  box-shadow: inset 4px 0 0 var(--danger), inset 8px 0 0 var(--ok);
+}
+.plug-row.is-on.is-failed:focus-within {
+  background-color: var(--danger-100);
+  box-shadow: inset 4px 0 0 var(--danger-strong), inset 8px 0 0 var(--accent);
+}
+
+/* BUSY is a SECOND CHANNEL, not a replacement. It tints the background and adds
+   a hatch, and leaves the edge to whatever the row already was — a row that
+   went plain blue while working would be one whose enabled and failed states
+   vanish for the duration of every click. */
+.plug-row.is-busy {
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--busy) 9%, transparent) 0 6px,
+    transparent 6px 12px
+  );
+}
+.plug-row.is-busy:not(.is-on):not(.is-failed) { box-shadow: inset 3px 0 0 var(--busy); }
+.plug-row.is-busy:not(.is-on):not(.is-failed):hover {
+  background-color: var(--panel-2);
+  box-shadow: inset 4px 0 0 var(--busy);
+}
+/* Keyboard focus must survive a write being in flight — it is exactly when a
+   user wants to know where they are. */
+.plug-row.is-busy:focus-within { background-color: var(--bg-2); }
+.plug-row.is-busy:not(.is-on):not(.is-failed):focus-within {
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+/* The ENABLED edge survives focus, by splitting rather than being painted over.
+   `.plug-row.is-on:focus-within` replaces the green with the focus accent, so
+   without this an enabled row being written to and an off one being written to
+   were the same picture — and the busy hatch, which is what tells the two apart
+   from a resting row, tells you nothing about which one you are looking at. */
+.plug-row.is-on.is-busy:focus-within {
+  box-shadow: inset 4px 0 0 var(--accent), inset 8px 0 0 var(--ok);
+}
+
+.plug-cell { min-width: 0; }
+.plug-cell-name { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+.plug-cell-status { display: flex; align-items: center; }
+.plug-cell-toggle { display: flex; }
+/* Flows from the column's OWN left edge, like every other cell — the one
+   position a heading can be put over, and one a wrapped confirmation does not
+   move. */
+.plug-cell-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+/* The question takes the WHOLE line and the two answers share the next one.
+   Left to wrap inside the fixed 168px track it breaks at whatever word happens
+   to fit, so the buttons land in a different place on each row and the row
+   height moves as the sentence changes with the plugin's origin. */
+.plug-confirm-q {
+  flex: 1 0 100%;
+  font-size: var(--fs-set-meta);
+  color: var(--danger-strong);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.plug-name { margin: 0; font-size: var(--fs-set-h3, 15px); font-weight: 650; color: var(--ink); }
+.plug-blurb {
+  margin: 0;
+  font-size: var(--fs-set-help, 12px);
+  color: var(--muted);
+  line-height: 1.45;
+  /* Two lines in a table row, then an ellipsis: the full text is on the
+     configuration screen, and a row that grows with its blurb makes the table
+     unscannable. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.plug-row-error { font-size: 11px; color: var(--danger-strong); line-height: 1.5; }
+
+/* ---------------------------------------------------------- the config screen */
+
+.plug-detail { display: flex; flex-direction: column; gap: 12px; }
+/* Its own row, so it shrinks to its label instead of stretching the width of
+   the pane — `.plug-detail` is a column flex and a block child would. */
+.plug-back {
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+/* The arrow leads the press: it is the only channel here that is neither a hue
+   nor a fill, so hover and press stay apart from each other and from focus
+   (which is the ring) without leaning on colour. */
+/* `align-items: center` centres the BOX, and the box of an inline glyph is its
+   line box — which for "←" is mostly the ascent it does not use, so the arrow
+   rides high above the label. Centring the glyph inside a square of the label's
+   own size is what actually aligns the two: `line-height: 1` collapses the box
+   onto the glyph, and the flex centring is then about the mark rather than about
+   the font's vertical metrics. */
+.plug-back-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  height: 1em;
+  transition: transform 150ms ease-in-out, opacity 150ms ease-in-out;
+  opacity: 0.75;
+}
+.plug-back:hover .plug-back-arrow { transform: translateX(-2px); opacity: 1; }
+.plug-back:active .plug-back-arrow { transform: translateX(-4px); opacity: 1; }
+.plug-back:focus-visible .plug-back-arrow { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .plug-back-arrow { transition: none; }
+}
+
+/* Above the row it introduces, and tied to it: the gap below is smaller than the
+   one above, so the sentence reads as belonging to the buttons rather than
+   trailing the fields. */
+.plug-setup-help { margin: 6px 0 0; }
+
+.plug-detail-title { min-width: 0; }
+.plug-detail-title .set-h3 { margin: 0 0 3px; }
+
+.plug-danger {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 8px;
+  padding: 13px 15px;
+  border: 1px solid var(--danger-100);
+  border-radius: var(--radius-card);
+  background: var(--danger-soft);
+  transition: border-color 250ms ease-in-out;
+}
+.plug-danger:hover { border-color: var(--danger-200); }
+.plug-danger-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.plug-danger-title { font-size: var(--fs-set-body); font-weight: 650; color: var(--danger-strong); }
+.plug-danger-why { font-size: var(--fs-set-help); color: var(--muted); line-height: 1.5; }
+.plug-danger-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+
+.plug-switch { flex: 0 0 auto; }
+
+.plug-consent {
+  margin: 0;
+  font-size: var(--fs-set-help, 12px);
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* Unconfigured is the ORDINARY first-run state, so it gets prose and not a
+   badge — a chip that appears on every fresh install stops being read, and it
+   takes the warning next to it down with it. */
+.plug-blocker {
+  margin: 10px 0 0;
+  font-size: var(--fs-set-help, 12px);
+  color: var(--muted-2, var(--muted));
+  line-height: 1.55;
+}
+
+/* In a table CELL, so it stacks and does not carry a margin: the row's own
+   padding is what spaces it, and a margin here would misalign it against the
+   toggle beside it. */
+.plug-state {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  margin: 0;
+  min-width: 0;
+  font-size: var(--fs-set-help, 12px);
+}
+.plug-state-why {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+}
+.plug-state-word {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  font-weight: 600;
+}
+.plug-state-why { color: var(--muted); }
+
+/* THREE STATES, THREE COLOURS, and there may never be a fourth of either.
+   Keyed on the KIND, not on the run state: a class per run state made the seven
+   words seven colours, so a healthy plugin changed hue mid-cycle while nothing
+   was happening to it. The word is the primary channel and the colour agrees
+   with it — neither ever appears without the other. */
+.plug-state-working .plug-state-word { color: var(--ok); }
+.plug-state-unconfigured .plug-state-word { color: var(--muted-2); }
+.plug-state-failing .plug-state-word { color: var(--danger); }
+
+.plug-warning {
+  display: flex; align-items: baseline; gap: 8px;
+  margin: 10px 0 0;
+  font-size: var(--fs-set-help, 12px); color: var(--warn-strong); line-height: 1.55;
+}
+
+.plug-fields { margin-top: 16px; }
+.plug-field { transition: opacity 150ms ease-in-out; }
+.plug-help { font-size: 11px; color: var(--muted-3); line-height: 1.5; }
+.plug-optional {
+  margin-left: 8px;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted-3); font-weight: 500;
+}
+
+.plug-field .input { transition: border-color 150ms ease-in-out, background 150ms ease-in-out; }
+.plug-field .input:hover { border-color: var(--muted-3); }
+/* Stated here rather than relying on `.set-fields .input:focus`, which is scoped
+   to an ancestor this field does not always have. A focus ring that depends on
+   where a control happens to sit is a focus ring that goes missing the first
+   time one is reused. */
+.plug-field .input:focus {
+  border-color: var(--accent);
+  background: var(--bg-2);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.plug-field.is-rejected .input {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+.plug-field.is-rejected .input:focus { outline: 2px solid var(--danger); outline-offset: 1px; }
+/* rejected+hover, stated because rejected sets its own border and fill and would
+   otherwise swallow the generic hover — a pointer over the one field the user
+   has to correct would then look like a pointer over nothing. */
+.plug-field.is-rejected .input:hover { border-color: var(--danger-strong); background: var(--danger-input-hover); }
+.plug-field-bad { font-size: 11px; color: var(--danger-strong); line-height: 1.5; }
+.plug-note-bad { color: var(--danger-strong); }
+.plug-note-bad::before { content: '✕ '; font-weight: 700; }
+
+/* A button whose work is IN FLIGHT, distinct from one that is merely refusing.
+   Both carry `aria-disabled`, so without this "Saving…" and "nothing to save"
+   render identically and the user cannot tell a busy app from an inert one.
+
+   Qualified with the attribute a busy button always has, because the selector it
+   has to beat — `.btn[aria-disabled='true']` in styles.css — has the same
+   specificity and is imported FIRST. A bare `.btn.plug-busy` lost that tie and
+   the opacity fell back to the refusing 0.45, which is the collision this rule
+   exists to prevent. */
+.btn.plug-busy,
+.btn.plug-busy[aria-disabled='true'] {
+  opacity: 0.85;
+  cursor: progress;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+.btn.btn-secondary.plug-busy { box-shadow: inset 0 0 0 1px var(--accent-100); }
+/* Busy AND hovered, which the refusing-hover rule in styles.css otherwise
+   flattens back onto plain busy. The pointer being over the one control that IS
+   working has to look different from the pointer being anywhere else, or hover
+   reads as dead on the only button that is doing something. Brighter rim, not
+   another hue — the state is already carrying a colour. */
+.btn.plug-busy:hover,
+.btn.plug-busy:hover[aria-disabled='true'],
+.btn.plug-busy:active,
+.btn.plug-busy:active[aria-disabled='true'] {
+  opacity: 1;
+  box-shadow: inset 0 0 0 2px var(--accent-200);
+}
+
+
+/* A label that changes without the button changing size.
+   Both faces are stacked in one grid cell, so the cell is as wide as the WIDER
+   of them and the button never resizes mid-press. The hidden face is faded
+   rather than removed, because `display: none` would collapse the cell and give
+   back exactly the resize this exists to prevent. */
+.btn-swap { display: inline-grid; }
+.btn-swap-face {
+  grid-area: 1 / 1;
+  transition: opacity 150ms ease-in-out;
+}
+.btn-swap-face[aria-hidden='true'] { opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) {
+  .btn-swap-face { transition: none; }
+}
+
+/* A rejected value in a non-text field. `.is-rejected` styles `.input`, and a
+   switch has none — so the rejection would be invisible on exactly the control
+   that cannot show it any other way. */
+.plug-field.is-rejected .settings-switch {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px var(--danger-soft);
+}
+
+/* ------------------------------------------------- the navbar sync indicator */
+
+.sync-icon {
+  display: flex; align-items: center; gap: 9px;
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid transparent; border-radius: 9px;
+  background: transparent;
+  font: inherit; text-align: left; color: var(--muted);
+  cursor: default;
+  /* `box-shadow` is in here because the inset left rule IS a state channel on
+     `is-resync` and `is-needs-credentials` — omitting it made the rule snap on
+     hover and press while the fill beside it eased, which reads as a glitch
+     rather than as feedback. */
+  transition:
+    background 150ms ease-in-out,
+    color 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.sync-icon:hover { background: var(--panel-hover); color: var(--ink); }
+.sync-icon:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sync-icon:active { background: var(--panel-2); }
+
+.sync-icon-glyph { flex: 0 0 auto; display: flex; }
+.sync-icon-label { font-size: 12px; font-weight: 500; }
+
+.sync-icon.is-ok { color: var(--ok); }
+.sync-icon.is-ok:hover { background: var(--ok-soft); }
+.sync-icon.is-syncing { color: var(--warn); }
+.sync-icon.is-syncing:hover { background: var(--warn-soft); }
+/* Catching up is a LONGER operation than a poll, and the row says so as a whole
+   rather than only in the turning glyph: a tinted resting fill and a visible
+   left edge, so it is distinguishable from an ordinary sync at a glance and
+   without reading the label. */
+.sync-icon.is-resync {
+  color: var(--warn-strong);
+  background: var(--warn-soft);
+  box-shadow: inset 2px 0 0 var(--warn);
+}
+.sync-icon.is-resync:hover { background: var(--warn-200); box-shadow: inset 3px 0 0 var(--warn-strong); }
+/* Pressed, stated per state: a state that carries its own resting fill outranks
+   the generic `:active` rule, so without these the press does nothing visible on
+   exactly the states that have the most going on. */
+.sync-icon.is-resync:active { background: var(--sync-press-resync); box-shadow: inset 4px 0 0 var(--warn-strong); }
+.sync-icon.is-ok:active { background: var(--sync-press-ok); }
+.sync-icon.is-syncing:active { background: var(--sync-press-syncing); }
+.sync-icon.is-failed { color: var(--danger); border-color: var(--danger-soft); }
+.sync-icon.is-failed:hover { background: var(--danger-soft); border-color: var(--danger); }
+/* AFTER the hover rule, not before it. Both are one class plus one
+   pseudo-class, so specificity is equal and SOURCE ORDER decides — with this
+   above, `:hover` won and pressing the failed indicator did nothing visible,
+   which is precisely the dead-pointer collision rule 0.5 is about. */
+.sync-icon.is-failed:active { background: var(--danger-200); border-color: var(--danger-strong); }
+/* The one state that asks the user to DO something, so it gets pointer feedback
+   of its own rather than the generic neutral hover — which differed from idle
+   only by two near-identical greys, on exactly the state a person is meant to
+   click. The rule is dashed rather than solid: still not an alarm, but plainly
+   unfinished beside a resting icon. */
+.sync-icon.is-needs-credentials {
+  color: var(--muted-2, var(--muted));
+  box-shadow: inset 2px 0 0 var(--muted-3);
+}
+.sync-icon.is-needs-credentials:hover {
+  color: var(--ink);
+  background: var(--bg-2);
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+.sync-icon.is-needs-credentials:active { background: var(--panel-2); box-shadow: inset 4px 0 0 var(--warn-strong); }
+.sync-icon.is-idle { color: var(--muted-3); }
+/* SWITCHED OFF — the plugin is not running, so nothing about this share is being
+   checked. Drained rather than merely quiet, so it is not read as "idle, and
+   therefore about to poll". It is a reachable state (`host.ts` falls back to it
+   for anything malformed) and so owes a design like every other. */
+.sync-icon.is-off { color: var(--muted-3); opacity: 0.7; border-style: dotted; border-color: var(--border-2); }
+.sync-icon.is-off:hover { opacity: 1; border-color: var(--muted-3); }
+
+/* INCOMPLETE — the share has finished as far as it can and rows the peer keeps
+   offering will never be stored. A STATE OF ITS OWN, not a shade of `is-ok`: it
+   is amber for "attend to this", DASHED for "and it will stay this way", and it
+   carries the broken-ring glyph and the count. It is neither `is-failed` (which
+   promises a retry helps) nor `is-ok` (which would be the corpus calling itself
+   whole). */
+.sync-icon.is-incomplete {
+  color: var(--warn-strong);
+  background: var(--warn-100);
+  border-style: dashed;
+  border-color: var(--warn-300);
+}
+.sync-icon.is-incomplete:hover { background: var(--warn-200); border-color: var(--warn); }
+.sync-icon.is-incomplete:active {
+  background: var(--sync-press-resync);
+  border-color: var(--warn-strong);
+}
+
+/* A shortfall QUALIFYING a live state — failing, syncing, catching up or signed
+   out AND permanently short. The live condition keeps its whole look, because it
+   is the one the user can still act on; the shortfall takes the dashed edge,
+   which none of those four use, plus the count chip. */
+.sync-icon.is-short { border-style: dashed; }
+.sync-icon.is-failed.is-short { border-color: var(--danger-soft); }
+.sync-icon.is-failed.is-short:hover { border-color: var(--danger); }
+.sync-icon.is-syncing.is-short,
+.sync-icon.is-resync.is-short,
+.sync-icon.is-needs-credentials.is-short { border-color: var(--warn-300); }
+
+/* The COUNT. Never rendered at zero (hard rule 0.6) — a healthy share says
+   nothing at all. It inherits the row's hue through `currentColor` so it reads
+   as part of whatever state it is qualifying, and carries its own ring and
+   weight so it is not a colour alone. */
+.sync-icon-short {
+  margin-left: auto;
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center;
+  min-width: 17px; padding: 0 5px;
+  border: 1px solid currentColor; border-radius: 999px;
+  font-size: 10px; font-weight: 700; line-height: 1.6;
+  opacity: 0.85;
+  transition: opacity 150ms ease-in-out, background 150ms ease-in-out;
+}
+.sync-icon:hover .sync-icon-short { opacity: 1; background: var(--warn-100); }
+/* The number alone is not a sentence, and a screen reader lands on it with no
+   context at all. The tooltip says the whole thing; this says enough to know
+   the tooltip is worth reading. */
+.sync-icon-short-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+/* The broken ring is a SHAPE, not a motion — nothing about a permanent
+   shortfall is in progress, so it must never turn. It is drawn with a dash so
+   the gap survives being rendered at 16px. */
+.sync-gap { stroke-dasharray: 3.4 2.6; opacity: 0.85; }
+
+/* The ring settles OPEN over 250ms when a spinner finishes, so "done" is a
+   movement and not a swap. `sync-ring` is on the check's own circle. */
+.sync-ring {
+  transform-origin: 50% 50%;
+  transition: stroke-dasharray 250ms ease-in-out, opacity 250ms ease-in-out;
+}
+.sync-icon.is-ok .sync-ring { stroke-dasharray: 60 0; opacity: 1; }
+
+/* Runs ONLY while syncing — there is no always-on animation anywhere here. */
+@keyframes sync-spin { to { transform: rotate(360deg); } }
+.sync-icon.is-syncing .sync-arc,
+.sync-icon.is-resync .sync-arc {
+  transform-origin: 50% 50%;
+  animation: sync-spin 900ms linear infinite;
+}
+/* Resync is a SECOND concentric arc turning the other way, so "catching up" and
+   "syncing" are different shapes and not two shades of the same orange. */
+.sync-icon.is-resync .sync-arc-2 {
+  transform-origin: 50% 50%;
+  animation: sync-spin 1400ms linear infinite reverse;
+}
+
+/* The OS setting is honoured, as it is for every other pulse in this app. The
+   state is still legible without the motion: each one has its own glyph, its own
+   word and its own fill. */
+@media (prefers-reduced-motion: reduce) {
+  .sync-icon .sync-arc,
+  .sync-icon .sync-arc-2 { animation: none; }
+  .sync-ring { transition: none; }
+}
+
+/* ------------------------------------------ the ON-DEMAND sync button
+
+   The same row, turned into a control. The whole difficulty here is that the
+   passive indicator and the button occupy the same 246px of sidebar, so
+   "you may press this" has to be carried by something other than position:
+
+     - a RESTING FILL and a RESTING BORDER. The indicator is transparent until
+       hovered; the button is filled and outlined before it is touched, which is
+       what a person reads as "object" rather than "label".
+     - a CHEVRON at the right end, present only while it can be pressed. It is
+       the channel that survives greyscale and a colourblind reader, and it
+       disappears in `busy` and `blocked` so the affordance never contradicts
+       what the control will do.
+     - `cursor: pointer`, against the indicator's `default`.
+
+   Every state below differs from every other on at least two of { fill,
+   border, ring, glyph, weight, opacity }. `scripts/check-sync-states.mjs`
+   resolves all of them and fails on any two that match. */
+
+.sync-icon-btn {
+  cursor: pointer;
+  font-weight: 600;
+  /* The ring is animated on its own so a press does not appear to move the row
+     — a shifting border-width would reflow the sidebar foot by a pixel. */
+  transition:
+    background 150ms ease-in-out,
+    color 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out,
+    opacity 150ms ease-in-out,
+    /* The blocked+short outer ring is a state channel; without this it snaps in
+       while everything around it eases. */
+    outline-color 150ms ease-in-out;
+}
+.sync-icon-go {
+  margin-left: auto;
+  display: flex;
+  /* 250ms: this is ambient emphasis (the affordance settling in), not pointer
+     tracking, and it eases toward the label on hover rather than jumping. */
+  transition: transform 250ms ease-in-out, opacity 250ms ease-in-out;
+  opacity: 0.75;
+}
+
+/* NEEDS-SYNC — the resting state the setting exists to produce. Amber, filled,
+   ringed, with the chevron. */
+.sync-icon-btn.is-needs-sync {
+  color: var(--warn-strong);
+  background: var(--warn-100);
+  border-color: var(--warn-300);
+  box-shadow: inset 2px 0 0 var(--warn);
+}
+.sync-icon-btn.is-needs-sync:hover {
+  background: var(--warn-200);
+  border-color: var(--warn);
+  box-shadow: inset 3px 0 0 var(--warn-strong);
+}
+.sync-icon-btn.is-needs-sync:hover .sync-icon-go { transform: translateX(2px); opacity: 1; }
+.sync-icon-btn.is-needs-sync:active {
+  background: var(--warn-400);
+  border-color: var(--warn-strong);
+  box-shadow: inset 5px 0 0 var(--warn-strong);
+}
+.sync-icon-btn.is-needs-sync:active .sync-icon-go { transform: translateX(4px); opacity: 1; }
+/* Focus-visible is an OUTLINE, which no other state uses, so keyboard focus is
+   distinct from hover even on the state hover already tints. */
+.sync-icon-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* BUSY — a cycle is running because this button started one. No chevron, the
+   turning arc from the shared glyph, `progress` cursor, and the blue busy hue
+   the rest of the app uses for work in flight rather than a third amber. */
+.sync-icon-btn.is-busy {
+  cursor: progress;
+  color: var(--busy);
+  background: var(--busy-soft);
+  border-color: var(--busy-border);
+  box-shadow: inset 2px 0 0 var(--busy);
+  font-weight: 500;
+}
+/* Hover and press ACKNOWLEDGE the pointer without promising anything.
+   A control that renders identically under the pointer tells the user their
+   mouse is dead, which is the collision rule 0.5 exists to forbid — but this
+   one will not act, so the movement is inward (the edge thickens, the surface
+   deepens a shade) rather than the outward lift the pressable states use. */
+.sync-icon-btn.is-busy:hover {
+  background: var(--busy-100);
+  border-color: var(--busy-border-2);
+  box-shadow: inset 3px 0 0 var(--busy);
+}
+.sync-icon-btn.is-busy:active {
+  background: var(--busy-200);
+  border-color: var(--busy-border-3);
+  box-shadow: inset 4px 0 0 var(--busy-strong);
+}
+
+/* FAILED — red, heavier ring, and the chevron stays because pressing again is
+   exactly what the user should do. Distinct from the passive `is-failed` by its
+   resting fill and the chevron. */
+.sync-icon-btn.is-failed {
+  color: var(--danger-strong);
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  box-shadow: inset 3px 0 0 var(--danger);
+}
+.sync-icon-btn.is-failed:hover {
+  background: var(--danger-100);
+  border-color: var(--danger-strong);
+  box-shadow: inset 4px 0 0 var(--danger-strong);
+}
+.sync-icon-btn.is-failed:hover .sync-icon-go { transform: translateX(2px); opacity: 1; }
+.sync-icon-btn.is-failed:active {
+  background: var(--danger-200);
+  border-color: var(--danger-strong);
+  box-shadow: inset 6px 0 0 var(--danger-strong);
+}
+
+/* BLOCKED — credentials are gone, so no amount of pressing helps. Looks
+   disabled (drained, dashed, `not-allowed`) AND says why, through the
+   `data-tip` the component always sets. */
+.sync-icon-btn.is-blocked {
+  cursor: not-allowed;
+  opacity: 0.6;
+  color: var(--muted-2);
+  background: var(--panel);
+  border-style: dashed;
+  border-color: var(--border-2);
+  box-shadow: inset 2px 0 0 var(--muted-3);
+  font-weight: 500;
+}
+/* The pointer is acknowledged, and the acknowledgement is the REFUSAL: the
+   left edge turns amber and the row lifts a shade, which reads as "I see you,
+   and the answer is in Settings" — the `data-tip` says which. Rendering
+   identically under the pointer would just look broken. */
+.sync-icon-btn.is-blocked:hover {
+  opacity: 0.75;
+  color: var(--muted);
+  background: var(--panel-2);
+  border-color: var(--muted-3);
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+.sync-icon-btn.is-blocked:active {
+  opacity: 0.85;
+  color: var(--ink-2);
+  background: var(--panel-2);
+  border-color: var(--muted-2);
+  box-shadow: inset 4px 0 0 var(--warn-strong);
+}
+
+/* A SHORTFALL, on the button. Its four states already own a fill, an edge colour
+   and an inset, and the button's WORD may not change — that word says what
+   pressing will do, and pressing is unaffected — so the shortfall takes the two
+   channels none of them uses: a dashed edge and the count chip. `is-blocked` is
+   already dashed, so there it becomes a dashed outer ring instead; two rows that
+   differed only by a chip would be one state read two ways. */
+.sync-icon-btn.is-short { border-style: dashed; }
+.sync-icon-btn.is-blocked.is-short {
+  border-style: solid;
+  outline: 1px dashed var(--warn);
+  outline-offset: 2px;
+}
+.sync-icon-btn.is-blocked.is-short:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.sync-icon-btn .sync-icon-short { margin-left: auto; }
+.sync-icon-btn .sync-icon-short + .sync-icon-go { margin-left: 6px; }
+.sync-icon-btn:hover .sync-icon-short { opacity: 1; background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sync-icon-go { transition: none; }
+  .sync-icon-short { transition: none; }
+}
+
+/* --------------------------------------------- a `choice` param's radio group
+
+   Generic: any plugin declaring `"kind": "choice"` gets this, and nothing here
+   names a plugin or a value. */
+
+.plug-choice { border: 0; padding: 0; margin: 0; min-width: 0; }
+.plug-choice-options { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 2px; }
+.plug-choice-opt {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 9px 11px;
+  border: 1px solid var(--border); border-radius: 9px;
+  background: var(--bg-2);
+  cursor: pointer;
+  transition:
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
+}
+.plug-choice-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+/* The mark is drawn rather than native so the selected ring and the fill move
+   together; two channels again — a filled dot AND a tinted, edged card. */
+.plug-choice-mark {
+  flex: 0 0 auto; margin-top: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid var(--muted-3);
+  background: var(--bg-2);
+  transition: border-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+.plug-choice-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.plug-choice-label { font-size: var(--fs-set-label, 12.5px); font-weight: 600; color: var(--ink-2); }
+.plug-choice-help { font-size: var(--fs-set-help, 11.5px); color: var(--muted); line-height: 1.45; }
+
+.plug-choice-opt:hover { background: var(--panel); border-color: var(--border-2); }
+.plug-choice-opt:active { background: var(--panel-2); }
+.plug-choice-opt:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.plug-choice-opt.is-on {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.plug-choice-opt.is-on .plug-choice-mark {
+  border-color: var(--accent-strong);
+  box-shadow: inset 0 0 0 3px var(--accent);
+}
+.plug-choice-opt.is-on .plug-choice-label { color: var(--accent-strong); }
+.plug-choice-opt.is-on:hover { background: var(--accent-100); border-color: var(--accent); }
+.plug-choice-opt.is-on:active { background: var(--accent-200); box-shadow: inset 5px 0 0 var(--accent-strong); }
+
+.plug-field.is-rejected .plug-choice-opt {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px var(--danger-soft);
+}
+
+/* ------------------------------------------------------- shared-ness as chrome
+   PERSISTENT, and deliberately not a badge: a project IS shared, in the way it
+   has a name, and hard rule 0.6 reserves chips for exceptions. So shared-ness is
+   a ring and a small glyph that are simply part of how a shared project looks,
+   and the CHIP is spent only on "Not in sync" and "Sync failed". */
+
+.project-card.is-shared {
+  box-shadow: inset 0 0 0 1px var(--accent-100);
+  transition: box-shadow 250ms ease-in-out;
+}
+.project-card.is-shared:hover { box-shadow: inset 0 0 0 1px var(--accent); }
+.project-card.is-shared.is-out-of-sync { box-shadow: inset 0 0 0 1px var(--warn); }
+.project-card.is-shared.is-out-of-sync:hover { box-shadow: inset 0 0 0 2px var(--warn); }
+.project-card.is-shared.is-sync-failed { box-shadow: inset 0 0 0 1px var(--danger); }
+.project-card.is-shared.is-sync-failed:hover { box-shadow: inset 0 0 0 2px var(--danger); }
+
+.project-shared {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 8px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted-3);
+  transition: color 150ms ease-in-out;
+}
+.project-card:hover .project-shared { color: var(--muted); }
+.project-shared-glyph { flex: 0 0 auto; display: flex; }
+.project-shared .badge { text-transform: none; letter-spacing: 0; }
+
+.side-project-shared {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 12px 8px;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted-3);
+  /* The ring eases WITH the colour. An outline does animate, so leaving it out
+     would make half of one state snap while the other half faded, which reads as
+     a glitch rather than as feedback. */
+  transition: color 150ms ease-in-out, outline-color 150ms ease-in-out;
+}
+/* It is not a control and does nothing when pressed, but it IS focusable, so it
+   owes a keyboard user the same acknowledgement the pointer gets — and a ring,
+   because a colour shift alone is not a state (rule 0.5). */
+.side-project-shared:hover { color: var(--muted); }
+.side-project-shared:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px;
+  color: var(--muted);
+}
+/* "Shared" is a fact; "unknown" is a gap in the app's knowledge, and it must not
+   read as a quieter version of the same row. Warning colour AND a warning glyph
+   AND a weight the resting row does not have, so the two are apart at a glance
+   and still apart with no colour at all. */
+.side-project-shared.is-unknown {
+  color: var(--warn-strong);
+  font-weight: 600;
+}
+.side-project-shared.is-unknown:hover { color: var(--danger-strong); }
+.side-project-shared.is-unknown:focus-visible {
+  outline-color: var(--warn-strong);
+  color: var(--danger-strong);
+}
+:root {
+  /* The pressed/hover ramp for the sharing surfaces, named rather than inlined:
+     rule 0.5 wants a token for any colour that is not one already. Each is the
+     next step down from the family it belongs to. */
+  --accent-200: #f7d5ba;
+  --accent-300: #f2c8a6;
+  --warn-200: #f7e8c8;
+  --busy-soft: #eef3f8;
+  --ok-strong-2: #2f6f4f;
+  --ok-strong-3: #275c42;
+  /* The on-demand sync button's own amber ramp. It needs a legible RESTING fill
+     — the passive indicator has none at rest, which is half of how the two are
+     told apart — and then two darker steps for hover and press. */
+  --warn-100: #fdf4e2;
+  --warn-300: #f0dcae;
+  --warn-400: #e6ce9a;
+  /* The busy family's own ramp. `--busy-soft` above is the resting fill; these
+     are the two deeper surfaces, the three edges and the pressed inset the
+     in-flight button needs to acknowledge a pointer it will not obey. */
+  --busy-100: #e6eef6;
+  --busy-200: #dde8f3;
+  --busy-border: #cddceb;
+  --busy-border-2: #bccfe2;
+  --busy-border-3: #adc3da;
+  --busy-strong: #2f5b85;
+  /* The passive sync indicator's PRESSED fill, one per state that carries a
+     resting fill of its own. A shared press colour would erase the state
+     underneath it at exactly the moment the user is acting on it. */
+  --sync-press-resync: #f2dfb3;
+  --sync-press-ok: #dfeee6;
+  --sync-press-syncing: #f6eacd;
+  /* The one field the user has to correct, under the pointer. Lighter than
+     `--danger-100`, which is the button ramp, because this is a text input and
+     its contents have to stay the most legible thing in it. */
+  --danger-input-hover: #f5ded9;
+}
+
+/* ---------------------------------------------------------- sharing modal
+
+   Every state of every control here is styled, and every one is distinct from
+   every other on TWO channels — a mode button that is selected is both filled
+   and underlined, a share row that is failing is both tinted and outlined — so
+   none of them rests on hue alone. Pointer feedback eases at 150ms, ambient
+   emphasis at 250ms; nothing snaps. */
+
+/* The header's text block does not grow on its own, so the button would sit
+   beside the title rather than at the far edge. */
+.dash-header:has(.dash-share) .dash-header-text { flex: 1 1 auto; }
+
+.dash-share {
+  display: inline-flex; align-items: center; gap: 8px;
+  flex: 0 0 auto;
+  transition: background 150ms ease-in-out, border-color 150ms ease-in-out;
+}
+.dash-share .project-shared-glyph { color: var(--muted); transition: color 150ms ease-in-out; }
+.dash-share:hover .project-shared-glyph { color: var(--accent); }
+
+/* Takes the whole header line under the title, because it is a full sentence
+   about what the grid below is NOT saying, and a truncated version of that is
+   worse than none. Warning tint plus a warning glyph plus the border, so it is
+   never carried by colour alone; it fades in because it arrives after the grid
+   has already been drawn and read. */
+.dash-share-unread {
+  flex: 1 0 100%;
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--warn);
+  border-radius: 8px;
+  background: var(--warn-soft);
+  color: var(--warn-strong);
+  font-family: var(--sans); font-size: 12.5px; font-weight: 500; line-height: 1.45;
+  animation: dash-share-unread-in 250ms ease-in-out both;
+}
+.dash-share-unread svg { flex: none; }
+@keyframes dash-share-unread-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-share-unread { animation: none; }
+}
+
+.share-form { gap: 16px; }
+
+.share-modes { display: flex; gap: 8px; }
+.share-mode {
+  flex: 1 1 0; padding: 9px 12px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--panel); color: var(--muted);
+  font: inherit; font-size: 13px; cursor: pointer;
+  border-bottom-width: 2px; border-bottom-color: var(--border);
+  transition: background 150ms ease-in-out, color 150ms ease-in-out,
+              border-color 150ms ease-in-out;
+}
+.share-mode:hover { background: var(--bg-2); color: var(--ink); border-color: var(--muted-3); }
+.share-mode:active { background: var(--panel-2); }
+.share-mode:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Selected reads as selected WITHOUT the pointer: filled, inked, and carrying a
+   heavier bottom rule that survives a colourblind reader. */
+.share-mode.is-on {
+  background: var(--accent-100); color: var(--ink); font-weight: 600;
+  border-color: var(--accent-100); border-bottom-color: var(--accent);
+}
+/* Selected+hover moves the FILL, not only the border. A 1px hue shift on an
+   accent-on-accent edge is distinct on paper and invisible in the chair, which
+   reads to the user as a dead pointer over the tab they are already on. */
+.share-mode.is-on:hover { background: var(--accent-200); border-color: var(--accent); }
+.share-mode.is-on:active { background: var(--accent-300); }
+
+.share-pane { display: flex; flex-direction: column; gap: 14px; }
+.share-lede { margin: 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.share-note {
+  margin: 0; padding: 10px 12px;
+  border-left: 2px solid var(--border-2);
+  background: var(--panel); border-radius: 0 4px 4px 0;
+  font-size: 11.5px; line-height: 1.6; color: var(--muted);
+}
+
+.share-picks { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+.share-pick {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; text-align: left;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; cursor: pointer;
+  transition: background 150ms ease-in-out, border-color 150ms ease-in-out;
+}
+.share-pick:hover { background: var(--bg-2); border-color: var(--muted-3); }
+.share-pick:active { background: var(--panel-2); }
+.share-pick:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.share-pick.is-on { background: var(--accent-100); border-color: var(--accent); font-weight: 600; }
+/* Distinct from plain `is-on`: without this, hovering a chosen project looks
+   exactly like a chosen project and the pointer reads as dead. */
+.share-pick.is-on:hover { background: var(--accent-200); border-color: var(--accent); }
+.share-pick.is-on:active { background: var(--accent-300); }
+.share-pick-check {
+  flex: 0 0 16px; width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--muted-3); border-radius: 3px;
+  font-size: 11px; color: var(--accent);
+  transition: border-color 150ms ease-in-out;
+}
+.share-pick.is-on .share-pick-check { border-color: var(--accent); }
+.share-pick-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.share-pick-size { flex: 0 0 auto; font-size: 10px; color: var(--muted-3); }
+.share-pick:hover .share-pick-size { color: var(--muted); }
+
+/* Invalid input LOOKS invalid, on two channels: the rule turns and thickens as
+   well as reddening, so it survives a colourblind reader. */
+.share-form .input[aria-invalid='true'] {
+  border-color: var(--danger); border-width: 1px; box-shadow: inset 0 -2px 0 -1px var(--danger);
+}
+.share-form .input[aria-invalid='true']:hover { border-color: var(--danger-strong); }
+.share-form .input[aria-invalid='true']:focus { outline: 2px solid var(--danger); outline-offset: 1px; }
+
+.share-invite-box {
+  padding: 12px; border: 1px dashed var(--accent); border-radius: 5px;
+  background: var(--panel);
+  font-size: 11px; line-height: 1.7; word-break: break-all;
+  user-select: all;
+}
+/* The acknowledgement, WITH its own pointer states — `.is-copied` outranks the
+   generic `:hover`/`:active`, so they have to be restated at this specificity or
+   the button is unresponsive for the two seconds it shows. */
+/* The transition sits on the BASE, not on `.is-copied`: declared only on the
+   modifier it eases into the acknowledgement and then snaps back out of it, the
+   property having gone with the class. */
+.share-invite .btn { transition: background 250ms ease-in-out, border-color 250ms ease-in-out; }
+.share-invite .btn.is-copied {
+  background: var(--ok); border-color: var(--ok);
+}
+.share-invite .btn.is-copied:hover { background: var(--ok-strong-2); border-color: var(--ok-strong-2); }
+.share-invite .btn.is-copied:active { background: var(--ok-strong-3); border-color: var(--ok-strong-3); }
+
+.share-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.share-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid var(--border); border-left-width: 3px; border-radius: 5px;
+  background: var(--panel);
+  /* `box-shadow` is in here because the RIGHT edge is a state channel of its own
+     (`is-incomplete`), and a channel that snaps while the fill beside it eases
+     reads as a glitch rather than as feedback. */
+  transition:
+    background 150ms ease-in-out,
+    border-color 250ms ease-in-out,
+    box-shadow 250ms ease-in-out;
+}
+.share-row:hover { background: var(--bg-2); }
+/* INCOMPLETE — rows this version can never store. Not a failure and not
+   out-of-step: nothing is in flight and nothing changes on its own, so it takes
+   the amber family for "attend to this" and a DOTTED left edge, which neither
+   `is-out-of-sync` (solid) nor `is-stop-failed` (dashed) uses. Stated FIRST so
+   a row that is also failing or syncing keeps that edge — the live condition is
+   the one to act on now, and the badge beside it still says the rest. */
+.share-row.is-incomplete {
+  border-left-style: dotted; border-left-color: var(--warn-strong);
+  background: var(--warn-100);
+  /* The left edge is contested — `is-stop-failed` dashes it, and a failing row
+     colours it — so the shortfall also holds the RIGHT edge, which nothing else
+     on this row touches. Without it "failed + short + stop-failed" and
+     "failed + stop-failed" resolve identically. */
+  box-shadow: inset -3px 0 0 var(--warn);
+}
+.share-row.is-incomplete:hover { background: var(--warn-200); }
+/* A SECOND CHANNEL, not just a hue: the row's name goes italic while a cycle is
+   running, so "working" is legible without colour and distinct from every other
+   row state. */
+.share-row.is-syncing { border-left-color: var(--busy); }
+.share-row.is-syncing .share-row-name { font-style: italic; color: var(--busy); }
+.share-row.is-syncing:hover { background: var(--busy-soft); }
+.share-row.is-out-of-sync { border-left-color: var(--warn); background: var(--warn-soft); }
+.share-row.is-out-of-sync:hover { background: var(--warn-200); }
+.share-row.is-failed { border-left-color: var(--danger); background: var(--danger-soft); }
+.share-row.is-failed:hover { background: var(--danger-200); }
+/* A STOP THAT WOULD NOT STOP — a different failure from a sync that will not
+   sync, and it can be true of a row that is otherwise fine. So it is carried on
+   its own channel, a DASHED left edge, which composes with whichever of the four
+   sync states the row is already in instead of overwriting it. Stated after
+   them so the fill wins on the states that set one. */
+.share-row.is-stop-failed { border-left-style: dashed; border-left-color: var(--danger); }
+/* The fill is left to the sync state underneath, so a stop that failed on an
+   out-of-step row still reads as out of step. Only the plain row, which has no
+   fill of its own to keep, takes one here. */
+.share-row.is-stop-failed:not(.is-out-of-sync):not(.is-failed):not(.is-syncing):hover {
+  background: var(--danger-100);
+}
+/* The badge's own text is a count; the sentence that says a retry will not help
+   lives in the tooltip, which a pointer reaches and a keyboard does not. This
+   carries the same sentence for a reader who is not using a mouse. */
+.share-row-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.share-row .badge-warn[tabindex] {
+  position: relative; cursor: help;
+  transition: background 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+/* It IS interactive — it is focusable and it carries the sentence — so it owes
+   the pointer an acknowledgement. Without one, hovering the badge that explains
+   the shortfall looks like hovering nothing. */
+.share-row .badge-warn[tabindex]:hover {
+  background: var(--warn-200);
+  box-shadow: inset 0 0 0 1px var(--warn);
+}
+.share-row .badge-warn[tabindex]:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+.share-row-error {
+  flex: 1 0 100%;
+  font-size: 11px; color: var(--danger-strong); line-height: 1.5;
+}
+.share-row-error::before { content: '✕ '; font-weight: 700; }
+.share-row .project-shared-glyph { flex: 0 0 auto; color: var(--muted-3); }
+.share-row-name { flex: 1 1 auto; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* PROSE, deliberately: lower case, no letter-spacing, no chip. It appears on
+   every row, so it must not read as a badge — the badge slot is reserved for the
+   exceptions beside it (hard rule 0.6). */
+.share-row-role {
+  flex: 0 0 auto; font-size: 11px; font-style: italic; color: var(--muted-3);
+  transition: color 150ms ease-in-out;
+}
+.share-row:hover .share-row-role { color: var(--muted); }
+.share-stop {
+  flex: 0 0 auto; padding: 4px 10px; font-size: 11px;
+  transition: background 150ms ease-in-out, border-color 150ms ease-in-out, color 150ms ease-in-out;
+}
+/* A STOP THAT REFUSED, on the control itself. Danger-tinted and reading "Try
+   again" rather than "Stop sharing" — the label change is the second channel, so
+   the state survives a colourblind reader without the ring having to carry it
+   alone. Still pressable: trying again is exactly what the user should do. */
+.share-stop.is-failed {
+  border-color: var(--danger); color: var(--danger-strong); background: var(--danger-soft);
+  font-weight: 600;
+}
+.share-stop.is-failed:hover { background: var(--danger-100); border-color: var(--danger-strong); }
+.share-stop.is-failed:active { background: var(--danger-200); }
+.share-stop.is-failed:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
+
+/* ── Removed plugins ────────────────────────────────────────────────────────
+   Plugins that came with the app and which the user took out. Not loaded, and
+   not brought back by an update that ships them again — so the decision needs
+   somewhere to live where it can be seen and changed.
+
+   QUIETER THAN THE TABLE ABOVE IT, deliberately. This is a footnote about
+   things that are not here, and giving it the weight of the installed list
+   would make an empty-handed section compete with the one carrying the state
+   the user came to read. It renders at all only when there is something in it
+   (hard rule 0.6). */
+.plug-removed {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.plug-removed-h {
+  margin: 0 0 4px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--muted-3);
+}
+.plug-removed .set-help { margin-bottom: 10px; }
+.plug-removed-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  transition: background 150ms ease-in-out, border-color 150ms ease-in-out, opacity 150ms ease-in-out;
+}
+.plug-removed-row + .plug-removed-row { margin-top: 6px; }
+.plug-removed-row:hover { background: var(--panel-2); border-color: var(--border-2); }
+.plug-removed-row:focus-within { border-color: var(--accent); }
+/* BUSY is opacity AND the button's own busy treatment, never colour alone: the
+   row dims while the id stays legible, so what is happening and what it is
+   happening to are both readable. */
+.plug-removed-row.is-busy { opacity: 0.7; }
+.plug-removed-id {
+  flex: 1 1 auto; min-width: 0;
+  font-size: 12px; color: var(--muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transition: color 150ms ease-in-out;
+}
+.plug-removed-row:hover .plug-removed-id { color: var(--ink); }
+.plug-removed-row .plug-row-error { flex: 0 1 auto; }
+.plug-removed-row .btn { flex: 0 0 auto; }
+/* A RESTORE WITH NOTHING TO RESTORE. Refused rather than hidden — the record is
+   still in force — and it says so on itself, so the state is distinct from both
+   idle and busy without relying on hue. */
+.plug-removed-row .btn[aria-disabled='true']:not(.plug-busy) {
+  opacity: 0.55;
+  border-style: dashed;
+  cursor: default;
+}
+/* A press on a button that is REFUSING must not paint like a press that did
+   something: `.btn-secondary:active` would otherwise give it the full pressed
+   background, which is the one piece of feedback that reads as "that worked". */
+.plug-removed-row .btn[aria-disabled='true']:not(.plug-busy):active {
+  background: var(--panel);
+  border-color: var(--border);
+}
+
+/* ------------------------------------------------- the repository button
+
+   A BUTTON BESIDE "Add plugin…", and nothing else on the pane. Both answer the
+   same question — where a plugin comes from — so they are peers and share a
+   row; everything the repository needs to say is in the modal it opens.
+
+   The only state carried out here is the EXCEPTION: a repository that could not
+   be checked, or that left a plugin out. Marked on two channels, never colour
+   alone — a danger border AND a heavier weight — because a red-only mark is
+   invisible to a colourblind reader and, on a quiet pane, easy to read as
+   decoration. A HEALTHY repository marks nothing at all. */
+
+.plug-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.plug-repo-failing {
+  border-color: var(--danger);
+  color: var(--danger-strong);
+  font-weight: 600;
+}
+.plug-repo-failing:hover {
+  border-color: var(--danger-strong);
+  background: var(--danger-soft);
+}
+
+/* ------------------------------------------------- the repository form
+
+   Inside the modal. The card treatment is gone — a modal is already a surface,
+   and a bordered card inside one is a box in a box. */
+
+.plug-repo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: opacity 150ms ease-in-out;
+}
+/* BUSY dims the form and nothing else: the control that was pressed carries its
+   own `.plug-busy`, so which of them is working stays readable while the form
+   as a whole says that something is. */
+.plug-repo.is-busy { opacity: 0.75; }
+
+.plug-repo-bad {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin: 0;
+  font-size: var(--fs-set-help, 12px);
+  color: var(--danger-strong);
+  line-height: 1.55;
+}
+.plug-repo-bad .badge { flex: 0 0 auto; }
+
+.plug-repo-fields { margin-top: 0; }
+
+/* THE CONSENT, and it is deliberately heavier than the help text above it: it
+   is the sentence the decision is made on, and set at the weight of a hint it
+   reads as one more note about a form field. */
+.plug-repo-consent {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-2);
+  border-radius: 10px;
+  background: var(--panel-2);
+  font-size: var(--fs-set-help, 12px);
+  color: var(--ink);
+  line-height: 1.6;
+  transition: border-color 250ms ease-in-out;
+}
+/* Emphasised while either FIELD is being filled, not on hovering the form: the
+   form now fills a modal, so a hover rule would light the consent up whenever
+   the pointer was anywhere in the dialog and stop meaning anything. Typing the
+   address or the key is the moment the sentence is about to be acted on. */
+.plug-repo-fields:focus-within .plug-repo-consent { border-color: var(--accent); }
+
+.plug-repo-foot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.plug-repo-facts { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.plug-repo-addr {
+  font-size: 12px; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.plug-repo-meta { font-size: 11px; color: var(--muted-3); line-height: 1.5; }
+.plug-repo-why { font-size: 11px; color: var(--muted); line-height: 1.55; }
+.plug-repo-foot .btn { flex: 0 0 auto; }
+
+/* A control REFUSING inside this card, styled once for all of them: Connect
+   without an address, Test without one, Check now while a check is running.
+   Distinct from both idle and busy without relying on hue, and a press on it
+   must not paint like a press that did something. */
+.plug-repo .btn[aria-disabled='true']:not(.plug-busy) {
+  opacity: 0.55;
+  border-style: dashed;
+  cursor: default;
+}
+.plug-repo .btn[aria-disabled='true']:not(.plug-busy):active {
+  background: var(--panel);
+  border-color: var(--border);
+}

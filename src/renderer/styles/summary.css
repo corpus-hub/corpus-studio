@@ -1,0 +1,245 @@
+/* ---------------------------------------------------------------- summaries
+   The two summary buttons and the modal that shows the prose.
+
+   ONE definition for every place the pair appears (a Ranking row, the Paper
+   header), on the same reasoning as .dossier-toggle directly above it in
+   styles.css: two copies of a control drift, and the drift is invisible until
+   a user sees both in one session.
+
+   The buttons are deliberately QUIETER than the dossier toggle they sit beside.
+   Marking a paper as project background changes what every later analysis is
+   told; opening a summary changes nothing. A row where three buttons compete
+   equally for the eye hides which one has consequences.
+
+   EVERY RULE BELOW IS `.btn.sum-btn`, NOT `.sum-btn`. This file is pulled in by
+   an @import at the top of styles.css, so `.btn` — declared far below that
+   block — comes LATER in source order at equal specificity (0,1,0) and wins
+   every property the two share. Written as `.sum-btn`, the border, padding and
+   border-radius here were all silently discarded: the buttons rendered with no
+   visible border at all, reading as floating text beside the properly outlined
+   "Add to dossier". Verified in a screenshot before this comment was written.
+   `.stor-add` in storage.css records the same trap. */
+
+.btn.sum-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  transition:
+    background 0.15s ease-in-out,
+    border-color 0.15s ease-in-out,
+    color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+.btn.sum-btn-sm { padding: 4px 9px; font-size: 11.5px; border-radius: 8px; }
+.btn.sum-btn-md { padding: 7px 13px; font-size: 12.5px; border-radius: 9px; }
+
+.btn.sum-btn:hover {
+  color: var(--ink);
+  border-color: var(--border-2);
+  background: var(--panel);
+}
+.btn.sum-btn:active {
+  background: var(--panel-2);
+  border-color: var(--muted-3);
+}
+.btn.sum-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* No summary has been written yet.
+   DIMMED, NEVER DISABLED: pressing this is how one gets written, so removing
+   the action would remove the very thing the empty state calls for. It exists
+   so a reader scanning fifty rows can see which papers have been summarised
+   without opening any of them.
+   The tint is paired with a glyph change (the page loses its lines), because a
+   difference in opacity alone does not survive a colourblind reader or a
+   low-contrast panel — and it is deliberately shallow: at 0.55 the label stays
+   readable, since this is a quieter button, not an unavailable one. */
+.btn.sum-btn.is-empty {
+  opacity: 0.55;
+  border-style: dashed;
+}
+/* Hover and focus restore it FULLY. The dim says "nothing here yet"; the moment
+   the pointer arrives the question becomes "can I press this", and the answer
+   is yes. This also keeps is-empty+hover distinct from both is-empty and hover.
+   */
+.btn.sum-btn.is-empty:hover,
+.btn.sum-btn.is-empty:focus-visible {
+  opacity: 1;
+  border-style: solid;
+}
+
+/* The modal for THIS button is open.
+   No :hover or :active companion, because neither can occur: the modal is a
+   fixed, full-viewport backdrop that swallows every pointer event before it can
+   reach the trigger underneath. Styling states a control cannot enter is not
+   thoroughness, it is dead rules that later readers must reason about.
+   What the state IS for: the button stays marked while its modal is up, so a
+   row scrolled clear of the dialog still shows which of the two was opened. */
+.btn.sum-btn.is-open {
+  color: var(--accent-strong);
+  border-color: var(--accent-100);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-100);
+}
+
+/* ------------------------------------------------------------ modal contents */
+
+/* The shared `.modal` is a fixed 568px, which is right for a form and too
+   narrow for several paragraphs of prose. Widened from the CONTAINER rather
+   than by sizing this child past its parent — which is what a `width` here did,
+   and it simply overflowed the card's right edge (verified in a screenshot).
+   Capped at 76ch so the measure stays readable: a line running the full width
+   of a 1920px window is what makes a wall of text unreadable. */
+.modal:has(.sum-modal) {
+  width: min(76ch, 92vw);
+}
+
+.sum-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.sum-head { display: flex; flex-direction: column; gap: 5px; }
+
+/* Wraps rather than stretching the dialog. A long scientific title is easily
+   140 characters, and left to itself it set the width of everything below it. */
+.sum-paper {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* WHICH summary this is, in a sentence. The two read alike as prose, so the
+   scope is stated rather than left to be inferred from the text. */
+.sum-blurb {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.sum-scope { display: flex; gap: 6px; }
+
+.sum-body { min-height: 84px; }
+
+.sum-prose {
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: var(--ink-2);
+  /* The prose can be long; the modal scrolls rather than the page behind it. */
+  max-height: min(52vh, 560px);
+  overflow-y: auto;
+  padding-right: 6px;
+}
+.sum-prose p { margin: 0 0 0.85em; }
+.sum-prose p:last-child { margin-bottom: 0; }
+
+/* ---- the five non-prose states. Each carries a distinct TONE and a distinct
+   WORD, never colour alone, so they survive a colourblind reader. ---- */
+
+.sum-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  border-radius: 10px;
+  padding: 12px 13px;
+  border: 1px solid var(--border);
+  transition:
+    background 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
+}
+
+.sum-state-loading { color: var(--muted); background: var(--panel); }
+
+/* In-flight. The only state that MOVES, because it is the only one where
+   waiting is the correct response. */
+.sum-state-busy {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+}
+
+.sum-state-empty { color: var(--muted); background: var(--panel); border-style: dashed; }
+
+/* A run that produced nothing. Warn rather than danger: nothing is broken and
+   retrying is reasonable — but it is NOT the same as never having tried. */
+.sum-state-failed { color: var(--warn); background: var(--warn-soft); border-color: #f0e0bd; }
+
+.sum-state-error { color: var(--danger); background: var(--danger-soft); border-color: #eecfc9; }
+
+/* A REFUSAL: something has to happen elsewhere in the app first. Distinct from
+   `failed` (which invites a retry) and from `error` (which reports a fault) by
+   a solid left rule and the neutral surface — nothing is broken here, the
+   prerequisite simply is not met, and the text names where to meet it. */
+.sum-state-blocked {
+  color: var(--ink-2);
+  background: var(--panel);
+  border-color: var(--border-2);
+  border-left: 3px solid var(--muted-3);
+  align-items: flex-start;
+}
+
+/* STORED DATA THAT WILL NOT OPEN. A refusal, so it keeps `blocked`'s left rule
+   and neutral surface rather than `error`'s fill — nothing is going wrong right
+   now and the sentence names one action. But the rule is danger-coloured, the
+   frame dashed and the text a step heavier, because unlike every other refusal
+   the missing prerequisite is something this app already produced and has since
+   damaged. Two refusals that render identically would tell the reader nothing,
+   and border STYLE plus weight carry the difference as well as hue does, so it
+   survives a colourblind reader. */
+.sum-state-damaged {
+  color: var(--danger-strong);
+  background: var(--panel);
+  border: 1px dashed var(--danger-100);
+  border-left: 3px solid var(--danger);
+  align-items: flex-start;
+  font-weight: 500;
+}
+
+.sum-spinner {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 2px solid var(--accent-100);
+  border-top-color: var(--accent);
+  animation: sum-spin 720ms linear infinite;
+}
+@keyframes sum-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sum-spinner { animation-duration: 2.4s; }
+}
+
+.sum-prov {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--muted-2);
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.sum-prov-sep { color: var(--muted-3); }
+
+.sum-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}

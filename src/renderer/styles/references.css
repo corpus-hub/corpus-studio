@@ -1,0 +1,448 @@
+/* References screen — the horizontal citation tree. One canvas fills the frame;
+   the only DOM chrome is the legend bar and the corner HUD. Tokens match the
+   rest of the app (panel #faf8f5, line #ece7e0, accent #e2600f). */
+
+.screen-refs {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Paper list beside the tree. The list picks WHAT to draw, so it sits next to
+   the drawing rather than above it — the two are read together. */
+.rt-layout {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  min-height: 0;
+}
+
+.rt-list {
+  flex: 0 0 268px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: calc(100vh - 62px - 52px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--bg-2);
+  overflow: hidden;
+}
+.rt-list-head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px 4px;
+}
+.rt-list-all {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.rt-list-sorts {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 12px 10px;
+  border-bottom: 1px solid var(--border);
+}
+/* `.input-sm` is only a padding modifier — the border and background live on
+   `.input`, so the field carries both. Height is pinned because in a flex
+   column an auto-height input stretches to share the free space. */
+.rt-list-find {
+  width: 100%;
+  height: 30px;
+}
+.rt-list-none {
+  padding: 22px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-2);
+  text-align: center;
+}
+.rt-list-sorts .sel-trigger {
+  width: 100%;
+}
+
+.rt-list-rows {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.rt-list-row {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+.rt-list-row:hover {
+  background: var(--panel-2);
+  border-color: var(--border);
+}
+.rt-list-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.rt-list-row.is-on {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  color: var(--ink);
+}
+.rt-list-check {
+  color: var(--accent-strong);
+  font-size: 11px;
+}
+/* Two lines, then ellipsis: enough to tell papers apart without letting one
+   long title push the count column out of alignment. */
+.rt-list-title {
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+}
+.rt-list-count {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.rt-list-row.is-on .rt-list-count {
+  color: var(--accent-strong);
+}
+
+.rt-shell {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 62px - 52px);
+  min-height: 420px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--bg-2);
+  animation: screenIn 0.4s ease both;
+}
+
+.rt-stats {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  font-size: 11px;
+  color: var(--muted-3);
+  white-space: nowrap;
+}
+
+.rt-canvas-host {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 1px 1px, #efe9e1 1px, transparent 1px) 0 0 / 22px 22px,
+    var(--bg-2);
+}
+
+.rt-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.rt-canvas:active {
+  cursor: grabbing;
+}
+
+/* Selection-mode bar. FLOATS over the tree rather than taking a row in the
+   column: it appears and disappears with the selection, and as a flex sibling
+   it resized the canvas underneath, nudging the whole picture every time. */
+.rt-selectbar {
+  position: absolute;
+  z-index: 6;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 20px -12px rgba(33, 26, 18, 0.45);
+  font-size: 12px;
+  color: var(--ink-2);
+  animation: rtBarIn 0.09s ease both;
+}
+@keyframes rtBarIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rt-selectbar { animation: none; }
+}
+/* Sits UNDER the select bar it belongs to, which is still on screen when a
+   retrieval fails — stacked at the same offset the two would overlap. */
+.rt-selectbar.is-error {
+  top: 58px;
+  color: var(--danger, #b4402a);
+  font-size: 11px;
+  border-color: var(--danger, #b4402a);
+}
+.rt-selectbar-label {
+  min-width: 0;
+  flex: 1;
+}
+/* Compact enough to live in a 8px-padded bar without stretching it. */
+.rt-retrieve {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  font-size: 11.5px;
+}
+.rt-retrieve:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+/* Sized to the bar's other controls so the row reads as one group. The tone
+   and the three states are the shared `.ra-btn`'s, which is the point — this
+   button must not mean something different here than in the other two panels. */
+.rt-read-abstract {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  font-size: 11.5px;
+}
+/* Matches .rt-retrieve so the two read as one control group rather than a
+   button standing next to a stray link. */
+.rt-selectbar-cancel {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  font-size: 11.5px;
+}
+.rt-selectbar-note {
+  font-size: 10.5px;
+  color: var(--muted-2);
+}
+
+/* Card menu over the canvas. The scrim is invisible but catches every outside
+   click, which is what makes "click anywhere else to dismiss" true rather than
+   only true over the parts of the frame that happen to have handlers. */
+/* The card's transient states: fetching the citation, and the refusal when a
+   line has no citation_edge behind it. Same frame and placement as the real
+   card, so the answer arrives where the click landed rather than as a flash of
+   nothing. */
+.rt-edgecard-busy {
+  padding: 12px 14px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.rt-menu-scrim {
+  /* FIXED, not absolute: both users of this scrim are portalled to <body> now,
+     so an absolute inset:0 would size to the document rather than the window
+     and leave parts of the screen click-through. */
+  position: fixed;
+  inset: 0;
+  z-index: 59;
+}
+/* The paper profile card. It OWNS its width: the preview column plus a
+   readable prose measure beside it. Capped so
+   a card opened near the right edge is still mostly on screen, and
+   height-capped so a long pair of summaries scrolls inside the card rather
+   than running off the viewport. */
+.rt-profile-wrap {
+  /* Fixed + portalled, to escape `.rt-canvas-host`'s `overflow: hidden`, which
+     clipped this card at the panel edge whatever its z-index. Positioned by
+     the shared `cardStyle`, which supplies left/top/transform. */
+  position: fixed;
+  z-index: 60;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(33, 26, 18, 0.14);
+  min-width: 0;
+  width: 560px;
+  max-width: min(560px, 92vw);
+  max-height: min(74vh, 660px);
+  overflow-y: auto;
+  padding: 0;
+}
+.rt-profile {
+  padding: 14px 15px;
+}
+
+/* Preview left, everything else right — the shape of a catalogue entry. */
+.rt-profile-cols {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+/* The preview is a fixed column: a page is portrait, so the width follows from
+   the height rather than the other way round. `align-self: stretch` is
+   deliberately NOT used — a very long pair of summaries must not stretch the
+   page raster into a smear. */
+.rt-profile-preview {
+  flex: 0 0 auto;
+}
+/* Beats the 34px chip `.paper-thumb` is elsewhere. Scoped to this card so the
+   evidence card's inline thumbnails are untouched. */
+.rt-profile-preview .paper-thumb {
+  width: 132px;
+  height: 171px;
+  border-radius: 6px;
+}
+.rt-profile-preview .paper-thumb-empty {
+  font-size: 26px;
+}
+
+.rt-profile-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rt-profile-title {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.rt-profile-sums {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+/* No box. The label is an EYEBROW over its text, the way every other section
+   heading in this app introduces what follows — a panel around each summary
+   made two short paragraphs look like two form fields, and put a border
+   between the reader and the prose they opened the card to read.
+   The two are still told apart, by the rule above the second one rather than
+   by a frame around both. */
+.rt-profile-sum + .rt-profile-sum {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.rt-profile-sum-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.rt-profile-sum-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+.rt-profile-sum-body {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  /* Long summaries scroll WITHIN their section, so the two stay visible
+     together and the actions below never get pushed out of reach. */
+  max-height: 150px;
+  overflow-y: auto;
+}
+.rt-profile-sum-body p {
+  margin: 0 0 0.7em;
+}
+.rt-profile-sum-body p:last-child {
+  margin-bottom: 0;
+}
+/* The honest empty states. Muted, because an absent summary is not a failure of
+   the paper — but present, because a blank space would read as a bug. */
+.rt-profile-sum-note {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+/* "Nothing written" is muted because it is ordinary. "Could not be read" is not
+   ordinary and must not sit at the same weight: it gets the tint, the border,
+   the glyph and a heavier face, so the two are never mistaken for each other. */
+.rt-profile-sum-note.is-unread {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--warn);
+  border-radius: 6px;
+  background: var(--warn-soft);
+  color: var(--warn-strong);
+  font-weight: 500;
+  animation: rt-profile-sum-unread-in 250ms ease-in-out both;
+}
+.rt-profile-sum-note.is-unread svg { flex: none; margin-top: 2px; }
+/* Stored text that will not open. Distinct from BOTH neighbours: `is-unread` is
+   "this read failed, try reopening" (warn, solid), the plain note is "nothing
+   here yet" (muted, no frame). This is the app's own extracted text being
+   damaged — a permanent state with one named remedy — so it carries the danger
+   hue AND a dashed frame, which is what keeps it apart from the warn box for a
+   reader who cannot tell the two hues apart. */
+.rt-profile-sum-note.is-damaged {
+  padding: 6px 8px;
+  border: 1px dashed var(--danger);
+  border-radius: 6px;
+  background: var(--danger-soft);
+  color: var(--danger-strong);
+  font-weight: 500;
+  animation: rt-profile-sum-unread-in 250ms ease-in-out both;
+}
+@keyframes rt-profile-sum-unread-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rt-profile-sum-note.is-unread,
+  .rt-profile-sum-note.is-damaged { animation: none; }
+}
+
+.rt-profile-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rt-profile-btn {
+  flex: 1 1 auto;
+  font-size: 11.5px;
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+
+.rt-hud {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 10.5px;
+  color: var(--muted-2);
+  pointer-events: none;
+}

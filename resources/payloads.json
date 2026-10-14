@@ -1,0 +1,477 @@
+{
+  "$comment": [
+    "PROVENANCE MANIFEST for every non-JS binary payload shipped in the installer.",
+    "",
+    "This file is the answer to 'where did that binary come from?'. A blob of unknown",
+    "origin in a repository is unacceptable, and licence matters: ghostscript was",
+    "rejected for this pipeline because it is AGPL. Every entry therefore records a",
+    "source URL, a version, a licence, and a SHA-256 — of the ARCHIVE as fetched and",
+    "of each FILE extracted from it.",
+    "",
+    "BUILD TIME ONLY. `npm run payloads` reads this file on a DEVELOPER's machine and",
+    "populates the gitignored resources/ tree; electron-builder then bakes that tree",
+    "into the installer. The APPLICATION never reads this file and never fetches",
+    "anything — CLAUDE.md §2 requires it to run with networking disabled, and",
+    "`npm run verify:offline` enforces that no payload URL survives into the bundle.",
+    "",
+    "Hashes were each cross-checked against the publisher's OWN checksum manifest",
+    "(qpdf's qpdf-12.3.2.sha256, sqlite-vec's checksums.txt) rather than trusting the",
+    "bytes this machine happened to receive. See docs/packaging.md §Payloads.",
+    "",
+    "A pinned SHA-256 protects against a re-uploaded release asset, a poisoned cache",
+    "and a corrupted transfer. It does NOT protect against an upstream project that",
+    "was compromised before it published. That residual risk is accepted and named",
+    "here rather than left implicit."
+  ],
+  "schemaVersion": 1,
+  "payloads": [
+    {
+      "id": "qpdf",
+      "purpose": "PDF linearization/recompression for the `optimize` pipeline stage.",
+      "optional": true,
+      "degradation": "The optimize stage reports `skipped` naming the missing binary; documents are stored unoptimized. No output is silently changed.",
+      "version": "12.3.2",
+      "license": "Apache-2.0",
+      "licenseUrl": "https://github.com/qpdf/qpdf/blob/v12.3.2/LICENSE.txt",
+      "homepage": "https://github.com/qpdf/qpdf",
+      "notice": "qpdf is Apache-2.0. Apache-2.0 §4(d) requires the NOTICE to be reproduced; a third-party-licences screen is owed before release.",
+      "platforms": {
+        "linux-x64": {
+          "$comment": [
+            "BUILT FROM SOURCE, not fetched. The upstream binary release",
+            "qpdf-12.3.2-bin-linux-x86_64.zip ships a private gnutls/nettle/p11-kit/idn2",
+            "TLS stack in lib/ (verified: ldd resolves libgnutls.so.30 out of the zip).",
+            "Shipping that would mean signing, notarizing and tracking CVEs for a whole",
+            "TLS implementation inside an app that never opens a socket. The static",
+            "musl build links libc/libstdc++ only.",
+            "",
+            "TWO hashes are pinned. `source.sha256` is the input tarball, immutable",
+            "and independently published by upstream. `files[].sha256` is the BUILT",
+            "binary — which is safe to pin because this build was measured to be",
+            "bit-reproducible: a second `docker build --no-cache` from the same pinned",
+            "base-image digest produced a byte-identical 4658408-byte binary with the",
+            "same SHA-256. That is why the base image is pinned by DIGEST and not by",
+            "the `alpine:3.21` tag, which is rebuilt for every CVE patch and would",
+            "silently change the toolchain and therefore the output.",
+            "",
+            "Honest limit: reproducibility was confirmed on ONE host. A different",
+            "Docker/BuildKit version could still perturb the output. If the hash below",
+            "ever mismatches, that is a signal to investigate the toolchain — not to",
+            "edit the number until it passes."
+          ],
+          "build": "docker",
+          "dockerfile": "build/qpdf/Dockerfile",
+          "baseImage": "alpine@sha256:48b0309ca019d89d40f670aa1bc06e426dc0931948452e8491e3d65087abc07d",
+          "source": {
+            "url": "https://github.com/qpdf/qpdf/releases/download/v12.3.2/qpdf-12.3.2.tar.gz",
+            "sha256": "6cba2f9f2cd887d905faeb99e0e51a307b217920d1bbf3e9cfbb2e8178a2deda",
+            "sha256VerifiedAgainst": "https://github.com/qpdf/qpdf/releases/download/v12.3.2/qpdf-12.3.2.sha256"
+          },
+          "files": [
+            {
+              "dest": "bin/linux-x64/qpdf",
+              "mode": "0755",
+              "sha256": "dc8a97d2aefce2de6c12aa2bf16ba3b28aac50ffa908af1028435653d9d2b990",
+              "bytes": 4658408,
+              "reproducible": true,
+              "attributes": "statically linked (musl), crypto=native, stripped, zero network symbols"
+            }
+          ]
+        },
+        "win32-x64": {
+          "$comment": [
+            "Fetched, not built: the mingw64 release contains ONLY qpdf.exe, qpdf30.dll",
+            "and three mingw runtime DLLs — no TLS stack — so the objection that forced",
+            "a source build on Linux does not apply. The DLLs must sit BESIDE the exe.",
+            "The other ~40 MB of that zip (headers, static libs, docs) is not shipped."
+          ],
+          "archive": {
+            "url": "https://github.com/qpdf/qpdf/releases/download/v12.3.2/qpdf-12.3.2-mingw64.zip",
+            "sha256": "ebeb4692434a8cb8a27f876584c0c2b402b6251dc6c8ed4b39cf2304cada10e0",
+            "sha256VerifiedAgainst": "https://github.com/qpdf/qpdf/releases/download/v12.3.2/qpdf-12.3.2.sha256"
+          },
+          "files": [
+            {
+              "from": "qpdf-12.3.2-mingw64/bin/qpdf.exe",
+              "dest": "bin/win32-x64/qpdf.exe",
+              "sha256": "e8ff7719e1033f1d6ea25b41b375a38584fc978c5c3d2bcfa071e2c8fb4f7f90",
+              "mode": "0755"
+            },
+            {
+              "from": "qpdf-12.3.2-mingw64/bin/qpdf30.dll",
+              "dest": "bin/win32-x64/qpdf30.dll",
+              "sha256": "a2216818035e032cfff53d5890515b4e8fac5ec7b990ec0543a6cbd2b8afa25b",
+              "mode": "0644"
+            },
+            {
+              "from": "qpdf-12.3.2-mingw64/bin/libgcc_s_seh-1.dll",
+              "dest": "bin/win32-x64/libgcc_s_seh-1.dll",
+              "sha256": "54549c2946c3ccee5d8bd3680fd351539c30018acedea64568e474c40d0900db",
+              "mode": "0644"
+            },
+            {
+              "from": "qpdf-12.3.2-mingw64/bin/libstdc++-6.dll",
+              "dest": "bin/win32-x64/libstdc++-6.dll",
+              "sha256": "dc352127b8f399f95536d75745fcbc76c5b498d44d8fc55469fba1d8abac1823",
+              "mode": "0644"
+            },
+            {
+              "from": "qpdf-12.3.2-mingw64/bin/libwinpthread-1.dll",
+              "dest": "bin/win32-x64/libwinpthread-1.dll",
+              "sha256": "b18701b236992c1f6e0100bb7c68d31536f2e38f98de1650347616d50891ad8e",
+              "mode": "0644"
+            }
+          ]
+        },
+        "darwin-x64": {
+          "$comment": [
+            "WASM, because nobody publishes a macOS qpdf binary and this repo has no macOS",
+            "build host. Upstream v12.3.2 ships linux-x86_64, mingw32/64, msvc32/64, an",
+            "AppImage and source — nothing for darwin — so the choice on a Mac is a wasm",
+            "qpdf or no optimize stage at all.",
+            "",
+            "The SAME qpdf, compiled to wasm, which is what makes it admissible here. The",
+            "optimize stage is a transformer of document.file@v1 and every evidence-span",
+            "highlight is anchored to item geometry, which is why ghostscript was rejected",
+            "(it moved geometry in 19 of 20 papers). Measured before adopting this:",
+            "qpdf-wasm and the native binary were run over 6 real papers with identical",
+            "arguments and the output compared through the same pdfjs the viewer anchors",
+            "against — 33,090 text items, 0 moved, 0 text differences.",
+            "",
+            "VERSION SKEW IS DELIBERATE AND MUST STAY VISIBLE: this is qpdf 12.2.0 while",
+            "the native payload is 12.3.2, because the wasm package pins its own qpdf. The",
+            "optimize stage folds the flavour AND the version into its fingerprint",
+            "(`qpdf|wasm|12.2.0` vs `qpdf|12.3.2`) so a Mac that later gains a native",
+            "binary re-runs rather than serving a cached verdict from the other tool.",
+            "",
+            "ONE payload for both architectures: wasm is architecture-independent, so the",
+            "x64 and arm64 entries are byte-identical by construction rather than by",
+            "coincidence. Both are listed anyway because electron-builder filters",
+            "bin/darwin-${arch}/** per architecture.",
+            "",
+            "ISC-licensed packaging around Apache-2.0 qpdf; both notices are owed on the",
+            "third-party-licences screen."
+          ],
+          "wasm": true,
+          "wasmVersion": "12.2.0",
+          "archive": {
+            "url": "https://registry.npmjs.org/@neslinesli93/qpdf-wasm/-/qpdf-wasm-0.3.0.tgz",
+            "sha256": "404eab5d57db5b277dbda87ed75fb3557feaa76bd648e08fb0326ea95261d72d",
+            "sha256VerifiedAgainst": "the npm registry’s own dist.shasum for 0.3.0 (sha1 fc32b0ef137f178d23e97f7ccca8285170165bd4), recomputed locally as sha256"
+          },
+          "files": [
+            {
+              "from": "package/dist/qpdf.js",
+              "dest": "bin/darwin-x64/qpdf.js",
+              "sha256": "c0e8fe62e0c3385dd8cb5d6b613f74d87a4138a3a3343e2add45a067a14d0884",
+              "mode": "0644"
+            },
+            {
+              "from": "package/dist/qpdf.wasm",
+              "dest": "bin/darwin-x64/qpdf.wasm",
+              "sha256": "abd933f4ccace4f732999381b21aec8b7e3726f18a5b167fafd57f88dd440876",
+              "mode": "0644"
+            }
+          ]
+        },
+        "darwin-arm64": {
+          "$comment": [
+            "See darwin-x64: the same architecture-independent wasm payload."
+          ],
+          "wasm": true,
+          "wasmVersion": "12.2.0",
+          "archive": {
+            "url": "https://registry.npmjs.org/@neslinesli93/qpdf-wasm/-/qpdf-wasm-0.3.0.tgz",
+            "sha256": "404eab5d57db5b277dbda87ed75fb3557feaa76bd648e08fb0326ea95261d72d",
+            "sha256VerifiedAgainst": "the npm registry’s own dist.shasum for 0.3.0 (sha1 fc32b0ef137f178d23e97f7ccca8285170165bd4), recomputed locally as sha256"
+          },
+          "files": [
+            {
+              "from": "package/dist/qpdf.js",
+              "dest": "bin/darwin-arm64/qpdf.js",
+              "sha256": "c0e8fe62e0c3385dd8cb5d6b613f74d87a4138a3a3343e2add45a067a14d0884",
+              "mode": "0644"
+            },
+            {
+              "from": "package/dist/qpdf.wasm",
+              "dest": "bin/darwin-arm64/qpdf.wasm",
+              "sha256": "abd933f4ccace4f732999381b21aec8b7e3726f18a5b167fafd57f88dd440876",
+              "mode": "0644"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tessdata-eng",
+      "purpose": "Tesseract English model for the `ocr` stage (scanned PDFs only). `best` rather than `fast` because scientific notation is where the fast model loses: a plus-minus read as `6`, a superscript minus as `2 1`.",
+      "optional": true,
+      "degradation": "The ocr stage reports `skipped`. It must NEVER fall back to the CDN: tesseract.js downloads eng.traineddata from jsdelivr when `langPath` is unset (verified twice), which would break the offline rule. With langPath local and the file absent it fails loudly with ENOENT — keep it that way.",
+      "version": "tessdata_best 4.1.0",
+      "license": "Apache-2.0",
+      "licenseUrl": "https://github.com/tesseract-ocr/tessdata_best/blob/4.1.0/LICENSE",
+      "homepage": "https://github.com/tesseract-ocr/tessdata_best",
+      "platforms": {
+        "all": {
+          "$comment": "Platform-independent data. Pinned to the 4.1.0 TAG rather than a branch, so the bytes cannot move under the recorded hash.",
+          "files": [
+            {
+              "url": "https://github.com/tesseract-ocr/tessdata_best/raw/4.1.0/eng.traineddata",
+              "dest": "tesseract/tessdata/eng.traineddata",
+              "sha256": "8280aed0782fe27257a68ea10fe7ef324ca0f8d85bd2fd145d1c2b560bcb66ba",
+              "bytes": 15400601,
+              "mode": "0644"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "embedding-model",
+      "purpose": "Semantic search. Snowflake arctic-embed-s, int8 ONNX, 384-dim, CLS pooling — chosen by measurement over this repo's own corpus (tmp/embedding-model-decision.md §5).",
+      "optional": true,
+      "degradation": "Search falls back to keyword/FTS and MUST say so on the results surface. A semantic search that silently returns keyword results is the worst outcome available: the user reads a ranked list and concludes the corpus holds nothing relevant.",
+      "version": "e596f507467533e48a2e17c007f0e1dacc837b33",
+      "license": "Apache-2.0",
+      "licenseUrl": "https://huggingface.co/Snowflake/snowflake-arctic-embed-s",
+      "homepage": "https://huggingface.co/Snowflake/snowflake-arctic-embed-s",
+      "platforms": {
+        "all": {
+          "$comment": [
+            "Pinned to a REVISION SHA, not to `main`. Model cards are silently",
+            "re-uploaded, and a model id alone is not a version — §7 of the decision",
+            "doc requires model_revision on every stored vector precisely because",
+            "changing weights invalidates every embedding in the index.",
+            "",
+            "The directory layout is dictated by @huggingface/transformers, which with",
+            "env.localModelPath=<resources>/models resolves <org>/<model>/<file> and",
+            "<org>/<model>/onnx/<file>. Do not flatten it."
+          ],
+          "baseUrl": "https://huggingface.co/Snowflake/snowflake-arctic-embed-s/resolve/e596f507467533e48a2e17c007f0e1dacc837b33",
+          "files": [
+            {
+              "from": "config.json",
+              "dest": "models/Snowflake/snowflake-arctic-embed-s/config.json",
+              "sha256": "4e519aa92ec40943356032afe458c8829d70c5766b109e4a57490b82f72dcfb7",
+              "bytes": 703,
+              "mode": "0644"
+            },
+            {
+              "from": "tokenizer.json",
+              "dest": "models/Snowflake/snowflake-arctic-embed-s/tokenizer.json",
+              "sha256": "91f1def9b9391fdabe028cd3f3fcc4efd34e5d1f08c3bf2de513ebb5911a1854",
+              "bytes": 711649,
+              "mode": "0644"
+            },
+            {
+              "from": "tokenizer_config.json",
+              "dest": "models/Snowflake/snowflake-arctic-embed-s/tokenizer_config.json",
+              "sha256": "9ca59277519f6e3692c8685e26b94d4afca2d5438deff66483db495e48735810",
+              "bytes": 1433,
+              "mode": "0644"
+            },
+            {
+              "from": "special_tokens_map.json",
+              "dest": "models/Snowflake/snowflake-arctic-embed-s/special_tokens_map.json",
+              "sha256": "5d5b662e421ea9fac075174bb0688ee0d9431699900b90662acd44b2a350503a",
+              "bytes": 695,
+              "mode": "0644"
+            },
+            {
+              "from": "vocab.txt",
+              "dest": "models/Snowflake/snowflake-arctic-embed-s/vocab.txt",
+              "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
+              "bytes": 231508,
+              "mode": "0644"
+            },
+            {
+              "from": "onnx/model_quantized.onnx",
+              "dest": "models/Snowflake/snowflake-arctic-embed-s/onnx/model_quantized.onnx",
+              "sha256": "f93ff225320628d2e88baf2a395cae791b0e3b27edf5c70bf7b312a4d3260c14",
+              "bytes": 34015111,
+              "mode": "0644"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "reranker-model",
+      "purpose": "Project relevance. cross-encoder/ms-marco-MiniLM-L-6-v2, int8 ONNX — a cross-encoder reads the project description and a paper together and emits one relevance logit, which is a judgement the embedding model cannot make because it never sees the two texts at the same time.",
+      "optional": true,
+      "degradation": "The rerank stage reports `skipped` naming the missing model and relevance is left NULL — never 0, which would draw an empty bar reading as `judged, and found irrelevant`.",
+      "version": "233902d25c440f23af6f7d6e94d2946bac0bee0a",
+      "license": "Apache-2.0",
+      "licenseUrl": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "homepage": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "platforms": {
+        "all": {
+          "$comment": [
+            "A SIBLING ROOT of models/, not a subdirectory of it. discoverModelId()",
+            "in src/main/embedding/space.ts THROWS when it finds a second directory",
+            "carrying an onnx/ folder under modelsDir(), so one root per ROLE keeps",
+            "'exactly one model lives here' a structural fact rather than an",
+            "exclusion list somebody has to remember to extend.",
+            "",
+            "RENAMED ON THE WAY IN. Upstream calls the int8 weights",
+            "onnx/model_qint8_avx512.onnx; quantizationOf() matches",
+            "_quantized|_fp16|_int8|_uint8|_q4 and falls through to 'fp32' for",
+            "anything else, so under its upstream name this file would be recorded",
+            "as fp32 provenance AND loaded with dtype:'fp32'. The local name is the",
+            "one the code can read honestly.",
+            "",
+            "Pinned to a REVISION SHA for the same reason the embedding model is:",
+            "a model id is not a version, and re-uploaded weights change every",
+            "score the corpus was ranked by."
+          ],
+          "baseUrl": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2/resolve/233902d25c440f23af6f7d6e94d2946bac0bee0a",
+          "files": [
+            {
+              "from": "config.json",
+              "dest": "rerankers/cross-encoder/ms-marco-MiniLM-L-6-v2/config.json",
+              "sha256": "380e02c93f431831be65d99a4e7e5f67c133985bf2e77d9d4eba46847190bacc",
+              "bytes": 794,
+              "mode": "0644"
+            },
+            {
+              "from": "tokenizer.json",
+              "dest": "rerankers/cross-encoder/ms-marco-MiniLM-L-6-v2/tokenizer.json",
+              "sha256": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+              "bytes": 711396,
+              "mode": "0644"
+            },
+            {
+              "from": "tokenizer_config.json",
+              "dest": "rerankers/cross-encoder/ms-marco-MiniLM-L-6-v2/tokenizer_config.json",
+              "sha256": "a5c2e5a7b1a29a0702cd28c08a399b5ecc110c263009d17f7e3b415f25905fd8",
+              "bytes": 1330,
+              "mode": "0644"
+            },
+            {
+              "from": "special_tokens_map.json",
+              "dest": "rerankers/cross-encoder/ms-marco-MiniLM-L-6-v2/special_tokens_map.json",
+              "sha256": "3c3507f36dff57bce437223db3b3081d1e2b52ec3e56ee55438193ecb2c94dd6",
+              "bytes": 132,
+              "mode": "0644"
+            },
+            {
+              "from": "vocab.txt",
+              "dest": "rerankers/cross-encoder/ms-marco-MiniLM-L-6-v2/vocab.txt",
+              "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
+              "bytes": 231508,
+              "mode": "0644"
+            },
+            {
+              "from": "onnx/model_qint8_avx512.onnx",
+              "dest": "rerankers/cross-encoder/ms-marco-MiniLM-L-6-v2/onnx/model_quantized.onnx",
+              "sha256": "3573b6b9593cb2f75987a31815d409ca3dd8808629118fd20451bb1a5d90cec7",
+              "bytes": 23200716,
+              "mode": "0644"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sqlite-vec",
+      "purpose": "Vector k-NN over embeddings, as a SQLite loadable extension (better-sqlite3 loadExtension).",
+      "optional": true,
+      "degradation": "Vector search reports unavailable; search falls back to keyword/FTS with the same disclosure the embedding model requires.",
+      "version": "0.1.9",
+      "license": "Apache-2.0 OR MIT",
+      "licenseUrl": "https://github.com/asg017/sqlite-vec/blob/v0.1.9/LICENSE",
+      "homepage": "https://github.com/asg017/sqlite-vec",
+      "$comment": [
+        "Taken from the GitHub release rather than the npm package so that ONE",
+        "manifest-and-hash mechanism governs every payload, and so the darwin and",
+        "win32 artifacts can be provisioned from this Linux host.",
+        "",
+        "ARCH IS IN THE PATH. macOS ships separate x64 and arm64 builds and upstream",
+        "publishes a distinct dylib for each; a platform-only path would load the",
+        "wrong one on half of all Macs."
+      ],
+      "platforms": {
+        "linux-x64": {
+          "archive": {
+            "url": "https://github.com/asg017/sqlite-vec/releases/download/v0.1.9/sqlite-vec-0.1.9-loadable-linux-x86_64.tar.gz",
+            "sha256": "b959baa1d8dc88861b1edb337b8587178cdcb12d60b4998f9d10b6a82052d5d7",
+            "sha256VerifiedAgainst": "https://github.com/asg017/sqlite-vec/releases/download/v0.1.9/checksums.txt"
+          },
+          "files": [
+            {
+              "from": "vec0.so",
+              "dest": "lib/linux-x64/vec0.so",
+              "sha256": "5923730861b86c707cca5602b5f91092f9e52a46706dbc6e269fd4bb9c4498e8",
+              "bytes": 159816,
+              "mode": "0644"
+            }
+          ]
+        },
+        "linux-arm64": {
+          "archive": {
+            "url": "https://github.com/asg017/sqlite-vec/releases/download/v0.1.9/sqlite-vec-0.1.9-loadable-linux-aarch64.tar.gz",
+            "sha256": "ea03d39541e478fab5974253c461e1cb5d77742f69e40cf96e3fad5bc309a37c",
+            "sha256VerifiedAgainst": "https://github.com/asg017/sqlite-vec/releases/download/v0.1.9/checksums.txt"
+          },
+          "files": [
+            {
+              "from": "vec0.so",
+              "dest": "lib/linux-arm64/vec0.so",
+              "sha256": "0b84cbd06418ca3040827deddd650539be05be0f657952426b926c8606217437",
+              "bytes": 156520,
+              "mode": "0644"
+            }
+          ]
+        },
+        "darwin-arm64": {
+          "archive": {
+            "url": "https://github.com/asg017/sqlite-vec/releases/download/v0.1.9/sqlite-vec-0.1.9-loadable-macos-aarch64.tar.gz",
+            "sha256": "8282126333399ddfe98bbbcc7a1936e7252625aac49df056a98be602e46bfd29",
+            "sha256VerifiedAgainst": "https://github.com/asg017/sqlite-vec/releases/download/v0.1.9/checksums.txt"
+          },
+          "files": [
+            {
+              "from": "vec0.dylib",
+              "dest": "lib/darwin-arm64/vec0.dylib",
+              "sha256": "193e480c50b59a55977d166f4aaf0e1bc8832d6963516e5950f39e4d2ce0b793",
+              "bytes": 161896,
+              "mode": "0644"
+            }
+          ]
+        },
+        "darwin-x64": {
+          "archive": {
+            "url": "https://github.com/asg017/sqlite-vec/releases/download/v0.1.9/sqlite-vec-0.1.9-loadable-macos-x86_64.tar.gz",
+            "sha256": "53ad76e400786515e2edcaed2f01271dda846316390b761fadbd2dcf56aa4713",
+            "sha256VerifiedAgainst": "https://github.com/asg017/sqlite-vec/releases/download/v0.1.9/checksums.txt"
+          },
+          "files": [
+            {
+              "from": "vec0.dylib",
+              "dest": "lib/darwin-x64/vec0.dylib",
+              "sha256": "d39d33d16d302d57440d9a9cdbe3cc095e8324aa96b979b5171f545a6346996d",
+              "bytes": 127632,
+              "mode": "0644"
+            }
+          ]
+        },
+        "win32-x64": {
+          "archive": {
+            "url": "https://github.com/asg017/sqlite-vec/releases/download/v0.1.9/sqlite-vec-0.1.9-loadable-windows-x86_64.tar.gz",
+            "sha256": "51581189d52066b4dfc6631f6d7a3eab7dedc2260656ab09ca97ab3fb8165983",
+            "sha256VerifiedAgainst": "https://github.com/asg017/sqlite-vec/releases/download/v0.1.9/checksums.txt"
+          },
+          "files": [
+            {
+              "from": "vec0.dll",
+              "dest": "lib/win32-x64/vec0.dll",
+              "sha256": "fcf98662a7ad9dce394b96a88f91032047823831b951c76636787c312a6476e6",
+              "bytes": 289280,
+              "mode": "0644"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

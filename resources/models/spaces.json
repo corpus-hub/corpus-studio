@@ -1,0 +1,33 @@
+{
+  "$comment": [
+    "FAMILY KNOWLEDGE that is not in a model's own files, keyed by the model id",
+    "the packaging step wrote into resources/models/<org>/<model>/.",
+    "",
+    "Pooling and the query/document prefixes are the two settings that silently",
+    "halve retrieval quality when wrong, and NEITHER is discoverable from",
+    "config.json or tokenizer_config.json: a BertModel config says nothing about",
+    "whether the family was trained CLS-pooled or mean-pooled, and nothing at all",
+    "about an asymmetric prefix. The measured failure is quiet — search still",
+    "returns a ranked list, just a worse one — so the values live here, in data,",
+    "with their source cited, rather than as a constant in a stage.",
+    "",
+    "This file is DATA, not code, which is also why the no-model-id-in-source rule",
+    "is not violated by it: no TypeScript names a model, and a model that is not",
+    "listed here is refused loudly instead of being embedded under guessed",
+    "settings.",
+    "",
+    "Everything else about a space — dims, revision, quantisation, max sequence",
+    "length — is derived from the bytes actually on disk, so a swapped model file",
+    "changes the space automatically."
+  ],
+  "schemaVersion": 1,
+  "spaces": {
+    "Snowflake/snowflake-arctic-embed-s": {
+      "pooling": "cls",
+      "normalized": true,
+      "queryPrefix": "Represent this sentence for searching relevant passages: ",
+      "docPrefix": "",
+      "source": "https://huggingface.co/Snowflake/snowflake-arctic-embed-s — the model card's own usage example applies the query prefix to the QUERY only and embeds passages bare, with CLS pooling and L2 normalisation."
+    }
+  }
+}

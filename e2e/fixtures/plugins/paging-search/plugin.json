@@ -1,0 +1,10 @@
+{
+  "manifestVersion": 1,
+  "id": "paging-search",
+  "name": "Paging Search Fixture",
+  "version": "1.0.0",
+  "entry": "index.cjs",
+  "blurb": "A search source with a known, deliberately overlapping corpus, for testing how results are paged.",
+  "discloses": "nothing — it answers from a list held in its own file and opens no connection",
+  "params": []
+}

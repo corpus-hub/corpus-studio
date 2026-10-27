@@ -1,0 +1,170 @@
+node_modules/
+dist/
+dist-electron/
+out/
+*.log
+data/*.db
+data/*.db-*
+.corpus-data/
+*.sqlite
+*.sqlite-*
+.DS_Store
+test-results/
+playwright-report/
+# The e2e suite's own PDF library, kept off `data/pdfs/` so a spec cannot touch
+# the corpus a developer reads (see e2e/profile.ts).
+.e2e-pdfs/
+*.local
+.env
+.env.*
+!.env.example
+
+# The app-owned PDF library (`storageRootPath()`). Running from a checkout puts
+# it here so it is easy to inspect; a packaged app uses <userData>/pdfs instead.
+# It holds copyrighted papers and tens of megabytes per corpus — user data that
+# the seeder provisions, never source.
+data/pdfs/
+
+# packaging output and signing material
+release/
+build/icons/*.png
+build/icons/*.ico
+build/icons/*.icns
+*.p12
+*.pfx
+*.pem
+*.key
+*.crt
+*.cer
+*.mobileprovision
+
+# Shipped payloads are large per-platform binaries and model files, built or
+# fetched by scripts — not source. The TREE and its documentation are tracked.
+resources/bin/**
+resources/lib/**
+resources/models/**
+resources/rerankers/**
+resources/sidecar/**
+resources/tesseract/**
+# A PLUGIN'S OWN PAYLOAD, synced from the checkout that authors it, exactly as the
+# other payloads above are generated rather than committed. Vendoring an editable
+# second copy is the drift this repo pays for elsewhere; the snapshot belongs in
+# the installer, not in git.
+plugins/*/resources/**
+# Re-include the DIRECTORIES so git descends into them. Without this git prunes
+# each subtree wholesale and the .gitkeep negations below can never match, so a
+# fresh clone would lack the layout resources/README.md documents.
+!resources/bin/**/
+!resources/lib/**/
+!resources/models/**/
+!resources/rerankers/**/
+!resources/sidecar/**/
+!resources/tesseract/**
+plugins/*/resources/**/
+!resources/**/.gitkeep
+!resources/**/README.md
+# `resources/models/spaces.json` is SOURCE, not a payload. It carries the two
+# settings that are NOT discoverable from a model's own files — pooling and the
+# asymmetric query/document prefixes — and getting either wrong silently halves
+# retrieval quality without erroring. It is data rather than a constant in a
+# stage so that no TypeScript source names a model, per the embedding-space
+# design; losing it to the payload rules would mean the app could locate a model
+# and not know how to use it.
+!resources/models/spaces.json
+# `resources/rerankers/rerankers.json` is SOURCE on the same argument, for the
+# reranker role: it carries how an over-long (query, passage) pair is truncated
+# and what the emitted number IS, neither of which a cross-encoder's own files
+# state, and both of which are hashed into the identity every stored score is
+# stamped with. The weights beside it are 23 MB of payload and are provisioned.
+!resources/rerankers/rerankers.json
+
+# `resources/payloads.json` is SOURCE and is tracked (it is not matched by the
+# rules above). It is how "where did this binary come from, under what licence,
+# and with what hash?" is answered without shipping the binary through git.
+#
+# payloads.lock.json records what one machine actually provisioned. It is
+# derived, so it stays out of git; `npm run payloads` regenerates it and
+# `npm run verify:resources` checks the tree against payloads.json instead.
+resources/payloads.lock.json
+
+# Build input for the qpdf static image: a 19 MB source tarball fetched and
+# hash-checked by `npm run payloads`. The Dockerfile beside it IS tracked.
+build/qpdf/qpdf-src.tar.gz
+
+# Table-extraction spike build artefacts: a provisioned CPython tree and its
+# wheels (~155 MB). The scripts and JSON reports beside them ARE tracked, since
+# they are the evidence for tmp/tables-decision.md; rebuild these with
+# tmp/tables-spike/provision.sh, which pins the interpreter and pdfplumber.
+tmp/tables-spike/pbs/
+tmp/tables-spike/pbs.tar.gz
+tmp/tables-spike/site-packages/
+
+# A companion browser extension: a SEPARATE repo, cloned here so both halves can
+# be worked on in one place. It has its own history and its own remote, so it is
+# ignored rather than vendored -- committing it here would make two sources of
+# truth for the same files. The copy that SHIPS is generated into the plugin that
+# uses it; this clone is the source that sync reads.
+
+# Scratch worktrees checked out to work in isolation, and the agent state beside
+# them. Local to one machine and one session; the work itself arrives as commits
+# on a branch.
+/.claude/
+/.worktrees/
+
+# Browser-automation leftovers. Nothing here is authored; it is what a driven
+# browser dropped on its way past.
+/.playwright-mcp/
+
+# Scratch. Screenshots, probe output, one-off dumps: scripts WRITE here, nothing
+# READS it, and every file in it is reproducible by running the thing that made
+# it. It was tracked once and grew to 461 files of stale acceptance PNGs.
+/tmp/
+
+# This app's own local corpus. A developer's library is their own; it is not
+# something to hand to whoever clones this.
+/data/
+
+# One machine's container setup.
+/docker/
+
+# One editor's window layout.
+/science-search-aggregator.code-workspace
+
+# Timestamped DB backups. The `*.sqlite` rule above does not catch these: the
+# backup suffix comes AFTER the extension (corpus.sqlite.bak-1785251480), so
+# the pattern no longer matches and a copy of the user's whole corpus was one
+# `git add -A` away from being published.
+data/*.sqlite.bak-*
+*.sqlite.bak-*
+
+# Plugin bundles are build output: `npm run build` regenerates them from
+# plugins/*/src via scripts/build-plugins.ts.
+plugins/*/dist/
+
+# `npm run shot` screenshots. Every verification run rewrites them, so tracking
+# them means a permanently dirty tree and diffs that are pure binary churn.
+tmp/shots/
+
+# Implementation plans are working notes for one machine's operator: they name
+# deployment hosts, ports and internal service addresses in the course of
+# describing the work. This remote is public, so they stay local.
+docs/plans/
+
+# Scratch space for one-off probes and throwaway scripts, useful only for the
+# length of the task that produced them.
+tmp/scratch/
+tmp/plugcheck/
+tmp/*.mjs
+/rt.mjs
+/run.mjs
+
+# AppImage extraction residue from `--appimage-extract` during release testing.
+squashfs-root/
+
+# Git worktrees for isolated feature work.
+.worktrees/
+
+# The Apple code signer the macOS release job fetches into the build directory.
+# A pinned upstream binary, re-fetched and re-hash-checked whenever it is absent,
+# so it is derived data rather than source.
+.rcodesign/

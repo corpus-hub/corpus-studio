@@ -1,0 +1,16 @@
+/* ---------------------------------------------------------------- Integrations / Settings */
+.settings-screen {
+  max-width: 900px;
+}
+
+.settings-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.settings-card-head .eyebrow {
+  display: block;
+}

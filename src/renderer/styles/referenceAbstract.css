@@ -1,0 +1,267 @@
+/* SPECIFICITY, deliberately. `styles.css` carries
+   `.btn-secondary[aria-disabled='true']:hover { background: var(--panel) }`,
+   which is the same 0-3-0 weight as a bare `.btn.ra-btn-*:hover` and lands
+   LATER in source order — so it won, and on hover the pending and none
+   surfaces both flattened to one colour. Two states that render identically
+   are a bug (hard rule 0.5): hovering told the reader nothing, and the
+   "we have not asked" / "we asked and there is none" distinction this whole
+   component exists to draw disappeared under the pointer. Adding
+   `.btn-secondary` to our own selectors takes them to 0-4-0. */
+/* ============================================ READ ABSTRACT (cited unknowns)
+   ONE definition for the three places the button appears — the References
+   tree's selection bar, the connectome's unknown-reference rows and the Paper
+   screen's unresolved rows — so a reference cannot look pressable in one panel
+   and dead in another.
+
+   THE THREE STATES ARE THREE DIFFERENT SURFACES, not one surface at three
+   opacities. `.ra-btn-ready` is a live outlined button; `.ra-btn-pending` is
+   striped, because something is still going to happen to it; `.ra-btn-none` is
+   flat and ruled through at the left, because nothing is. Never colour alone:
+   the label already differs ("Read abstract" / "Getting abstract…" / "No
+   abstract found"), and each state adds a texture or a rule on top of its hue,
+   so the row survives a colourblind reader at a glance. */
+.btn.ra-btn {
+  font-size: 12.5px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition:
+    background 150ms ease-in-out,
+    border-color 150ms ease-in-out,
+    color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out,
+    transform 90ms ease-out;
+}
+
+/* --- READY: there is an abstract, and this opens it. ---------------------- */
+.btn.ra-btn-ready {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  color: var(--accent-strong);
+}
+.btn.ra-btn-ready:hover {
+  background: var(--accent-100);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+.btn.ra-btn-ready:active {
+  transform: translateY(1px);
+  background: var(--accent-100);
+  box-shadow: inset 0 1px 3px rgba(33, 26, 18, 0.16);
+}
+.btn.ra-btn-ready:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+/* OPEN is a PLACE: the button stays lit while the panel it governs is on
+   screen, so the two read as one object and the reader knows what to close. */
+.btn.ra-btn-ready.is-open,
+.btn.ra-btn-ready.is-open:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+}
+/* Fetching the text. Distinct from `.is-open` (which it always accompanies) by
+   the spinner and by staying on the soft fill until the prose arrives. */
+.btn.ra-btn-ready.is-busy,
+.btn.ra-btn-ready.is-busy:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-100);
+  color: var(--accent-strong);
+  cursor: progress;
+  transform: none;
+}
+.ra-spinner {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  animation: raspin 0.7s linear infinite;
+}
+@keyframes raspin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ra-spinner {
+    animation-duration: 2.4s;
+    animation-timing-function: steps(8);
+  }
+}
+
+/* --- PENDING: nothing has asked yet, or the index could not be reached. ---
+   STRIPED, and the stripes DRIFT. Both are "we do not know yet", and a state
+   that is going to change on its own must not sit as still as one that will
+   not. The motion is slow enough to be peripheral — this is ambient, not
+   pointer-tracking feedback. */
+.btn.ra-btn-pending,
+.btn.btn-secondary.ra-btn-pending:hover,
+.btn.btn-secondary.ra-btn-pending:active {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      var(--panel) 0 6px,
+      var(--panel-2) 6px 12px
+    );
+  border-color: var(--border-2);
+  color: var(--muted-2);
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+  background-size: 34px 34px;
+  animation: ra-stripe 2.4s linear infinite;
+}
+@keyframes ra-stripe {
+  to {
+    background-position: 34px 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn.ra-btn-pending {
+    animation: none;
+  }
+}
+/* Hover on an unavailable control still has to ACKNOWLEDGE the pointer — a
+   control that does not react at all reads as a dead region of the page, and
+   the tooltip explaining why is the thing the hover is actually for. */
+.btn.btn-secondary.ra-btn-pending:hover {
+  border-color: var(--muted-3);
+  color: var(--ink-2);
+}
+.btn.ra-btn-pending:focus-visible {
+  outline: none;
+  border-color: var(--muted-2);
+  box-shadow: 0 0 0 3px var(--panel-2);
+}
+
+/* --- NONE: an index answered and there is no abstract to read. ------------
+   FLAT, with the left rule carrying the state. No stripes: this is a settled
+   answer and must not read as something still arriving.
+
+   The label already reads "No abstract found", so nothing here repeats it. A
+   strikethrough did, and worse: a rule drawn through words is the mark for text
+   that has been RETRACTED, which said the label itself was withdrawn rather
+   than that the abstract is missing. The state is carried by the muted tone,
+   the flat fill and the left rule — three channels, none of them colour
+   alone. */
+.btn.ra-btn-none,
+.btn.btn-secondary.ra-btn-none:hover,
+.btn.btn-secondary.ra-btn-none:active {
+  background: transparent;
+  border-color: var(--border);
+  border-left: 3px solid var(--muted-3);
+  color: var(--muted-3);
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+  font-weight: 500;
+}
+.btn.btn-secondary.ra-btn-none:hover {
+  border-left-color: var(--muted-2);
+  color: var(--muted-2);
+  text-decoration-color: var(--muted-2);
+}
+.btn.ra-btn-none:focus-visible {
+  outline: none;
+  border-color: var(--muted-2);
+  box-shadow: 0 0 0 3px var(--panel-2);
+}
+
+/* ---------------------------------------------------------------- the panel */
+/* The shared `.modal` is a fixed 568px, right for a form and too narrow for
+   several paragraphs. Widened from the CONTAINER, capped at 76ch so the measure
+   stays readable. */
+.modal:has(.ra-modal) {
+  width: min(76ch, 92vw);
+}
+.ra-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.ra-label {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-bottom: 3px;
+}
+.ra-printed-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+/* Shown ONLY when the index matched a different title — a chip repeating the
+   line above it on every reference is a badge that stops being read. */
+.ra-matched {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 9px 11px;
+  border-left: 3px solid var(--warn);
+  background: var(--panel);
+  border-radius: 0 8px 8px 0;
+}
+.ra-matched-title {
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+/* PROSE, and the only long-form reading surface in this panel — so it gets a
+   measure. An abstract is 1000-1500 characters and the panel is wide enough to
+   run it at 130+ characters a line, which is roughly twice the width the eye
+   tracks comfortably; the result read as a slab. `65ch` keeps a normal line and
+   `margin-inline` keeps it centred rather than ragged against one edge when the
+   panel is wider.
+
+   `overflow-wrap: anywhere` stays, but only as the escape hatch it is for: a
+   long DOI or an unspaced chemical name would otherwise push the panel wide. */
+.ra-text {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+  max-width: 65ch;
+  margin-inline: auto;
+}
+.ra-text p {
+  margin: 0;
+}
+/* Between blocks, not inside them: a structured abstract's Background /
+   Methods / Results need to be separable at a glance, and an indent would fight
+   the flush-left block above it. */
+.ra-text p + p {
+  margin-top: 0.7em;
+}
+.ra-loading,
+.ra-none {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.ra-error {
+  font-size: 12.5px;
+  color: var(--danger);
+  line-height: 1.5;
+}
+.ra-prov {
+  font-size: 11px;
+  color: var(--muted-2);
+  letter-spacing: 0.03em;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
